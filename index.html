@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnlyWorlds Tool Template</title>
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    
+    <!-- Material Icons for category icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Main Application Container -->
+    <div id="app-container" class="app-container">
+        <!-- Auth Bar (Top Bar) -->
+        <div class="auth-bar">
+            <div class="auth-bar-content">
+                <div class="auth-inputs">
+                    <input type="text" id="api-key" placeholder="api key" class="auth-input" maxlength="10" />
+                    <input type="password" id="api-pin" placeholder="pin" class="auth-input auth-input-pin" maxlength="4" />
+                    <button id="validate-btn" class="btn-validate">validate</button>
+                    <span id="auth-status" class="auth-status"></span>
+                    <span id="world-name" class="world-name hidden"></span>
+                </div>
+                <div class="auth-bar-actions">
+                    <button id="help-btn" class="btn-icon" title="Help">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Screen (shown when not authenticated) -->
+        <div id="welcome-screen" class="welcome-screen">
+            <div class="welcome-content">
+                <h1>Welcome to OnlyWorlds Tool Template</h1>
+                <p>Enter your API credentials in the bar above to get started.</p>
+                <div class="welcome-features">
+                    <div class="feature">
+                        <span class="feature-icon material-icons-outlined">public</span>
+                        <h3>View World Elements</h3>
+                        <p>Browse all 22 element types in your world</p>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon material-icons-outlined">edit</span>
+                        <h3>Edit Elements</h3>
+                        <p>Create, update, and delete elements</p>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon material-icons-outlined">search</span>
+                        <h3>Search & Filter</h3>
+                        <p>Quickly find elements by name or type</p>
+                    </div>
+                </div>
+                <div class="welcome-footer">
+                    <p>Get your API credentials from <a href="https://www.onlyworlds.com" target="_blank">onlyworlds.com</a></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div id="main-content" class="main-content hidden">
+            <!-- Sidebar for Element Categories -->
+            <aside class="sidebar">
+                <h2>Elements</h2>
+                <div id="category-list" class="category-list">
+                    <!-- Categories will be populated here -->
+                </div>
+                <button id="create-element-btn" class="btn btn-primary" style="margin-top: 20px; width: 100%;">
+                    Create New Element
+                </button>
+            </aside>
+
+            <!-- Element List -->
+            <div class="element-list-container">
+                <div class="list-header">
+                    <h2 id="list-title">Select a Category</h2>
+                    <input type="text" id="search-input" placeholder="Search elements..." class="search-input hidden" />
+                </div>
+                <div id="element-list" class="element-list">
+                    <p class="empty-state">Select a category from the sidebar to view elements</p>
+                </div>
+            </div>
+
+            <!-- Element Detail View -->
+            <div class="element-detail-container">
+                <div id="element-detail" class="element-detail">
+                    <p class="empty-state">Select an element to view details</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Create Element</h2>
+                <button id="modal-close" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="element-form">
+                    <div class="form-group">
+                        <label for="element-type">Element Type</label>
+                        <select id="element-type" required>
+                            <!-- Options will be populated -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="element-name">Name *</label>
+                        <input type="text" id="element-name" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="element-description">Description</label>
+                        <textarea id="element-description" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="element-supertype">Supertype</label>
+                        <input type="text" id="element-supertype" placeholder="e.g., protagonist, artifact" />
+                    </div>
+                    <div class="form-group">
+                        <label for="element-subtype">Subtype</label>
+                        <input type="text" id="element-subtype" placeholder="e.g., human, weapon" />
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancel-btn" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Element</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Load JavaScript Modules -->
+    <script src="js/constants.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/viewer.js"></script>
+    <script src="js/editor.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
