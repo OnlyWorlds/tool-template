@@ -1,6 +1,7 @@
 /**
- * Editor Module
- * Handles creating and editing elements
+ * Editor Module  
+ * Handles creating new elements via modal
+ * Note: Editing existing elements is now handled by inline-editor.js
  */
 
 class ElementEditor {
@@ -58,6 +59,12 @@ class ElementEditor {
         // Reset form
         document.getElementById('element-form').reset();
         
+        // Clear dynamic fields
+        const container = document.getElementById('dynamic-fields-container');
+        if (container) {
+            container.innerHTML = '';
+        }
+        
         // Update modal title
         document.getElementById('modal-title').textContent = 'Create New Element';
         
@@ -69,36 +76,9 @@ class ElementEditor {
     }
     
     /**
-     * Open the modal for editing an existing element
-     * @param {string} type - Element type
-     * @param {string} id - Element ID
+     * Note: Editing is now handled by inline-editor.js
+     * This modal is only for creating new elements
      */
-    async editElement(type, id) {
-        this.isEditMode = true;
-        this.currentType = type;
-        
-        try {
-            // Fetch the element
-            const element = await this.api.getElement(type, id);
-            this.currentElement = element;
-            
-            // Populate form with element data
-            this.populateForm(element);
-            
-            // Update modal title
-            document.getElementById('modal-title').textContent = `Edit ${element.name}`;
-            
-            // Disable type selection in edit mode
-            document.getElementById('element-type').disabled = true;
-            
-            // Show modal
-            this.showModal();
-            
-        } catch (error) {
-            alert(`Error loading element: ${error.message}`);
-            console.error('Error loading element:', error);
-        }
-    }
     
     /**
      * Populate the form with element data
@@ -113,6 +93,149 @@ class ElementEditor {
         document.getElementById('element-description').value = element.description || '';
         document.getElementById('element-supertype').value = element.supertype || '';
         document.getElementById('element-subtype').value = element.subtype || '';
+        
+        // Generate and populate dynamic fields
+        this.generateDynamicFields(this.currentType, element);
+    }
+    
+    /**
+     * Generate dynamic form fields based on element type
+     * @param {string} elementType - Type of element
+     * @param {Object} elementData - Existing element data (for edit mode)
+     */
+    generateDynamicFields(elementType, elementData = {}) {
+        const container = document.getElementById('dynamic-fields-container');
+        if (!container) return;
+        
+        // Clear existing dynamic fields
+        container.innerHTML = '';
+        
+        // Get fields for this element type
+        const typeFields = ONLYWORLDS.ELEMENT_FIELDS[elementType];
+        if (!typeFields) return;
+        
+        // Add a separator
+        const separator = document.createElement('div');
+        separator.className = 'form-separator';
+        separator.innerHTML = '<h4>Type-Specific Fields</h4>';
+        container.appendChild(separator);
+        
+        // Create form fields for each type-specific field
+        Object.entries(typeFields).forEach(([fieldName, fieldType]) => {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+            
+            // Create label
+            const label = document.createElement('label');
+            label.setAttribute('for', `field-${fieldName}`);
+            const labelText = fieldName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            label.textContent = labelText;
+            
+            // Create input based on field type
+            let input;
+            const fieldValue = elementData[fieldName];
+            
+            switch(fieldType) {
+                case 'date':
+                    input = document.createElement('input');
+                    input.type = 'date';
+                    input.id = `field-${fieldName}`;
+                    input.name = fieldName;
+                    if (fieldValue) {
+                        // Convert ISO date to YYYY-MM-DD format for date input
+                        const dateValue = fieldValue.split('T')[0];
+                        input.value = dateValue;
+                    }
+                    break;
+                    
+                case 'number':
+                    input = document.createElement('input');
+                    input.type = 'number';
+                    input.id = `field-${fieldName}`;
+                    input.name = fieldName;
+                    input.value = fieldValue || '';
+                    break;
+                    
+                case 'boolean':
+                    input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.id = `field-${fieldName}`;
+                    input.name = fieldName;
+                    input.checked = fieldValue === true;
+                    break;
+                    
+                case 'array<uuid>':
+                case 'array<string>':
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = `field-${fieldName}`;
+                    input.name = fieldName;
+                    input.placeholder = 'Comma-separated values';
+                    if (Array.isArray(fieldValue)) {
+                        input.value = fieldValue.join(', ');
+                    } else {
+                        input.value = fieldValue || '';
+                    }
+                    // Add a help text for UUID arrays
+                    if (fieldType === 'array<uuid>') {
+                        const helpText = document.createElement('small');
+                        helpText.className = 'form-help-text';
+                        helpText.textContent = 'Enter comma-separated IDs';
+                        formGroup.appendChild(label);
+                        formGroup.appendChild(input);
+                        formGroup.appendChild(helpText);
+                        container.appendChild(formGroup);
+                        return;
+                    }
+                    break;
+                    
+                case 'uuid':
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = `field-${fieldName}`;
+                    input.name = fieldName;
+                    input.placeholder = 'Element ID';
+                    input.value = fieldValue || '';
+                    // Add help text
+                    const helpText = document.createElement('small');
+                    helpText.className = 'form-help-text';
+                    helpText.textContent = 'Enter an element ID';
+                    formGroup.appendChild(label);
+                    formGroup.appendChild(input);
+                    formGroup.appendChild(helpText);
+                    container.appendChild(formGroup);
+                    return;
+                    
+                case 'object':
+                    input = document.createElement('textarea');
+                    input.id = `field-${fieldName}`;
+                    input.name = fieldName;
+                    input.rows = 2;
+                    input.placeholder = 'JSON format (e.g., {"x": 100, "y": 200})';
+                    if (fieldValue && typeof fieldValue === 'object') {
+                        input.value = JSON.stringify(fieldValue);
+                    } else {
+                        input.value = fieldValue || '';
+                    }
+                    break;
+                    
+                default: // string
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = `field-${fieldName}`;
+                    input.name = fieldName;
+                    input.value = fieldValue || '';
+                    break;
+            }
+            
+            // Add data attribute for field type (useful for form processing)
+            input.setAttribute('data-field-type', fieldType);
+            
+            // Append to form group
+            formGroup.appendChild(label);
+            formGroup.appendChild(input);
+            container.appendChild(formGroup);
+        });
     }
     
     /**
@@ -137,27 +260,20 @@ class ElementEditor {
             let result;
             
             if (this.isEditMode) {
-                // Update existing element
-                const updates = {
-                    name: formData.name,
-                    description: formData.description,
-                    supertype: formData.supertype,
-                    subtype: formData.subtype
-                };
+                // Update existing element - include all fields from formData except 'type'
+                const updates = { ...formData };
+                delete updates.type; // Remove type field as it shouldn't be updated
                 
                 result = await this.api.updateElement(this.currentType, this.currentElement.id, updates);
                 alert('Element updated successfully');
                 
             } else {
-                // Create new element
-                const elementData = {
-                    name: formData.name,
-                    description: formData.description,
-                    supertype: formData.supertype,
-                    subtype: formData.subtype
-                };
+                // Create new element - use all fields except 'type'
+                const elementData = { ...formData };
+                const elementType = elementData.type;
+                delete elementData.type; // Remove type from data as it's passed separately
                 
-                result = await this.api.createElement(formData.type, elementData);
+                result = await this.api.createElement(elementType, elementData);
                 alert('Element created successfully');
             }
             
@@ -195,13 +311,73 @@ class ElementEditor {
      * @returns {Object} Form data
      */
     getFormData() {
-        return {
+        const formData = {
             type: document.getElementById('element-type').value,
             name: document.getElementById('element-name').value.trim(),
             description: document.getElementById('element-description').value.trim(),
             supertype: document.getElementById('element-supertype').value.trim(),
             subtype: document.getElementById('element-subtype').value.trim()
         };
+        
+        // Collect dynamic fields
+        const dynamicInputs = document.querySelectorAll('#dynamic-fields-container [data-field-type]');
+        dynamicInputs.forEach(input => {
+            const fieldName = input.name;
+            const fieldType = input.getAttribute('data-field-type');
+            
+            if (!fieldName) return;
+            
+            // Process value based on field type
+            let value;
+            switch(fieldType) {
+                case 'boolean':
+                    value = input.checked;
+                    break;
+                    
+                case 'number':
+                    value = input.value ? parseFloat(input.value) : null;
+                    break;
+                    
+                case 'date':
+                    value = input.value || null;
+                    break;
+                    
+                case 'array<uuid>':
+                case 'array<string>':
+                    // Convert comma-separated string to array
+                    if (input.value.trim()) {
+                        value = input.value.split(',').map(v => v.trim()).filter(v => v);
+                    } else {
+                        value = [];
+                    }
+                    break;
+                    
+                case 'object':
+                    // Try to parse JSON
+                    if (input.value.trim()) {
+                        try {
+                            value = JSON.parse(input.value);
+                        } catch (e) {
+                            // If JSON is invalid, store as string
+                            value = input.value.trim();
+                        }
+                    } else {
+                        value = null;
+                    }
+                    break;
+                    
+                default: // string, uuid
+                    value = input.value.trim() || null;
+                    break;
+            }
+            
+            // Only add field if it has a value
+            if (value !== null && value !== '' && (!Array.isArray(value) || value.length > 0)) {
+                formData[fieldName] = value;
+            }
+        });
+        
+        return formData;
     }
     
     /**
@@ -273,7 +449,7 @@ class ElementEditor {
             }
         });
         
-        // Add supertype suggestions based on element type
+        // Add supertype suggestions based on element type and generate dynamic fields
         document.getElementById('element-type')?.addEventListener('change', (e) => {
             const type = e.target.value;
             const supertypeInput = document.getElementById('element-supertype');
@@ -282,6 +458,11 @@ class ElementEditor {
                 supertypeInput.placeholder = `e.g., ${ONLYWORLDS.COMMON_SUPERTYPES[type].slice(0, 3).join(', ')}`;
             } else {
                 supertypeInput.placeholder = 'e.g., protagonist, artifact';
+            }
+            
+            // Generate dynamic fields for the selected type
+            if (type && !this.isEditMode) {
+                this.generateDynamicFields(type);
             }
         });
     }

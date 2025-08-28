@@ -24,6 +24,10 @@ class OnlyWorldsApp {
         // Attach main event listeners
         this.attachEventListeners();
         
+        // Pre-fill development credentials (REMOVE FOR PRODUCTION!)
+        document.getElementById('api-key').value = '3550908908';
+        document.getElementById('api-pin').value = '1111';
+        
         // Check for saved credentials (optional - remove for production)
         this.checkSavedCredentials();
     }

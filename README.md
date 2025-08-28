@@ -1,23 +1,50 @@
 # OnlyWorlds Tool Template
 
-A clean, minimal template for building tools that interact with the OnlyWorlds API. Perfect for beginners to get started with world-building data management.
+A clean, minimal template for building tools that interact with the OnlyWorlds API. Perfect for beginners to learn the OnlyWorlds ecosystem and create world-building applications.
 
 ## 🚀 Quick Start
 
-1. **Get your credentials** from [onlyworlds.com](https://www.onlyworlds.com)
-2. **Open** `index.html` in your browser
-3. **Enter** your 10-digit API Key and 4-digit PIN
-4. **Click** "validate" to connect
-5. **Start exploring** your world!
+### Option 1: Python (Mac/Linux usually have this)
+```bash
+python start.py
+```
+or
+```bash
+python3 start.py
+```
 
-## ✨ Features
+### Option 2: Node.js (Web developers usually have this)
+```bash
+npm start
+```
 
-- **Simple Authentication** - API Key and PIN validation
-- **Full CRUD Operations** - Create, Read, Update, Delete
+**Don't have either?**
+- **Windows** → Install Node.js: https://nodejs.org
+- **Mac/Linux** → You probably have Python, try `python --version`
+
+Browser opens automatically at http://localhost:8080
+
+## 🔑 Getting Started
+
+1. **Download or clone this repository**
+
+2. **Run one of the commands above**
+
+3. **Enter your OnlyWorlds credentials**
+   - Get them from [onlyworlds.com](https://www.onlyworlds.com)
+   - API Key: 10 digits
+   - PIN: 4 digits
+
+4. **Click "Connect" to start building!**
+
+## ✨ What This Template Does
+
+- **Full CRUD Operations** - Create, Read, Update, Delete all element types
 - **All 22 Element Types** - Complete OnlyWorlds support
-- **Search & Filter** - Find elements quickly
+- **Inline Editing** - Click any field to edit, auto-saves after 2 seconds
+- **Relationship Management** - Link elements together with smart pickers
 - **Clean Interface** - Responsive, modern design
-- **Beginner Friendly** - Well-structured, documented code
+- **Educational Code** - Well-commented vanilla JavaScript for learning
 
 ## 📁 Project Structure
 
@@ -26,115 +53,120 @@ tool-template/
 ├── index.html          # Main application
 ├── css/
 │   └── styles.css      # Styling
-└── js/
-    ├── constants.js    # OnlyWorlds configuration
-    ├── auth.js         # Authentication module
-    ├── api.js          # API service layer
-    ├── viewer.js       # Element display logic
-    ├── editor.js       # Create/edit functionality
-    └── app.js          # Main controller
+├── js/
+│   ├── constants.js    # Element types and field definitions
+│   ├── app.js          # Main application controller
+│   ├── api.js          # OnlyWorlds API integration
+│   ├── viewer.js       # Element display and listing
+│   ├── editor.js       # Create new elements
+│   └── inline-editor.js # Direct field editing
+└── start.py           # Python server launcher
 ```
 
-## 🛠️ How It Works
+## 🎯 Key Features for Developers
 
-### Authentication (`auth.js`)
-- Validates API credentials with OnlyWorlds
-- Fetches world metadata
-- Manages authentication state
+### Inline Editing Experience
+- Click any field to edit immediately (no "edit mode")
+- Auto-saves after 2 seconds of inactivity
+- Visual feedback: yellow = editing, blue = saving, green = saved
+- Keyboard shortcuts: Ctrl+Enter to save, Escape to cancel
 
-### API Service (`api.js`)
-- Handles all OnlyWorlds API calls
-- Implements proper UUID v7 generation
-- Manages element caching
-- Provides CRUD operations
+### Smart Relationship Handling
+- UUID fields automatically show relationship picker
+- Type detection from field names (e.g., `character_id` → Character type)
+- Single and multiple selection support
+- Graceful handling of broken references
 
-### Element Viewer (`viewer.js`)
-- Displays elements by category
-- Shows detailed element information
-- Handles search and filtering
-- Updates counts dynamically
+### Educational Design
+- **Vanilla JavaScript** - No build step, see exactly how it works
+- **Modular architecture** - Clear separation of concerns
+- **Extensive comments** - Learn patterns like debouncing, state management
+- **Manual UUID v7 generation** - Understanding time-ordered IDs
 
-### Element Editor (`editor.js`)
-- Modal-based create/edit interface
-- Form validation
-- Element type selection
-- Save and update functionality
+## 🛠️ Customization Ideas
 
-### Main App (`app.js`)
-- Coordinates all modules
-- Handles initialization
-- Manages UI state
-- Input validation
+### Quick Customizations
+- **Colors**: Edit CSS variables in `css/styles.css`
+- **Fields**: Add custom fields in `js/constants.js`
+- **Validation**: Enhance form validation in `js/editor.js`
 
-## 🎨 Customization
+### Build Your Own Tool
+This template is designed to be extended:
 
-### Styling
-Modify `css/styles.css` to change colors:
-```css
-:root {
-    --primary-color: #6200ea;
-    --secondary-color: #03dac6;
-    --background: #ffffff;
-}
-```
-
-### Extending Functionality
-The modular architecture makes it easy to add features:
-
-- **Export/Import** - Add data portability
-- **Batch Operations** - Process multiple elements
-- **Visualizations** - Create maps, timelines, graphs
-- **Advanced Filters** - Complex search queries
-- **Offline Mode** - Cache data locally
-
-## 🔧 Running Locally
-
-### Option 1: Direct File
-```bash
-# Simply open in browser
-open index.html
-```
-
-### Option 2: Local Server (Recommended)
-```bash
-# Python
-python -m http.server 8000
-
-# Node.js
-npx http-server
-
-# PHP
-php -S localhost:8000
-```
+- **Visualizers** - Add maps, timelines, relationship graphs
+- **Generators** - Create content programmatically
+- **Analyzers** - Extract insights from world data
+- **Converters** - Import/export to other formats
+- **Games** - Build interactive experiences with your world data
 
 ## 🐛 Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| CORS Error | Use a local server instead of `file://` |
-| Auth Fails | Check API Key (10 digits) and PIN (4 digits) |
-| No Elements | Create elements at onlyworlds.com first |
-| Network Error | Check internet connection and API status |
+| `python: command not found` | Try `python3` instead, or install from python.org |
+| `npm: command not found` | Install Node.js from nodejs.org |
+| Port 8080 already in use | Edit start.py or use `npm start -- -l 8081` |
+| CORS errors | Make sure you're using the server, not opening index.html directly |
+| Authentication fails | Check API Key (10 digits) and PIN (4 digits) |
+| No elements showing | Create some elements at onlyworlds.com first |
 
 ## 📚 Resources
 
-- **[Developer Guide](https://onlyworlds.github.io/docs/developer-support/my-first-tool.html)** - Complete tutorial for extending this template
-- **[API Documentation](https://www.onlyworlds.com/api/docs)** - Full API reference
-- **[OnlyWorlds GitHub](https://github.com/OnlyWorlds/OnlyWorlds)** - Official repository
-- **[Discord Community](https://discord.gg/twCjqvVBwb)** - Get help and share tools
+- **[API Documentation](https://www.onlyworlds.com/api/docs)** - Complete API reference
+- **[Developer Guide](https://onlyworlds.github.io/)** - Tutorials and best practices
+- **[GitHub](https://github.com/OnlyWorlds/OnlyWorlds)** - Main OnlyWorlds repository
+- **[Discord Community](https://discord.gg/twCjqvVBwb)** - Get help and share your tools
+
+## 🚀 Advanced Usage
+
+### Alternative Ports
+```bash
+# Python with different port
+python start.py  # (edit line 24 in start.py to change port)
+
+# Node with different port
+npx serve -s . -l 8081
+```
+
+### For Development
+During development, you can pre-fill your credentials:
+```javascript
+// In js/app.js around line 27-28
+document.getElementById('api-key').value = 'your-key';
+document.getElementById('api-pin').value = 'your-pin';
+```
+
+### Growing Your Tool
+Once you're ready to add frameworks or build tools:
+```bash
+# Add a framework
+npm install react vue svelte
+
+# Add TypeScript
+npm install --save-dev typescript
+
+# Add a bundler
+npm install --save-dev vite webpack parcel
+```
+
+## 💡 Tips for Building Tools
+
+1. **Start Simple** - Get basic CRUD working first
+2. **Test Edge Cases** - Empty worlds, broken references, slow connections
+3. **Follow Conventions** - Use the standard field names and types
+4. **Handle Errors Gracefully** - Users might have network issues
+5. **Keep It Educational** - Your tool might be someone's first look at the API
 
 ## 🤝 Contributing
 
-This template is designed to be forked and extended! Ideas:
-
- 
+This template is meant to be forked and modified! Share your tools with the OnlyWorlds community.
 
 ## 📄 License
 
-Free to use and modify for OnlyWorlds tools.
+MIT License - Free to use and modify for any OnlyWorlds tools.
 
 ---
 
-**Ready to build something amazing?** Check out the [complete developer guide](https://onlyworlds.github.io/docs/developer-support/my-first-tool.html) for detailed tutorials on extending this template!
+**Ready to build?** This template gives you everything needed to create OnlyWorlds tools. Simple enough for beginners, flexible enough for any application.
 
-*Built for the OnlyWorlds community* 🌍
+*Made with ❤️ for the OnlyWorlds community*

@@ -167,113 +167,38 @@ class ElementViewer {
     }
     
     /**
-     * Display detailed view of an element
+     * Display detailed view of an element with inline editing
      * @param {Object} element - Element to display in detail
      */
     async displayElementDetails(element) {
         const detailContainer = document.getElementById('element-detail');
         
-        // Use a fallback for elements without names
-        const displayName = element.name || element.title || `Unnamed ${this.currentCategory}`;
-        
-        // Build detail view
-        let html = `
-            <div class="detail-header">
-                <h2>${this.escapeHtml(displayName)}</h2>
-                <div class="detail-actions">
-                    <button class="btn btn-small" onclick="elementEditor.editElement('${this.currentCategory}', '${element.id}')">Edit</button>
-                    <button class="btn btn-small btn-danger" onclick="elementViewer.deleteElement('${this.currentCategory}', '${element.id}')">Delete</button>
-                </div>
-            </div>
-        `;
-        
-        // Add base fields
-        html += '<div class="detail-section">';
-        html += '<h3>Basic Information</h3>';
-        html += '<table class="detail-table">';
-        
-        // Display base fields
-        const baseFieldsToShow = ['name', 'description', 'supertype', 'subtype', 'image_url'];
-        baseFieldsToShow.forEach(field => {
-            if (element[field]) {
-                const label = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                const value = field === 'image_url' 
-                    ? `<a href="${element[field]}" target="_blank">View Image</a>`
-                    : this.escapeHtml(element[field]);
-                html += `
-                    <tr>
-                        <td class="field-label">${label}:</td>
-                        <td class="field-value">${value}</td>
-                    </tr>
-                `;
-            }
-        });
-        
-        html += '</table>';
-        html += '</div>';
-        
-        // Add custom fields (fields not in base fields)
-        const customFields = Object.keys(element).filter(field => 
-            !ONLYWORLDS.BASE_FIELDS.includes(field)
-        );
-        
-        if (customFields.length > 0) {
-            html += '<div class="detail-section">';
-            html += '<h3>Additional Fields</h3>';
-            html += '<table class="detail-table">';
-            
-            for (const field of customFields) {
-                const value = element[field];
-                if (value !== null && value !== undefined) {
-                    const label = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    
-                    // Handle different value types
-                    let displayValue;
-                    if (Array.isArray(value)) {
-                        displayValue = value.length > 0 ? value.join(', ') : '<em>Empty list</em>';
-                    } else if (typeof value === 'object') {
-                        displayValue = '<pre>' + JSON.stringify(value, null, 2) + '</pre>';
-                    } else if (typeof value === 'boolean') {
-                        displayValue = value ? 'Yes' : 'No';
-                    } else {
-                        displayValue = this.escapeHtml(String(value));
-                    }
-                    
-                    html += `
-                        <tr>
-                            <td class="field-label">${label}:</td>
-                            <td class="field-value">${displayValue}</td>
-                        </tr>
-                    `;
-                }
-            }
-            
-            html += '</table>';
-            html += '</div>';
+        // Initialize inline editor instead of static display
+        if (!window.inlineEditor) {
+            window.inlineEditor = new InlineEditor(this.api);
         }
         
-        // Add metadata
-        html += '<div class="detail-section">';
-        html += '<h3>Metadata</h3>';
-        html += '<table class="detail-table">';
-        html += `
-            <tr>
-                <td class="field-label">ID:</td>
-                <td class="field-value"><code>${element.id}</code></td>
-            </tr>
-            <tr>
-                <td class="field-label">Created:</td>
-                <td class="field-value">${this.formatDate(element.created_at)}</td>
-            </tr>
-            <tr>
-                <td class="field-label">Updated:</td>
-                <td class="field-value">${this.formatDate(element.updated_at)}</td>
-            </tr>
-        `;
-        html += '</table>';
-        html += '</div>';
+        // Clean up any previous editing session
+        window.inlineEditor.cleanup();
         
-        detailContainer.innerHTML = html;
+        // Initialize editor with the element
+        window.inlineEditor.initializeEditor(element, this.currentCategory, detailContainer);
+    }
+    
+    /**
+     * Delete element with confirmation
+     * @param {string} type - Element type
+     * @param {string} id - Element ID
+     */
+    async deleteElementWithConfirm(type, id) {
+        const element = this.currentElements.find(e => e.id === id);
+        const name = element?.name || 'this element';
+        
+        if (!confirm(`Are you sure you want to delete "${name}"? This cannot be undone.`)) {
+            return;
+        }
+        
+        await this.deleteElement(type, id);
     }
     
     /**

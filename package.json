@@ -1,0 +1,20 @@
+{
+  "name": "onlyworlds-tool-template",
+  "version": "1.0.0",
+  "description": "OnlyWorlds Tool Template - Build world-building applications",
+  "scripts": {
+    "start": "npx serve -s . -l 8080"
+  },
+  "keywords": [
+    "onlyworlds",
+    "worldbuilding",
+    "template",
+    "api"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OnlyWorlds/tool-template.git"
+  },
+  "homepage": "https://github.com/OnlyWorlds/tool-template#readme"
+}
