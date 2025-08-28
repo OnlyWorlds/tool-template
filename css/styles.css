@@ -896,19 +896,188 @@ body {
     font-style: italic;
 }
 
-.btn-picker {
-    padding: 6px 12px;
-    background: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background 0.2s;
+/* Enhanced Relationship Fields */
+.relationship-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
 }
 
-.btn-picker:hover {
-    background: #45a049;
+.relationship-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+}
+
+.element-tag {
+    display: inline-flex;
+    align-items: center;
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 16px;
+    padding: 4px 8px 4px 12px;
+    font-size: 13px;
+    gap: 6px;
+    max-width: 200px;
+}
+
+.element-tag.tag-invalid {
+    background: #ffebee;
+    border-color: #ef9a9a;
+}
+
+.tag-name {
+    color: #1976d2;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tag-name:hover {
+    text-decoration: underline;
+}
+
+.tag-invalid .tag-name {
+    color: #c62828;
+    cursor: default;
+}
+
+.tag-invalid .tag-name:hover {
+    text-decoration: none;
+}
+
+.tag-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: transparent;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.tag-remove:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #d32f2f;
+}
+
+.btn-add-relationship {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: 1px dashed #999;
+    border-radius: 14px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.btn-add-relationship:hover {
+    background: #f5f5f5;
+    border-color: #1976d2;
+    color: #1976d2;
+}
+
+.btn-add-relationship .material-icons-outlined {
+    font-size: 18px;
+}
+
+/* Relationship Selector Dropdown */
+.relationship-selector {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 300px;
+    max-height: 400px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.selector-search {
+    padding: 10px;
+    border: none;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    outline: none;
+}
+
+.selector-search:focus {
+    background: #f5f5f5;
+}
+
+.selector-results {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 350px;
+}
+
+.selector-loading,
+.selector-empty,
+.selector-error {
+    padding: 20px;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}
+
+.selector-error {
+    color: #d32f2f;
+}
+
+.selector-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.1s;
+}
+
+.selector-item:hover {
+    background: #f5f5f5;
+}
+
+.selector-item.selected {
+    background: #e8f5e9;
+}
+
+.selector-item.selected:hover {
+    background: #c8e6c9;
+}
+
+.selector-icon {
+    font-size: 18px;
+    color: #666;
+}
+
+.selector-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.selector-desc {
+    font-size: 11px;
+    color: #999;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 150px;
 }
 
 /* Relationship Modal */

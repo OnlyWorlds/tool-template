@@ -110,18 +110,16 @@ class ElementEditor {
         // Clear existing dynamic fields
         container.innerHTML = '';
         
-        // Get fields for this element type
-        const typeFields = ONLYWORLDS.ELEMENT_FIELDS[elementType];
-        if (!typeFields) return;
+        // Note: Type-specific fields are now handled by the field-types.js system
+        // Fields will be available for editing after creation via inline editor
+        const info = document.createElement('div');
+        info.className = 'form-info';
+        info.innerHTML = '<p><em>Additional fields will be available for editing after creation.</em></p>';
+        container.appendChild(info);
         
-        // Add a separator
-        const separator = document.createElement('div');
-        separator.className = 'form-separator';
-        separator.innerHTML = '<h4>Type-Specific Fields</h4>';
-        container.appendChild(separator);
-        
-        // Create form fields for each type-specific field
-        Object.entries(typeFields).forEach(([fieldName, fieldType]) => {
+        // Skip dynamic field generation - now handled by getFieldType() system
+        if (false) { // Disable the old field generation
+            const dummyFieldEntries = [];
             const formGroup = document.createElement('div');
             formGroup.className = 'form-group';
             
@@ -170,7 +168,7 @@ class ElementEditor {
                     input.type = 'text';
                     input.id = `field-${fieldName}`;
                     input.name = fieldName;
-                    input.placeholder = 'Comma-separated values';
+                    input.placeholder = '';
                     if (Array.isArray(fieldValue)) {
                         input.value = fieldValue.join(', ');
                     } else {
@@ -180,7 +178,7 @@ class ElementEditor {
                     if (fieldType === 'array<uuid>') {
                         const helpText = document.createElement('small');
                         helpText.className = 'form-help-text';
-                        helpText.textContent = 'Enter comma-separated IDs';
+                        helpText.textContent = '';
                         formGroup.appendChild(label);
                         formGroup.appendChild(input);
                         formGroup.appendChild(helpText);
@@ -194,12 +192,12 @@ class ElementEditor {
                     input.type = 'text';
                     input.id = `field-${fieldName}`;
                     input.name = fieldName;
-                    input.placeholder = 'Element ID';
+                    input.placeholder = '';
                     input.value = fieldValue || '';
                     // Add help text
                     const helpText = document.createElement('small');
                     helpText.className = 'form-help-text';
-                    helpText.textContent = 'Enter an element ID';
+                    helpText.textContent = '';
                     formGroup.appendChild(label);
                     formGroup.appendChild(input);
                     formGroup.appendChild(helpText);
@@ -211,7 +209,7 @@ class ElementEditor {
                     input.id = `field-${fieldName}`;
                     input.name = fieldName;
                     input.rows = 2;
-                    input.placeholder = 'JSON format (e.g., {"x": 100, "y": 200})';
+                    input.placeholder = '';
                     if (fieldValue && typeof fieldValue === 'object') {
                         input.value = JSON.stringify(fieldValue);
                     } else {
@@ -231,11 +229,8 @@ class ElementEditor {
             // Add data attribute for field type (useful for form processing)
             input.setAttribute('data-field-type', fieldType);
             
-            // Append to form group
-            formGroup.appendChild(label);
-            formGroup.appendChild(input);
-            container.appendChild(formGroup);
-        });
+            // This code is disabled - use inline editor after creation instead
+            } // End disabled section
     }
     
     /**
@@ -455,9 +450,9 @@ class ElementEditor {
             const supertypeInput = document.getElementById('element-supertype');
             
             if (ONLYWORLDS.COMMON_SUPERTYPES[type]) {
-                supertypeInput.placeholder = `e.g., ${ONLYWORLDS.COMMON_SUPERTYPES[type].slice(0, 3).join(', ')}`;
+                supertypeInput.placeholder = '';
             } else {
-                supertypeInput.placeholder = 'e.g., protagonist, artifact';
+                supertypeInput.placeholder = '';
             }
             
             // Generate dynamic fields for the selected type

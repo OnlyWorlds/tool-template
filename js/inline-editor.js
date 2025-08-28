@@ -29,6 +29,7 @@ class InlineEditor {
     initializeEditor(element, elementType, container) {
         this.editingElement = element;
         this.editingType = elementType;
+        this.elementType = elementType;  // Store for use in createCompactField
         this.originalValues = {};
         this.dirtyFields.clear();
         
@@ -119,37 +120,21 @@ class InlineEditor {
             }
         });
         
-        // Get type-specific fields
-        const typeFields = ONLYWORLDS.ELEMENT_FIELDS[this.editingType] || {};
-        
-        // Render type-specific fields
-        Object.entries(typeFields).forEach(([fieldName, fieldType]) => {
-            // Check if element has this field or if it's a relationship field
-            if (this.editingElement.hasOwnProperty(fieldName) || 
-                fieldType.includes('uuid') || 
-                fieldType.includes('array')) {
-                const fieldDiv = this.createCompactField(
-                    fieldName,
-                    this.editingElement[fieldName],
-                    fieldType
-                );
-                container.appendChild(fieldDiv);
-            }
-        });
-        
-        // Render any additional custom fields not in the schema
+        // Render all element fields (using new field type system)
         Object.keys(this.editingElement).forEach(fieldName => {
-            // Skip if already rendered or is metadata
+            // Skip if already rendered base field or metadata
             if (baseFields.includes(fieldName) || 
-                typeFields.hasOwnProperty(fieldName) ||
                 ['id', 'world', 'created_at', 'updated_at'].includes(fieldName)) {
                 return;
             }
             
+            // Get field type using new system
+            const fieldType = getFieldTypeString(fieldName);
+            
             const fieldDiv = this.createCompactField(
                 fieldName,
                 this.editingElement[fieldName],
-                'string'
+                fieldType
             );
             container.appendChild(fieldDiv);
         });
@@ -178,9 +163,19 @@ class InlineEditor {
         const valueContainer = document.createElement('div');
         valueContainer.className = 'compact-value';
         
-        // For relationship fields, create special picker
+        // For relationship fields, use new relationship editor
         if (fieldType === 'uuid' || fieldType === 'array<uuid>') {
-            this.createRelationshipPicker(valueContainer, fieldName, value, fieldType);
+            if (!window.relationshipEditor) {
+                window.relationshipEditor = new RelationshipEditor(this.api, this);
+            }
+            
+            window.relationshipEditor.createRelationshipField(
+                valueContainer, 
+                fieldName, 
+                value, 
+                fieldType, 
+                this.editingElement  // Use the stored element from initialization
+            );
         } else {
             // Create normal input
             let input;
@@ -206,12 +201,12 @@ class InlineEditor {
                     input = this.createObjectInput(fieldName, value);
                     break;
                     
-                default: // string or description
-                    if (fieldName === 'description' || fieldName === 'content') {
-                        input = this.createTextareaInput(fieldName, value);
-                    } else {
-                        input = this.createTextInput(fieldName, value);
-                    }
+                case 'longtext':
+                    input = this.createTextareaInput(fieldName, value);
+                    break;
+                    
+                default: // string
+                    input = this.createTextInput(fieldName, value);
             }
             
             // Add event listeners
@@ -321,7 +316,7 @@ class InlineEditor {
                     <button class="modal-close-btn">&times;</button>
                 </div>
                 <div class="relationship-modal-body">
-                    <input type="text" class="relationship-search" placeholder="Search...">
+                    <input type="text" class="relationship-search" placeholder="">
                     <div class="relationship-list">Loading...</div>
                 </div>
                 <div class="relationship-modal-footer">
@@ -516,9 +511,7 @@ class InlineEditor {
         if (fieldType === 'array<uuid>' || fieldType === 'uuid') {
             const help = document.createElement('small');
             help.className = 'field-help';
-            help.textContent = fieldType === 'uuid' 
-                ? 'Enter an element ID' 
-                : 'Enter comma-separated IDs';
+            help.textContent = '';
             fieldDiv.appendChild(help);
         }
         
@@ -534,7 +527,7 @@ class InlineEditor {
         input.name = fieldName;
         input.value = value || '';
         input.className = 'inline-input';
-        input.placeholder = `Enter ${this.formatFieldName(fieldName).toLowerCase()}`;
+        input.placeholder = '';
         return input;
     }
     
@@ -547,7 +540,7 @@ class InlineEditor {
         textarea.value = value || '';
         textarea.className = 'inline-textarea';
         textarea.rows = 3;
-        textarea.placeholder = `Enter ${this.formatFieldName(fieldName).toLowerCase()}`;
+        textarea.placeholder = '';
         
         // Auto-resize textarea
         textarea.addEventListener('input', () => {
@@ -586,7 +579,7 @@ class InlineEditor {
         input.name = fieldName;
         input.value = value || '';
         input.className = 'inline-input';
-        input.placeholder = '0';
+        input.placeholder = '';
         return input;
     }
     
@@ -631,7 +624,7 @@ class InlineEditor {
             input.value = value || '';
         }
         
-        input.placeholder = 'Comma-separated values';
+        input.placeholder = '';
         return input;
     }
     
@@ -644,7 +637,7 @@ class InlineEditor {
         input.name = fieldName;
         input.value = value || '';
         input.className = 'inline-input uuid-input';
-        input.placeholder = 'Element ID (UUID)';
+        input.placeholder = '';
         input.pattern = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
         return input;
     }
@@ -657,7 +650,7 @@ class InlineEditor {
         textarea.name = fieldName;
         textarea.className = 'inline-textarea json-input';
         textarea.rows = 2;
-        textarea.placeholder = '{"key": "value"}';
+        textarea.placeholder = '';
         
         if (value && typeof value === 'object') {
             textarea.value = JSON.stringify(value, null, 2);
@@ -760,6 +753,44 @@ class InlineEditor {
         // Update status
         if (this.dirtyFields.size === 0) {
             this.updateSaveStatus('saved');
+        }
+    }
+    
+    /**
+     * Save a single field immediately (for relationship editor)
+     */
+    async saveField(fieldName, value) {
+        // Save field to API
+        
+        try {
+            const updated = await this.api.updateElement(
+                this.editingType,
+                this.editingElement.id,
+                { [fieldName]: value }
+            );
+            
+            // Field saved successfully
+            
+            // Update local element
+            Object.assign(this.editingElement, updated);
+            return true;
+        } catch (error) {
+            // Save failed
+            
+            // Enhanced error message for relationship fields
+            const isRelField = window.isRelationshipField && window.isRelationshipField(fieldName);
+            let errorMessage = `Failed to save ${fieldName}: ${error.message}`;
+            
+            if (isRelField) {
+                errorMessage += `\n\nThis is a relationship field. Common causes:`;
+                errorMessage += `\n• Linked elements don't exist or belong to different world`;
+                errorMessage += `\n• World field is missing or incorrect`;
+                errorMessage += `\n• API key/pin permissions issue`;
+                errorMessage += `\n\nCheck the browser console for detailed diagnostics.`;
+            }
+            
+            alert(errorMessage);
+            return false;
         }
     }
     
@@ -893,11 +924,13 @@ class InlineEditor {
      * Format field name for display
      */
     formatFieldName(fieldName) {
-        return fieldName
+        // Remove _id or _ids suffix for relationship fields
+        let cleaned = fieldName.replace(/_ids?$/, '');
+        
+        // Format the cleaned name
+        return cleaned
             .replace(/_/g, ' ')
             .replace(/\b\w/g, l => l.toUpperCase())
-            .replace(' Id', ' ID')
-            .replace(' Ids', ' IDs')
             .replace(' Url', ' URL');
     }
     
