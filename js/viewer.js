@@ -49,17 +49,28 @@ class ElementViewer {
      * Update element counts for each category
      */
     async updateCategoryCounts() {
-        for (const type of ONLYWORLDS.ELEMENT_TYPES) {
+        // Fetch all counts in parallel but update UI as each resolves
+        const countPromises = ONLYWORLDS.ELEMENT_TYPES.map(async (type) => {
             try {
                 const elements = await this.api.getElements(type);
+                // Update UI immediately when this request completes
                 const countElement = document.getElementById(`count-${type}`);
                 if (countElement) {
                     countElement.textContent = elements.length;
                 }
+                return elements.length;
             } catch (error) {
                 console.warn(`Could not get count for ${type}:`, error);
+                const countElement = document.getElementById(`count-${type}`);
+                if (countElement) {
+                    countElement.textContent = '0';
+                }
+                return 0;
             }
-        }
+        });
+        
+        // Wait for all to complete (they're still parallel)
+        await Promise.all(countPromises);
     }
     
     /**
