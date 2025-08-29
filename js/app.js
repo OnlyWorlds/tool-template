@@ -3,6 +3,11 @@
  * Coordinates all modules and handles the main application flow
  */
 
+import { apiService } from './api.js';
+import { authManager } from './auth.js';
+import ElementEditor from './editor.js';
+import ElementViewer from './viewer.js';
+
 class OnlyWorldsApp {
     constructor() {
         this.isConnected = false;
@@ -18,15 +23,23 @@ class OnlyWorldsApp {
         this.setupErrorHandling();
         
         // Initialize viewer and editor with API service
-        window.elementViewer = new ElementViewer(window.apiService);
-        window.elementEditor = new ElementEditor(window.apiService);
+        this.elementViewer = new ElementViewer(apiService);
+        this.elementEditor = new ElementEditor(apiService);
+        
+        // Make them globally accessible for debugging and cross-module access
+        window.elementViewer = this.elementViewer;
+        window.elementEditor = this.elementEditor;
         
         // Attach main event listeners
         this.attachEventListeners();
         
-        // Pre-fill development credentials (REMOVE FOR PRODUCTION!)
-        document.getElementById('api-key').value = '3550908908';
-        document.getElementById('api-pin').value = '1111';
+        // Development helper - add ?dev=true to URL to enable
+        if (window.location.search.includes('dev=true')) {
+            // Developers add their own credentials here locally
+            // document.getElementById('api-key').value = 'YOUR_KEY';
+            // document.getElementById('api-pin').value = 'YOUR_PIN';
+            console.log('Dev mode enabled - uncomment lines 29-30 in app.js to add your credentials');
+        }
         
         // Check for saved credentials (optional - remove for production)
         this.checkSavedCredentials();
@@ -124,7 +137,7 @@ class OnlyWorldsApp {
         
         try {
             // Authenticate
-            await window.authManager.authenticate(apiKey, apiPin);
+            await authManager.authenticate(apiKey, apiPin);
             
             // Success! Update UI
             this.showMainApp();
@@ -158,7 +171,7 @@ class OnlyWorldsApp {
         } else {
             // Enable only when API key is 10 digits and PIN is 4 digits
             validateBtn.disabled = apiKey.length !== 10 || apiPin.length !== 4;
-            validateBtn.textContent = 'Load World';
+            validateBtn.textContent = 'load world';
             validateBtn.classList.remove('validated');
         }
     }
@@ -188,7 +201,7 @@ class OnlyWorldsApp {
         document.getElementById('main-content').classList.remove('hidden');
         
         // Display world name
-        const world = window.authManager.getCurrentWorld();
+        const world = authManager.getCurrentWorld();
         if (world) {
             const worldNameElement = document.getElementById('world-name');
             worldNameElement.textContent = world.name || 'Unnamed World';
@@ -196,8 +209,8 @@ class OnlyWorldsApp {
         }
         
         // Initialize viewer and editor
-        window.elementViewer.init();
-        window.elementEditor.init();
+        this.elementViewer.init();
+        this.elementEditor.init();
         
         this.isConnected = true;
         
@@ -284,16 +297,31 @@ class OnlyWorldsApp {
         localStorage.removeItem('ow_api_key');
         localStorage.removeItem('ow_api_pin');
     }
+    
+    /**
+     * Show error message to user
+     * @param {string} message - Error message to display
+     */
+    showError(message) {
+        // For now use alert, but could be improved later with a better UI
+        alert(message);
+    }
 }
 
 // Initialize the application when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    const app = new OnlyWorldsApp();
+const app = new OnlyWorldsApp();
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        app.init();
+    });
+} else {
+    // DOM is already loaded
     app.init();
-    
-    // Make app globally accessible for debugging
-    window.app = app;
-    
-    console.log('OnlyWorlds Tool Template - Ready');
-    console.log('Visit https://www.onlyworlds.com to get your API credentials');
-});
+}
+
+// Make app globally accessible for debugging
+window.app = app;
+
+console.log('OnlyWorlds Tool Template - Ready');
+console.log('Visit https://www.onlyworlds.com to get your API credentials');

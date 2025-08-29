@@ -50,17 +50,25 @@ Browser opens automatically at http://localhost:8080
 
 ```
 tool-template/
-├── index.html          # Main application
+├── index.html           # Main application (loads ES modules)
 ├── css/
-│   └── styles.css      # Styling
-├── js/
-│   ├── constants.js    # Element types and field definitions
-│   ├── app.js          # Main application controller
-│   ├── api.js          # OnlyWorlds API integration
-│   ├── viewer.js       # Element display and listing
-│   ├── editor.js       # Create new elements
-│   └── inline-editor.js # Direct field editing
-└── start.py           # Python server launcher
+│   └── styles.css       # Styling
+├── js/                  # Modern ES modules architecture
+│   ├── app.js           # Main entry point & application controller
+│   ├── constants.js     # Element types and field definitions
+│   ├── auth.js          # Authentication management
+│   ├── api.js           # OnlyWorlds API integration
+│   ├── viewer.js        # Element display and listing
+│   ├── editor.js        # Create new elements modal
+│   ├── inline-editor.js # Direct field editing (refactored)
+│   ├── field-renderer.js # Field rendering logic (extracted)
+│   ├── auto-save.js     # Auto-save management (extracted)
+│   ├── relationship-editor.js # UUID relationship handling
+│   ├── field-types.js   # Field type definitions
+│   └── type-manager.js  # Supertype/subtype management
+├── start.py             # Python server launcher
+├── package.json         # Node.js configuration
+└── .gitattributes      # Line ending consistency
 ```
 
 ## 🎯 Key Features for Developers
@@ -78,10 +86,11 @@ tool-template/
 - Graceful handling of broken references
 
 ### Educational Design
-- **Vanilla JavaScript** - No build step, see exactly how it works
+- **Modern ES Modules** - Clean imports/exports, no build step required
 - **Modular architecture** - Clear separation of concerns
 - **Extensive comments** - Learn patterns like debouncing, state management
 - **Manual UUID v7 generation** - Understanding time-ordered IDs
+- **Refactored for clarity** - Inline editor split into focused modules
 
 ## 🛠️ Customization Ideas
 
@@ -129,11 +138,15 @@ npx serve -s . -l 8081
 ```
 
 ### For Development
-During development, you can pre-fill your credentials:
+During development, add `?dev=true` to the URL for development mode:
+```
+http://localhost:8080/?dev=true
+```
+
+Then uncomment and add your credentials in `js/app.js` lines 29-30:
 ```javascript
-// In js/app.js around line 27-28
-document.getElementById('api-key').value = 'your-key';
-document.getElementById('api-pin').value = 'your-pin';
+document.getElementById('api-key').value = 'YOUR_KEY';
+document.getElementById('api-pin').value = 'YOUR_PIN';
 ```
 
 ### Growing Your Tool

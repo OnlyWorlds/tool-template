@@ -3,10 +3,15 @@
  * Handles all CRUD operations with the OnlyWorlds API
  */
 
-class OnlyWorldsAPI {
+import { ONLYWORLDS } from './constants.js';
+import { authManager } from './auth.js';
+import { getFieldType, isRelationshipField } from './field-types.js';
+
+export default class OnlyWorldsAPI {
     constructor(authManager) {
         this.auth = authManager;
         this.cache = new Map(); // Simple cache for elements
+        this.worldId = null; // Cache the world ID once found
     }
     
     /**
@@ -90,6 +95,13 @@ class OnlyWorldsAPI {
             let worldFieldIssues = 0;
             
             for (const element of data) {
+                // Cache world ID from first element that has it
+                if (!this.worldId && element.world) {
+                    this.worldId = typeof element.world === 'string' 
+                        ? element.world 
+                        : element.world.id;
+                }
+                
                 // Ensure world field is present and in correct format
                 if (!element.world) {
                     worldFieldIssues++;
@@ -311,7 +323,7 @@ class OnlyWorldsAPI {
             
             // Check if we're dealing with link fields
             const linkFieldsInUpdate = Object.keys(updates).filter(key => 
-                window.isRelationshipField && window.isRelationshipField(key)
+                isRelationshipField && isRelationshipField(key)
             );
             
             if (linkFieldsInUpdate.length > 0) {
@@ -351,11 +363,11 @@ class OnlyWorldsAPI {
             // Need to account for field name transformations (_id/_ids suffixes)
             const mismatchedFields = Object.keys(updates).filter(key => {
                 // For relationship fields, the API expects field_id/field_ids but returns field
-                const isRelField = window.isRelationshipField && window.isRelationshipField(key);
+                const isRelField = isRelationshipField && isRelationshipField(key);
                 
                 if (isRelField) {
                     // We sent field_id or field_ids, but server returns just field
-                    const fieldType = window.getFieldType ? window.getFieldType(key) : null;
+                    const fieldType = getFieldType ? getFieldType(key) : null;
                     const apiFieldName = fieldType && fieldType.type === 'array<uuid>' 
                         ? (key.endsWith('_ids') ? key : `${key}_ids`)
                         : (key.endsWith('_id') ? key : `${key}_id`);
@@ -390,9 +402,9 @@ class OnlyWorldsAPI {
                     fields: mismatchedFields,
                     sent: mismatchedFields.reduce((acc, key) => {
                         // For relationship fields, get the value with the suffix
-                        const isRelField = window.isRelationshipField && window.isRelationshipField(key);
+                        const isRelField = isRelationshipField && isRelationshipField(key);
                         if (isRelField) {
-                            const fieldType = window.getFieldType ? window.getFieldType(key) : null;
+                            const fieldType = getFieldType ? getFieldType(key) : null;
                             const apiFieldName = fieldType && fieldType.type === 'array<uuid>' 
                                 ? (key.endsWith('_ids') ? key : `${key}_ids`)
                                 : (key.endsWith('_id') ? key : `${key}_id`);
@@ -413,7 +425,7 @@ class OnlyWorldsAPI {
                 
                 // Enhanced diagnostics for relationship field failures
                 const relationshipFailures = mismatchedFields.filter(field => 
-                    window.isRelationshipField && window.isRelationshipField(field)
+                    isRelationshipField && isRelationshipField(field)
                 );
                 
                 if (relationshipFailures.length > 0) {
@@ -576,8 +588,8 @@ class OnlyWorldsAPI {
             
             // Check if this might be a link field BEFORE handling null values
             // Use the global function if available, or detect by field name/type
-            const isLinkField = (window.isRelationshipField && window.isRelationshipField(fieldName)) ||
-                               (window.getFieldType && ['uuid', 'array<uuid>'].includes(window.getFieldType(fieldName)?.type)) ||
+            const isLinkField = (isRelationshipField && isRelationshipField(fieldName)) ||
+                               (getFieldType && ['uuid', 'array<uuid>'].includes(getFieldType(fieldName)?.type)) ||
                                (typeof value === 'object' && value !== null && value.id) ||
                                (Array.isArray(value) && value.length > 0 && 
                                 typeof value[0] === 'object' && value[0] !== null && value[0].id);
@@ -585,7 +597,7 @@ class OnlyWorldsAPI {
             // Handle null/undefined values for link fields differently
             if ((value === null || value === undefined) && isLinkField) {
                 // For null relationship fields, we still need to add the suffix
-                const fieldType = window.getFieldType ? window.getFieldType(fieldName) : null;
+                const fieldType = getFieldType ? getFieldType(fieldName) : null;
                 if (fieldType && fieldType.type === 'array<uuid>') {
                     const apiFieldName = fieldName.endsWith('_ids') ? fieldName : `${fieldName}_ids`;
                     cleaned[apiFieldName] = [];  // Empty array for multi-link fields
@@ -624,7 +636,7 @@ class OnlyWorldsAPI {
                     cleaned[apiFieldName] = cleanedId;
                 } else if (typeof value === 'string' && value) {
                     // Already an ID string, but still need to add suffix
-                    if (window.getFieldType && window.getFieldType(fieldName).type === 'array<uuid>') {
+                    if (getFieldType && getFieldType(fieldName).type === 'array<uuid>') {
                         // Multi-link field
                         const apiFieldName = fieldName.endsWith('_ids') ? fieldName : `${fieldName}_ids`;
                         cleaned[apiFieldName] = [value]; // Wrap single ID in array for consistency
@@ -656,20 +668,27 @@ class OnlyWorldsAPI {
      * Get the world ID from cache or fetch it
      */
     async getWorldId() {
+        // Return cached world ID if we already have it
+        if (this.worldId) {
+            return this.worldId;
+        }
+        
         // Try to find world ID from any cached element
         for (const [key, value] of this.cache.entries()) {
             if (value && value.world) {
                 if (typeof value.world === 'string') {
-                    return value.world;
+                    this.worldId = value.world; // Cache it
+                    return this.worldId;
                 } else if (value.world.id) {
-                    return value.world.id;
+                    this.worldId = value.world.id; // Cache it
+                    return this.worldId;
                 }
             }
         }
         
         // Try different world endpoints to find the correct one
         const worldEndpoints = [
-            '/world/',                    // Direct world endpoint
+            // Note: /world/ endpoint doesn't exist in the API, removed to prevent 404s
             `${ONLYWORLDS.API_BASE}/world/`,  // Full worldapi path
             'https://www.onlyworlds.com/api/world/',  // Alternative path
         ];
@@ -683,11 +702,12 @@ class OnlyWorldsAPI {
                 if (response.ok) {
                     const worlds = await response.json();
                     if (worlds && worlds.length > 0) {
-                        const worldId = worlds[0].id;
-                        return worldId;
+                        this.worldId = worlds[0].id; // Cache it
+                        return this.worldId;
                     } else if (worlds && worlds.id) {
                         // Single world object instead of array
-                        return worlds.id;
+                        this.worldId = worlds.id; // Cache it
+                        return this.worldId;
                     }
                 }
             } catch (error) {
@@ -705,10 +725,10 @@ class OnlyWorldsAPI {
                 if (response.ok) {
                     const elements = await response.json();
                     if (elements && elements.length > 0 && elements[0].world) {
-                        const worldId = typeof elements[0].world === 'string' 
+                        this.worldId = typeof elements[0].world === 'string' 
                             ? elements[0].world 
                             : elements[0].world.id;
-                        return worldId;
+                        return this.worldId;
                     }
                 }
             }
@@ -726,8 +746,9 @@ class OnlyWorldsAPI {
      */
     clearCache() {
         this.cache.clear();
+        this.worldId = null; // Clear cached world ID
     }
 }
 
-// Create global instance
-window.apiService = new OnlyWorldsAPI(window.authManager);
+// Create and export singleton instance
+export const apiService = new OnlyWorldsAPI(authManager);

@@ -3,6 +3,8 @@
  * Fetches and caches supertype/subtype hierarchies from the OnlyWorlds API
  */
 
+import { ONLYWORLDS } from './constants.js';
+
 class TypeManagementService {
     constructor() {
         // Cache for API data to avoid frequent requests
@@ -138,5 +140,5 @@ class TypeManagementService {
     }
 }
 
-// Create global instance
-window.typeManager = new TypeManagementService();
+// Create and export singleton instance
+export default new TypeManagementService();

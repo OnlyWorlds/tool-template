@@ -84,10 +84,15 @@ Web browsers have security restrictions (CORS) that prevent local HTML files fro
 ## 💡 Developer Tips
 
 ### Pre-fill Credentials During Development
-Edit `js/app.js` around line 27-28:
+Add `?dev=true` to your URL to enable development mode:
+```
+http://localhost:8080/?dev=true
+```
+
+Then uncomment and edit lines 29-30 in `js/app.js`:
 ```javascript
-document.getElementById('api-key').value = 'your-api-key';
-document.getElementById('api-pin').value = 'your-pin';
+document.getElementById('api-key').value = 'YOUR_KEY';
+document.getElementById('api-pin').value = 'YOUR_PIN';
 ```
 
 ### Change the Default Port
@@ -130,10 +135,14 @@ Once you've customized your tool, you can host it online:
 ## 📚 Next Steps
 
 1. **Explore the Code**
+   - `js/app.js` - Main ES module entry point
    - `js/constants.js` - Element types and fields
    - `js/api.js` - API integration
    - `js/viewer.js` - Display logic
-   - `js/inline-editor.js` - Editing functionality
+   - `js/inline-editor.js` - Editing functionality (now modular)
+   - `js/field-renderer.js` - Field rendering logic
+   - `js/auto-save.js` - Auto-save management
+   - `js/relationship-editor.js` - Relationship field handling
 
 2. **Make It Your Own**
    - Customize the styling in `css/styles.css`

@@ -163,5 +163,5 @@ const ONLYWORLDS = {
     // This provides a single source of truth based on the authoritative OnlyWorlds schema
 };
 
-// Make constants available globally
-window.ONLYWORLDS = ONLYWORLDS;
+// Export for ES module usage
+export { ONLYWORLDS };

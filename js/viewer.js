@@ -3,7 +3,10 @@
  * Handles displaying elements in the UI
  */
 
-class ElementViewer {
+import { ONLYWORLDS } from './constants.js';
+import InlineEditor from './inline-editor.js';
+
+export default class ElementViewer {
     constructor(apiService) {
         this.api = apiService;
         this.currentCategory = null;
@@ -185,15 +188,15 @@ class ElementViewer {
         const detailContainer = document.getElementById('element-detail');
         
         // Initialize inline editor instead of static display
-        if (!window.inlineEditor) {
-            window.inlineEditor = new InlineEditor(this.api);
+        if (!this.inlineEditor) {
+            this.inlineEditor = new InlineEditor(this.api);
         }
         
         // Clean up any previous editing session
-        window.inlineEditor.cleanup();
+        this.inlineEditor.cleanup();
         
         // Initialize editor with the element
-        window.inlineEditor.initializeEditor(element, this.currentCategory, detailContainer);
+        this.inlineEditor.initializeEditor(element, this.currentCategory, detailContainer);
     }
     
     /**
@@ -312,5 +315,4 @@ class ElementViewer {
     }
 }
 
-// Create global instance (will be initialized after API is ready)
-window.elementViewer = null;
+// Export for ES module use

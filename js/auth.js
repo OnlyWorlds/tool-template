@@ -2,7 +2,9 @@
  * Handles API key and PIN validation for OnlyWorlds API
  */
 
-class AuthManager {
+import { ONLYWORLDS } from './constants.js';
+
+export default class AuthManager {
     constructor() {
         this.apiKey = null;
         this.apiPin = null;
@@ -141,5 +143,5 @@ class AuthManager {
     }
 }
 
-// Create a global instance
-window.authManager = new AuthManager();
+// Create and export singleton instance
+export const authManager = new AuthManager();

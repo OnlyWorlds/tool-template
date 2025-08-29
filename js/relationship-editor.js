@@ -3,7 +3,10 @@
  * Provides inline editing with dropdown selector
  */
 
-class RelationshipEditor {
+import { ONLYWORLDS } from './constants.js';
+import { getFieldType, getRelationshipTarget } from './field-types.js';
+
+export default class RelationshipEditor {
     constructor(api, inlineEditor) {
         this.api = api;
         this.inlineEditor = inlineEditor;
@@ -519,5 +522,4 @@ class RelationshipEditor {
     }
 }
 
-// Create global instance
-window.relationshipEditor = null; // Will be initialized after API is ready
+// Export class for ES module use

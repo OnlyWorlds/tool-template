@@ -24,7 +24,7 @@
                 <div class="auth-inputs">
                     <input type="text" id="api-key" placeholder="api key" class="auth-input" maxlength="10" />
                     <input type="password" id="api-pin" placeholder="pin" class="auth-input auth-input-pin" maxlength="4" />
-                    <button id="validate-btn" class="btn-validate">Load World</button>
+                    <button id="validate-btn" class="btn-validate">load world</button>
                     <span id="auth-status" class="auth-status"></span>
                     <span id="world-name" class="world-name hidden"></span>
                 </div>
@@ -146,16 +146,7 @@
         <div class="spinner"></div>
     </div>
 
-    <!-- Load JavaScript Modules -->
-    <script src="js/constants.js"></script>
-    <script src="js/field-types.js"></script>
-    <script src="js/type-manager.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/inline-editor.js"></script>
-    <script src="js/relationship-editor.js"></script>
-    <script src="js/viewer.js"></script>
-    <script src="js/editor.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Load JavaScript as ES Module -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -8,6 +8,8 @@
  * Only explicitly define non-string fields here.
  */
 
+import { ONLYWORLDS } from './constants.js';
+
 // Field type definitions with relationship targets
 const FIELD_TYPES = {
     // Base fields (shared by all elements)
@@ -64,7 +66,7 @@ const FIELD_TYPES = {
     'speed': { type: 'number' },
     
     // Long text fields (better UX with textarea)
-    'physicality': { type: 'longtext' },
+    'physicality': { type: 'string' },
     'background': { type: 'longtext' },
     'motivations': { type: 'longtext' },
     'story': { type: 'longtext' },
@@ -216,8 +218,5 @@ function isRelationshipField(fieldName) {
     return fieldInfo.type === 'uuid' || fieldInfo.type === 'array<uuid>';
 }
 
-// Export functions for global use
-window.getFieldType = getFieldType;
-window.getFieldTypeString = getFieldTypeString;
-window.getRelationshipTarget = getRelationshipTarget;
-window.isRelationshipField = isRelationshipField;
+// Export functions for ES module use
+export { getFieldType, getFieldTypeString, getRelationshipTarget, isRelationshipField };

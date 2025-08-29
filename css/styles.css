@@ -758,6 +758,13 @@ body {
     margin: 0;
     font-size: 24px;
     color: #333;
+    flex: 1;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .save-status {
@@ -769,6 +776,37 @@ body {
     border-radius: 20px;
     font-size: 13px;
     transition: all 0.3s ease;
+}
+
+.delete-btn-icon {
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(255, 68, 68, 0.2);
+}
+
+.delete-btn-icon:hover {
+    background: #ff3333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 68, 68, 0.3);
+}
+
+.delete-btn-icon:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(255, 68, 68, 0.2);
+}
+
+.delete-btn-icon svg {
+    width: 20px;
+    height: 20px;
 }
 
 .save-status::before {
@@ -1252,7 +1290,13 @@ body {
 
 .inline-textarea {
     min-height: 60px;
-    resize: vertical;
+    resize: vertical; /* Allow vertical resizing with draggable corner */
+}
+
+.inline-textarea-small {
+    min-height: 32px; /* Start smaller for regular text fields */
+    resize: vertical; /* Allow vertical resizing with draggable corner */
+    overflow-y: hidden; /* Hide scrollbar initially */
 }
 
 .json-input {

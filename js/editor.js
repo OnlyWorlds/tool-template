@@ -4,7 +4,11 @@
  * Note: Editing existing elements is now handled by inline-editor.js
  */
 
-class ElementEditor {
+import { ONLYWORLDS } from './constants.js';
+import { getFieldType } from './field-types.js';
+import typeManager from './type-manager.js';
+
+export default class ElementEditor {
     constructor(apiService) {
         this.api = apiService;
         this.currentElement = null;
@@ -450,9 +454,9 @@ class ElementEditor {
             const supertypeInput = document.getElementById('element-supertype');
             const subtypeInput = document.getElementById('element-subtype');
             
-            if (type && window.typeManager) {
+            if (type && typeManager) {
                 // Load supertypes for this category
-                const supertypes = await window.typeManager.getSupertypes(type);
+                const supertypes = await typeManager.getSupertypes(type);
                 
                 // Create or update supertype datalist
                 let supertypeList = document.getElementById('supertype-list');
@@ -475,7 +479,7 @@ class ElementEditor {
                 
                 // Set default supertype if not editing
                 if (!this.isEditMode && !supertypeInput.value) {
-                    const defaultSupertype = await window.typeManager.getDefaultSupertype(type);
+                    const defaultSupertype = await typeManager.getDefaultSupertype(type);
                     if (defaultSupertype) {
                         supertypeInput.value = defaultSupertype;
                         // Trigger change event to load subtypes
@@ -496,9 +500,9 @@ class ElementEditor {
             const type = document.getElementById('element-type').value;
             const subtypeInput = document.getElementById('element-subtype');
             
-            if (type && supertype && window.typeManager) {
+            if (type && supertype && typeManager) {
                 // Load subtypes for this supertype
-                const subtypes = await window.typeManager.getSubtypes(type, supertype);
+                const subtypes = await typeManager.getSubtypes(type, supertype);
                 
                 // Create or update subtype datalist
                 let subtypeList = document.getElementById('subtype-list');
@@ -521,7 +525,7 @@ class ElementEditor {
                 
                 // Set default subtype if not editing
                 if (!this.isEditMode && !subtypeInput.value) {
-                    const defaultSubtype = await window.typeManager.getDefaultSubtype(type, supertype);
+                    const defaultSubtype = await typeManager.getDefaultSubtype(type, supertype);
                     if (defaultSubtype) {
                         subtypeInput.value = defaultSubtype;
                     }
@@ -537,5 +541,4 @@ class ElementEditor {
     }
 }
 
-// Create global instance (will be initialized after API is ready)
-window.elementEditor = null;
+// Export for ES module use
