@@ -46,7 +46,7 @@ const ONLYWORLDS = {
         'world'
     ],
     
-    // Human-readable names for element types
+    // Human-readable names for element types (plural for headers)
     ELEMENT_LABELS: {
         ability: 'Abilities',
         character: 'Characters',
@@ -70,6 +70,32 @@ const ONLYWORLDS = {
         title: 'Titles',
         trait: 'Traits',
         zone: 'Zones'
+    },
+    
+    // Singular names for sidebar
+    ELEMENT_SINGULAR: {
+        ability: 'Ability',
+        character: 'Character',
+        collective: 'Collective',
+        construct: 'Construct',
+        creature: 'Creature',
+        event: 'Event',
+        family: 'Family',
+        institution: 'Institution',
+        language: 'Language',
+        law: 'Law',
+        location: 'Location',
+        map: 'Map',
+        marker: 'Marker',
+        narrative: 'Narrative',
+        object: 'Object',
+        phenomenon: 'Phenomenon',
+        pin: 'Pin',
+        relation: 'Relation',
+        species: 'Species',
+        title: 'Title',
+        trait: 'Trait',
+        zone: 'Zone'
     },
     
     // Material Icon names for each element type (matches OnlyWorlds spec)

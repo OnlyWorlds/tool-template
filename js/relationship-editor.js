@@ -452,14 +452,38 @@ class RelationshipEditor {
     /**
      * View element in detail
      */
-    viewElement(elementId, targetType) {
-        // Find the element in current list and select it
-        const elementCard = document.querySelector(`[data-id="${elementId}"]`);
-        if (elementCard) {
-            elementCard.click();
-        } else {
-            // TODO: Load the element type and select it
-            // TODO: Load the element type and select it
+    async viewElement(elementId, targetType) {
+        // If the target type category is already selected, just select the element
+        if (window.elementViewer && window.elementViewer.currentCategory === targetType) {
+            // Find and click the element card
+            const elementCard = document.querySelector(`[data-id="${elementId}"]`);
+            if (elementCard) {
+                elementCard.click();
+                return;
+            }
+        }
+        
+        // Otherwise, load the category and then select the element
+        if (window.elementViewer) {
+            // First, select the category
+            await window.elementViewer.selectCategory(targetType);
+            
+            // Wait a bit for the elements to load
+            setTimeout(() => {
+                const elementCard = document.querySelector(`[data-id="${elementId}"]`);
+                if (elementCard) {
+                    elementCard.click();
+                } else {
+                    // If element not in list, try to fetch and select it directly
+                    this.api.getElement(targetType, elementId).then(element => {
+                        if (element) {
+                            window.elementViewer.selectElement(element);
+                        }
+                    }).catch(error => {
+                        console.error('Could not load linked element:', error);
+                    });
+                }
+            }, 500);
         }
     }
     

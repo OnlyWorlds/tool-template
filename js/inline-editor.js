@@ -206,7 +206,12 @@ class InlineEditor {
                     break;
                     
                 default: // string
-                    input = this.createTextInput(fieldName, value);
+                    // Special handling for supertype and subtype fields
+                    if (fieldName === 'supertype' || fieldName === 'subtype') {
+                        input = this.createTypeInput(fieldName, value);
+                    } else {
+                        input = this.createTextInput(fieldName, value);
+                    }
             }
             
             // Add event listeners
@@ -528,6 +533,113 @@ class InlineEditor {
         input.value = value || '';
         input.className = 'inline-input';
         input.placeholder = '';
+        return input;
+    }
+    
+    /**
+     * Create type input with datalist for supertype/subtype
+     */
+    createTypeInput(fieldName, value) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = fieldName;
+        input.value = value || '';
+        input.className = 'inline-input';
+        
+        // Load type suggestions asynchronously
+        if (window.typeManager && this.elementType) {
+            if (fieldName === 'supertype') {
+                // Load supertypes for the category
+                window.typeManager.getSupertypes(this.elementType).then(supertypes => {
+                    if (supertypes.length > 0) {
+                        // Create or update datalist
+                        let datalistId = `inline-supertype-list-${this.editingElement.id}`;
+                        let datalist = document.getElementById(datalistId);
+                        if (!datalist) {
+                            datalist = document.createElement('datalist');
+                            datalist.id = datalistId;
+                            document.body.appendChild(datalist);
+                        }
+                        
+                        datalist.innerHTML = '';
+                        supertypes.forEach(st => {
+                            const option = document.createElement('option');
+                            option.value = st;
+                            datalist.appendChild(option);
+                        });
+                        
+                        input.setAttribute('list', datalistId);
+                    }
+                });
+            } else if (fieldName === 'subtype') {
+                // Load subtypes based on current supertype
+                const currentSupertype = this.editingElement.supertype;
+                if (currentSupertype) {
+                    window.typeManager.getSubtypes(this.elementType, currentSupertype).then(subtypes => {
+                        if (subtypes.length > 0) {
+                            // Create or update datalist
+                            let datalistId = `inline-subtype-list-${this.editingElement.id}`;
+                            let datalist = document.getElementById(datalistId);
+                            if (!datalist) {
+                                datalist = document.createElement('datalist');
+                                datalist.id = datalistId;
+                                document.body.appendChild(datalist);
+                            }
+                            
+                            datalist.innerHTML = '';
+                            subtypes.forEach(st => {
+                                const option = document.createElement('option');
+                                option.value = st;
+                                datalist.appendChild(option);
+                            });
+                            
+                            input.setAttribute('list', datalistId);
+                        }
+                    });
+                }
+            }
+        }
+        
+        // If supertype changes, update the subtype field
+        if (fieldName === 'supertype') {
+            input.addEventListener('change', () => {
+                // Update the stored element's supertype
+                this.editingElement.supertype = input.value;
+                
+                // Find and update the subtype field if it exists
+                const subtypeField = document.querySelector('.compact-field[data-field="subtype"] input');
+                if (subtypeField && window.typeManager) {
+                    // Clear subtype value when supertype changes
+                    subtypeField.value = '';
+                    this.editingElement.subtype = '';
+                    
+                    // Load new subtypes
+                    window.typeManager.getSubtypes(this.elementType, input.value).then(subtypes => {
+                        if (subtypes.length > 0) {
+                            let datalistId = `inline-subtype-list-${this.editingElement.id}`;
+                            let datalist = document.getElementById(datalistId);
+                            if (!datalist) {
+                                datalist = document.createElement('datalist');
+                                datalist.id = datalistId;
+                                document.body.appendChild(datalist);
+                            }
+                            
+                            datalist.innerHTML = '';
+                            subtypes.forEach(st => {
+                                const option = document.createElement('option');
+                                option.value = st;
+                                datalist.appendChild(option);
+                            });
+                            
+                            subtypeField.setAttribute('list', datalistId);
+                        } else {
+                            subtypeField.removeAttribute('list');
+                        }
+                    });
+                }
+            });
+        }
+        
         return input;
     }
     

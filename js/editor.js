@@ -445,19 +445,93 @@ class ElementEditor {
         });
         
         // Add supertype suggestions based on element type and generate dynamic fields
-        document.getElementById('element-type')?.addEventListener('change', (e) => {
+        document.getElementById('element-type')?.addEventListener('change', async (e) => {
             const type = e.target.value;
             const supertypeInput = document.getElementById('element-supertype');
+            const subtypeInput = document.getElementById('element-subtype');
             
-            if (ONLYWORLDS.COMMON_SUPERTYPES[type]) {
-                supertypeInput.placeholder = '';
-            } else {
-                supertypeInput.placeholder = '';
+            if (type && window.typeManager) {
+                // Load supertypes for this category
+                const supertypes = await window.typeManager.getSupertypes(type);
+                
+                // Create or update supertype datalist
+                let supertypeList = document.getElementById('supertype-list');
+                if (!supertypeList) {
+                    supertypeList = document.createElement('datalist');
+                    supertypeList.id = 'supertype-list';
+                    document.body.appendChild(supertypeList);
+                }
+                
+                // Clear and populate datalist
+                supertypeList.innerHTML = '';
+                supertypes.forEach(st => {
+                    const option = document.createElement('option');
+                    option.value = st;
+                    supertypeList.appendChild(option);
+                });
+                
+                // Set list attribute on input
+                supertypeInput.setAttribute('list', 'supertype-list');
+                
+                // Set default supertype if not editing
+                if (!this.isEditMode && !supertypeInput.value) {
+                    const defaultSupertype = await window.typeManager.getDefaultSupertype(type);
+                    if (defaultSupertype) {
+                        supertypeInput.value = defaultSupertype;
+                        // Trigger change event to load subtypes
+                        supertypeInput.dispatchEvent(new Event('change'));
+                    }
+                }
             }
             
             // Generate dynamic fields for the selected type
             if (type && !this.isEditMode) {
                 this.generateDynamicFields(type);
+            }
+        });
+        
+        // Handle supertype changes to load subtypes
+        document.getElementById('element-supertype')?.addEventListener('change', async (e) => {
+            const supertype = e.target.value;
+            const type = document.getElementById('element-type').value;
+            const subtypeInput = document.getElementById('element-subtype');
+            
+            if (type && supertype && window.typeManager) {
+                // Load subtypes for this supertype
+                const subtypes = await window.typeManager.getSubtypes(type, supertype);
+                
+                // Create or update subtype datalist
+                let subtypeList = document.getElementById('subtype-list');
+                if (!subtypeList) {
+                    subtypeList = document.createElement('datalist');
+                    subtypeList.id = 'subtype-list';
+                    document.body.appendChild(subtypeList);
+                }
+                
+                // Clear and populate datalist
+                subtypeList.innerHTML = '';
+                subtypes.forEach(st => {
+                    const option = document.createElement('option');
+                    option.value = st;
+                    subtypeList.appendChild(option);
+                });
+                
+                // Set list attribute on input
+                subtypeInput.setAttribute('list', 'subtype-list');
+                
+                // Set default subtype if not editing
+                if (!this.isEditMode && !subtypeInput.value) {
+                    const defaultSubtype = await window.typeManager.getDefaultSubtype(type, supertype);
+                    if (defaultSubtype) {
+                        subtypeInput.value = defaultSubtype;
+                    }
+                }
+            } else {
+                // Clear subtype if no supertype
+                subtypeInput.removeAttribute('list');
+                if (!this.isEditMode) {
+                    subtypeInput.value = '';
+                }
             }
         });
     }

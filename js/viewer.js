@@ -33,7 +33,7 @@ class ElementViewer {
             
             categoryItem.innerHTML = `
                 <span class="category-icon material-icons-outlined">${ONLYWORLDS.ELEMENT_ICONS[type]}</span>
-                <span class="category-name">${ONLYWORLDS.ELEMENT_LABELS[type]}</span>
+                <span class="category-name">${ONLYWORLDS.ELEMENT_SINGULAR[type]}</span>
                 <span class="category-count" id="count-${type}">-</span>
             `;
             
@@ -152,7 +152,7 @@ class ElementViewer {
                         ${supertype}
                     </div>
                 </div>
-                <p class="element-description">${this.escapeHtml(element.description || 'No description')}</p>
+                ${element.description ? `<p class="element-description">${this.escapeHtml(element.description)}</p>` : ''}
             `;
             
             elementCard.addEventListener('click', () => this.selectElement(element));

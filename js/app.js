@@ -76,12 +76,26 @@ class OnlyWorldsApp {
         document.getElementById('api-key')?.addEventListener('input', (e) => {
             // Only allow digits and limit to 10
             e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+            
+            // Reset connection if credentials change
+            if (this.isConnected) {
+                this.isConnected = false;
+                this.showAuthStatus('Credentials changed. Please validate again.', 'info');
+            }
+            
             this.updateValidateButton();
         });
         
         document.getElementById('api-pin')?.addEventListener('input', (e) => {
             // Only allow digits and limit to 4
             e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+            
+            // Reset connection if credentials change
+            if (this.isConnected) {
+                this.isConnected = false;
+                this.showAuthStatus('Credentials changed. Please validate again.', 'info');
+            }
+            
             this.updateValidateButton();
         });
     }
@@ -139,12 +153,12 @@ class OnlyWorldsApp {
         
         if (this.isConnected) {
             validateBtn.disabled = true;
-            validateBtn.textContent = 'validated';
+            validateBtn.textContent = 'Connected ✓';
             validateBtn.classList.add('validated');
         } else {
             // Enable only when API key is 10 digits and PIN is 4 digits
             validateBtn.disabled = apiKey.length !== 10 || apiPin.length !== 4;
-            validateBtn.textContent = 'validate';
+            validateBtn.textContent = 'Load World';
             validateBtn.classList.remove('validated');
         }
     }
