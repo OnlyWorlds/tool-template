@@ -7,6 +7,7 @@ import { apiService } from './api.js';
 import { authManager } from './auth.js';
 import ElementEditor from './editor.js';
 import ElementViewer from './viewer.js';
+import { themeManager } from './theme.js';
 
 class OnlyWorldsApp {
     constructor() {
@@ -18,6 +19,9 @@ class OnlyWorldsApp {
      */
     init() {
         console.log('OnlyWorlds Tool Template - Initializing...');
+        
+        // Initialize theme manager (light mode by default)
+        themeManager.init();
         
         // Set up global error handler
         this.setupErrorHandling();

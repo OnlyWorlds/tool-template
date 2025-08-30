@@ -13,6 +13,17 @@
     
     <!-- Material Icons for category icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    
+    <!-- Early theme detection to prevent flash -->
+    <script>
+        // Apply theme immediately to prevent flash
+        (function() {
+            const savedTheme = localStorage.getItem('ow_theme');
+            const theme = savedTheme || 'light'; // Default to light mode
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
