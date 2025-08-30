@@ -16,6 +16,10 @@ export class AutoSaveManager {
         this.originalValues = {};
         this.editingElement = null;
         this.editingType = null;
+        
+        // Import/export support
+        this.enabled = localStorage.getItem('ow_auto_save') !== 'false';
+        this.paused = false;
     }
     
     /**
@@ -49,6 +53,11 @@ export class AutoSaveManager {
      * Handle field change - main entry point for auto-save
      */
     onFieldChange(fieldName, input) {
+        // Check if auto-save is enabled and not paused
+        if (!this.enabled || this.paused) {
+            return; // Don't auto-save
+        }
+        
         // Mark field as dirty
         this.dirtyFields.add(fieldName);
         
@@ -142,6 +151,9 @@ export class AutoSaveManager {
      * Save all changes
      */
     async saveChanges() {
+        // Check if auto-save is disabled or paused
+        if (!this.enabled || this.paused) return;
+        
         if (this.dirtyFields.size === 0 || this.isSaving) return;
         
         this.isSaving = true;
@@ -282,5 +294,50 @@ export class AutoSaveManager {
         this.editingElement = null;
         this.editingType = null;
         this.isSaving = false;
+    }
+    
+    /**
+     * Pause auto-save (for imports)
+     * Temporarily disables auto-save without losing the enabled preference
+     */
+    pause() {
+        this.paused = true;
+        if (this.saveTimeout) {
+            clearTimeout(this.saveTimeout);
+            this.saveTimeout = null;
+        }
+    }
+    
+    /**
+     * Resume auto-save after pause
+     * Saves any pending changes and re-enables auto-save
+     */
+    resume() {
+        this.paused = false;
+        // If there are dirty fields, save them now
+        if (this.dirtyFields.size > 0 && this.enabled) {
+            this.saveChanges();
+        }
+    }
+    
+    /**
+     * Toggle auto-save on/off
+     * Persists preference to localStorage
+     */
+    toggle(enabled) {
+        this.enabled = enabled;
+        localStorage.setItem('ow_auto_save', enabled ? 'true' : 'false');
+        
+        // Update UI checkbox if it exists
+        const checkbox = document.getElementById('auto-save-toggle');
+        if (checkbox) {
+            checkbox.checked = enabled;
+        }
+        
+        // If disabling, clear any pending saves
+        if (!enabled && this.saveTimeout) {
+            clearTimeout(this.saveTimeout);
+            this.saveTimeout = null;
+        }
     }
 }

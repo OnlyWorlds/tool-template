@@ -8,10 +8,12 @@ import { authManager } from './auth.js';
 import ElementEditor from './editor.js';
 import ElementViewer from './viewer.js';
 import { themeManager } from './theme.js';
+import { ImportExportManager } from './import-export.js';
 
 class OnlyWorldsApp {
     constructor() {
         this.isConnected = false;
+        this.importExportManager = null;
     }
     
     /**
@@ -115,6 +117,173 @@ class OnlyWorldsApp {
             
             this.updateValidateButton();
         });
+        
+        // Import/Export event listeners
+        this.attachImportExportListeners();
+    }
+    
+    /**
+     * Attach import/export related event listeners
+     */
+    attachImportExportListeners() {
+        // Export button
+        document.getElementById('export-btn')?.addEventListener('click', () => {
+            if (this.importExportManager) {
+                this.importExportManager.exportWorld();
+            }
+        });
+        
+        // Import button - show modal
+        document.getElementById('import-btn')?.addEventListener('click', () => {
+            const modal = document.getElementById('import-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        });
+        
+        // Import modal close button
+        document.getElementById('import-modal-close')?.addEventListener('click', () => {
+            this.closeImportModal();
+        });
+        
+        // Cancel import button
+        document.getElementById('cancel-import')?.addEventListener('click', () => {
+            this.closeImportModal();
+        });
+        
+        // Tab switching
+        document.querySelectorAll('.import-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                // Update active tab
+                document.querySelectorAll('.import-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                // Show corresponding content
+                const tabName = e.target.dataset.tab;
+                if (tabName === 'file') {
+                    document.getElementById('import-file-tab').classList.remove('hidden');
+                    document.getElementById('import-paste-tab').classList.add('hidden');
+                } else {
+                    document.getElementById('import-file-tab').classList.add('hidden');
+                    document.getElementById('import-paste-tab').classList.remove('hidden');
+                }
+                
+                // Update confirm button state
+                this.updateImportConfirmButton();
+            });
+        });
+        
+        // File input change - enable confirm button
+        document.getElementById('import-file')?.addEventListener('change', (e) => {
+            // Show preview of file info
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                const preview = document.getElementById('import-preview');
+                if (preview) {
+                    preview.innerHTML = `
+                        <strong>File:</strong> ${file.name}<br>
+                        <strong>Size:</strong> ${(file.size / 1024).toFixed(2)} KB<br>
+                        <strong>Type:</strong> ${file.type || 'application/json'}
+                    `;
+                    preview.classList.remove('hidden');
+                }
+            }
+            this.updateImportConfirmButton();
+        });
+        
+        // Paste input change - enable confirm button  
+        document.getElementById('import-paste')?.addEventListener('input', (e) => {
+            // Try to parse and show preview
+            const preview = document.getElementById('import-preview');
+            if (e.target.value.trim()) {
+                try {
+                    const data = JSON.parse(e.target.value);
+                    let elementCount = 0;
+                    for (const [key, value] of Object.entries(data)) {
+                        if (Array.isArray(value)) elementCount += value.length;
+                    }
+                    if (preview) {
+                        preview.innerHTML = `
+                            <strong>Valid JSON detected</strong><br>
+                            <strong>Element types:</strong> ${Object.keys(data).filter(k => k !== 'World').length}<br>
+                            <strong>Total elements:</strong> ${elementCount}
+                        `;
+                        preview.classList.remove('hidden');
+                    }
+                } catch (err) {
+                    if (preview && e.target.value.trim().length > 0) {
+                        preview.innerHTML = '<span style="color: var(--error-color);">Invalid JSON format</span>';
+                        preview.classList.remove('hidden');
+                    }
+                }
+            } else {
+                if (preview) preview.classList.add('hidden');
+            }
+            this.updateImportConfirmButton();
+        });
+        
+        // Confirm import button
+        document.getElementById('confirm-import')?.addEventListener('click', async () => {
+            const modeSelect = document.getElementById('import-mode');
+            const mode = modeSelect?.value || 'merge';
+            
+            // Check which tab is active
+            const isFileTab = document.querySelector('.import-tab.active')?.dataset.tab === 'file';
+            
+            if (isFileTab) {
+                // File upload
+                const fileInput = document.getElementById('import-file');
+                if (fileInput?.files && fileInput.files[0] && this.importExportManager) {
+                    const file = fileInput.files[0];
+                    
+                    // Hide modal
+                    this.closeImportModal();
+                    
+                    // Execute import
+                    await this.importExportManager.importWorld(file, mode);
+                }
+            } else {
+                // JSON paste
+                const pasteInput = document.getElementById('import-paste');
+                if (pasteInput?.value.trim() && this.importExportManager) {
+                    try {
+                        // Create a Blob from the pasted JSON
+                        const jsonBlob = new Blob([pasteInput.value], { type: 'application/json' });
+                        const file = new File([jsonBlob], 'pasted.json', { type: 'application/json' });
+                        
+                        // Hide modal
+                        this.closeImportModal();
+                        
+                        // Execute import
+                        await this.importExportManager.importWorld(file, mode);
+                    } catch (err) {
+                        alert('Invalid JSON format. Please check your data and try again.');
+                    }
+                }
+            }
+        });
+        
+        // Auto-save toggle
+        const autoSaveToggle = document.getElementById('auto-save-toggle');
+        if (autoSaveToggle) {
+            // Set initial state from localStorage
+            const savedPref = localStorage.getItem('ow_auto_save');
+            autoSaveToggle.checked = savedPref !== 'false';
+            
+            // Handle toggle changes
+            autoSaveToggle.addEventListener('change', (e) => {
+                const enabled = e.target.checked;
+                
+                // Update all auto-save managers
+                // The inline editor's auto-save manager
+                if (window.elementViewer?.inlineEditor?.autoSaveManager) {
+                    window.elementViewer.inlineEditor.autoSaveManager.toggle(enabled);
+                }
+                
+                // Store preference
+                localStorage.setItem('ow_auto_save', enabled ? 'true' : 'false');
+            });
+        }
     }
     
     /**
@@ -216,6 +385,19 @@ class OnlyWorldsApp {
         this.elementViewer.init();
         this.elementEditor.init();
         
+        // Initialize import/export manager
+        // We need to wait for the inline editor to be created
+        setTimeout(() => {
+            const autoSaveManager = window.elementViewer?.inlineEditor?.autoSaveManager || null;
+            this.importExportManager = new ImportExportManager(apiService, autoSaveManager);
+            
+            // Show import/export controls
+            const controls = document.getElementById('import-export-controls');
+            if (controls) {
+                controls.classList.remove('hidden');
+            }
+        }, 100);
+        
         this.isConnected = true;
         
         console.log('Connected to OnlyWorlds successfully');
@@ -300,6 +482,68 @@ class OnlyWorldsApp {
     clearSavedCredentials() {
         localStorage.removeItem('ow_api_key');
         localStorage.removeItem('ow_api_pin');
+    }
+    
+    /**
+     * Close import modal and reset form
+     */
+    closeImportModal() {
+        const modal = document.getElementById('import-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            
+            // Reset file input
+            const fileInput = document.getElementById('import-file');
+            if (fileInput) fileInput.value = '';
+            
+            // Reset paste input
+            const pasteInput = document.getElementById('import-paste');
+            if (pasteInput) pasteInput.value = '';
+            
+            // Reset preview
+            const preview = document.getElementById('import-preview');
+            if (preview) {
+                preview.innerHTML = '';
+                preview.classList.add('hidden');
+            }
+            
+            // Reset to file tab
+            document.querySelectorAll('.import-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tab === 'file');
+            });
+            document.getElementById('import-file-tab')?.classList.remove('hidden');
+            document.getElementById('import-paste-tab')?.classList.add('hidden');
+        }
+    }
+    
+    /**
+     * Update import confirm button state based on inputs
+     */
+    updateImportConfirmButton() {
+        const confirmBtn = document.getElementById('confirm-import');
+        if (!confirmBtn) return;
+        
+        // Check which tab is active
+        const isFileTab = document.querySelector('.import-tab.active')?.dataset.tab === 'file';
+        
+        if (isFileTab) {
+            // File upload tab - check if file is selected
+            const fileInput = document.getElementById('import-file');
+            confirmBtn.disabled = !fileInput?.files || fileInput.files.length === 0;
+        } else {
+            // Paste tab - check if valid JSON is pasted
+            const pasteInput = document.getElementById('import-paste');
+            if (pasteInput?.value.trim()) {
+                try {
+                    JSON.parse(pasteInput.value);
+                    confirmBtn.disabled = false;
+                } catch {
+                    confirmBtn.disabled = true;
+                }
+            } else {
+                confirmBtn.disabled = true;
+            }
+        }
     }
     
     /**

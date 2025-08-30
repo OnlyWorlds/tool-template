@@ -38,6 +38,20 @@
                     <button id="validate-btn" class="btn-validate">load world</button>
                     <span id="auth-status" class="auth-status"></span>
                     <span id="world-name" class="world-name hidden"></span>
+                    
+                    <!-- Import/Export Controls -->
+                    <div class="import-export-controls hidden" id="import-export-controls">
+                        <label class="auto-save-toggle" title="Toggle auto-save">
+                            <input type="checkbox" id="auto-save-toggle" checked>
+                            <span>⚡</span>
+                        </label>
+                        <button id="export-btn" class="btn-icon" title="Export World">
+                            <span class="material-icons-outlined">download</span>
+                        </button>
+                        <button id="import-btn" class="btn-icon" title="Import World">
+                            <span class="material-icons-outlined">upload</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="auth-bar-actions">
                     <button id="help-btn" class="btn-icon" title="Help">
@@ -155,6 +169,58 @@
     <!-- Loading Indicator -->
     <div id="loading" class="loading hidden">
         <div class="spinner"></div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="import-modal" class="modal hidden">
+        <div class="modal-content compact">
+            <div class="modal-header">
+                <h3>Import World Data</h3>
+                <button class="modal-close" id="import-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Import method:</label>
+                    <div class="import-tabs">
+                        <button class="import-tab active" data-tab="file">Upload File</button>
+                        <button class="import-tab" data-tab="paste">Paste JSON</button>
+                    </div>
+                </div>
+                
+                <!-- File upload tab -->
+                <div class="import-tab-content" id="import-file-tab">
+                    <div class="form-group">
+                        <label for="import-file">Select JSON file:</label>
+                        <input type="file" accept=".json" id="import-file" style="width: 100%;">
+                    </div>
+                </div>
+                
+                <!-- Paste JSON tab -->
+                <div class="import-tab-content hidden" id="import-paste-tab">
+                    <div class="form-group">
+                        <label for="import-paste">Paste JSON data:</label>
+                        <textarea id="import-paste" rows="8" placeholder="Paste your JSON data here..." style="width: 100%; font-family: monospace; font-size: 12px;"></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="import-mode">Import mode:</label>
+                    <select id="import-mode" style="width: 100%;">
+                        <option value="merge">Merge - Add new elements only</option>
+                        <option value="overwrite">Overwrite - Update existing & add new</option>
+                        <option value="replace">Replace - Delete all & import fresh</option>
+                    </select>
+                </div>
+                <div id="import-preview" class="preview hidden"></div>
+                <div id="import-progress" class="progress-bar hidden">
+                    <div class="progress-fill">0%</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-import">Cancel</button>
+                <button class="btn btn-primary" id="confirm-import" disabled>Import</button>
+            </div>
+        </div>
     </div>
 
     <!-- Load JavaScript as ES Module -->

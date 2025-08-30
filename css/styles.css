@@ -1494,3 +1494,182 @@ body {
         min-height: 400px;
     }
 }
+
+/* ==========================================
+   Import/Export Controls
+   ========================================== */
+
+.import-tabs {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.import-tab {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.import-tab:hover {
+    background: var(--bg-hover);
+}
+
+.import-tab.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.import-tab-content {
+    margin-top: 15px;
+}
+
+.import-tab-content.hidden {
+    display: none;
+}
+
+#import-paste {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    resize: vertical;
+    min-height: 150px;
+}
+
+#import-paste:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.import-export-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 20px;
+}
+
+.auto-save-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.auto-save-toggle:hover {
+    background: var(--bg-hover);
+}
+
+.auto-save-toggle input[type="checkbox"] {
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.auto-save-toggle span {
+    font-size: 16px;
+    color: var(--status-warning);
+}
+
+.auto-save-toggle input:checked + span {
+    color: var(--status-success);
+}
+
+/* Compact modal for import */
+.modal.compact .modal-content,
+.modal-content.compact {
+    max-width: 500px;
+    width: 90%;
+}
+
+/* Import preview area */
+.preview {
+    margin: 10px 0;
+    padding: 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--text-secondary);
+}
+
+/* Progress bar for imports */
+.progress-bar {
+    height: 24px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 10px 0;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--brand-primary);
+    transition: width 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-inverse);
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 40px;
+}
+
+/* Modal footer for import dialog */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-primary);
+    margin-top: 15px;
+}
+
+/* File input styling */
+input[type="file"] {
+    padding: 8px;
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+input[type="file"]:hover {
+    border-color: var(--border-hover);
+}
+
+/* Select dropdown for import mode */
+#import-mode {
+    padding: 8px;
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#import-mode:hover {
+    border-color: var(--border-hover);
+}
+
+#import-mode:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
