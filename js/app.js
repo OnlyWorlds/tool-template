@@ -96,7 +96,7 @@ class OnlyWorldsApp {
             // Only allow digits and limit to 10
             e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
             
-            // Reset connection if credentials change
+            // Reset connection status if credentials change, but don't clear UI yet
             if (this.isConnected) {
                 this.isConnected = false;
                 this.showAuthStatus('Credentials changed. Please validate again.', 'info');
@@ -109,7 +109,7 @@ class OnlyWorldsApp {
             // Only allow digits and limit to 4
             e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
             
-            // Reset connection if credentials change
+            // Reset connection status if credentials change, but don't clear UI yet
             if (this.isConnected) {
                 this.isConnected = false;
                 this.showAuthStatus('Credentials changed. Please validate again.', 'info');
@@ -308,6 +308,11 @@ class OnlyWorldsApp {
         // Clear previous status
         this.showAuthStatus('');
         
+        // Clear the UI before loading new world (in case switching worlds)
+        if (this.elementViewer) {
+            this.clearMainUI();
+        }
+        
         try {
             // Authenticate
             await authManager.authenticate(apiKey, apiPin);
@@ -367,6 +372,8 @@ class OnlyWorldsApp {
      * Show the main application interface
      */
     showMainApp() {
+        const isAlreadyShowing = !document.getElementById('main-content').classList.contains('hidden');
+        
         // Hide welcome screen
         document.getElementById('welcome-screen').classList.add('hidden');
         
@@ -381,9 +388,16 @@ class OnlyWorldsApp {
             worldNameElement.classList.remove('hidden');
         }
         
-        // Initialize viewer and editor
-        this.elementViewer.init();
-        this.elementEditor.init();
+        // If we're switching worlds (already showing), just refresh the data
+        // Otherwise, initialize everything
+        if (isAlreadyShowing) {
+            // Just refresh the category counts for the new world
+            this.elementViewer.updateCategoryCounts();
+        } else {
+            // First time showing - initialize viewer and editor
+            this.elementViewer.init();
+            this.elementEditor.init();
+        }
         
         // Initialize import/export manager
         // We need to wait for the inline editor to be created
@@ -401,6 +415,44 @@ class OnlyWorldsApp {
         this.isConnected = true;
         
         console.log('Connected to OnlyWorlds successfully');
+    }
+    
+    /**
+     * Clear the main UI when loading a new world (but stay logged in)
+     */
+    clearMainUI() {
+        // Clear the element viewer
+        if (this.elementViewer) {
+            // Clear viewer's internal state
+            this.elementViewer.clear();
+            
+            // Clear all element lists
+            const elementLists = document.querySelectorAll('.element-list');
+            elementLists.forEach(list => {
+                list.innerHTML = '';
+            });
+            
+            // Clear the detail view
+            const detailView = document.getElementById('detail-view');
+            if (detailView) {
+                detailView.innerHTML = '<div class="empty-state">Select an element to view details</div>';
+            }
+            
+            // Deselect any active category
+            const activeCategory = document.querySelector('.category-item.active');
+            if (activeCategory) {
+                activeCategory.classList.remove('active');
+            }
+            
+            // Reset category counts to show loading state
+            const categoryCounts = document.querySelectorAll('.category-count');
+            categoryCounts.forEach(count => {
+                count.textContent = '-';
+            });
+        }
+        
+        // Note: We intentionally don't hide main content or show welcome screen
+        // This keeps the user on the main interface while loading the new world
     }
     
     /**

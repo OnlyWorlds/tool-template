@@ -23,6 +23,20 @@ export default class ElementViewer {
     }
     
     /**
+     * Clear all cached data and reset the viewer
+     */
+    clear() {
+        this.currentCategory = null;
+        this.currentElements = [];
+        this.selectedElement = null;
+        
+        // Clear any open inline editor
+        if (this.inlineEditor && this.inlineEditor.cleanup) {
+            this.inlineEditor.cleanup();
+        }
+    }
+    
+    /**
      * Populate the category sidebar
      */
     populateCategories() {
