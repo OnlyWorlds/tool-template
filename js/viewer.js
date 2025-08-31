@@ -66,25 +66,31 @@ export default class ElementViewer {
      * Update element counts for each category
      */
     async updateCategoryCounts() {
-        // Fetch all counts in parallel but update UI as each resolves
-        const countPromises = ONLYWORLDS.ELEMENT_TYPES.map(async (type) => {
-            try {
-                const elements = await this.api.getElements(type);
-                // Update UI immediately when this request completes
-                const countElement = document.getElementById(`count-${type}`);
-                if (countElement) {
-                    countElement.textContent = elements.length;
-                }
-                return elements.length;
-            } catch (error) {
-                console.warn(`Could not get count for ${type}:`, error);
-                const countElement = document.getElementById(`count-${type}`);
-                if (countElement) {
-                    countElement.textContent = '0';
-                }
-                return 0;
-            }
-        });
+        // Create all promises at once to ensure true parallel execution
+        const countPromises = ONLYWORLDS.ELEMENT_TYPES.map((type) => 
+            this.api.getElements(type)
+                .then(elements => {
+                    // Update UI immediately when this request completes
+                    const countElement = document.getElementById(`count-${type}`);
+                    if (countElement) {
+                        // Use requestAnimationFrame to batch DOM updates
+                        requestAnimationFrame(() => {
+                            countElement.textContent = elements.length;
+                        });
+                    }
+                    return elements.length;
+                })
+                .catch(error => {
+                    console.warn(`Could not get count for ${type}:`, error);
+                    const countElement = document.getElementById(`count-${type}`);
+                    if (countElement) {
+                        requestAnimationFrame(() => {
+                            countElement.textContent = '0';
+                        });
+                    }
+                    return 0;
+                })
+        );
         
         // Wait for all to complete (they're still parallel)
         await Promise.all(countPromises);
@@ -108,6 +114,13 @@ export default class ElementViewer {
         
         // Show search input
         document.getElementById('search-input').classList.remove('hidden');
+        
+        // Show create button
+        const createBtn = document.getElementById('create-element-btn');
+        if (createBtn) {
+            createBtn.classList.remove('hidden');
+            createBtn.dataset.elementType = type;
+        }
         
         // Load elements
         await this.loadElements(type);
@@ -149,13 +162,17 @@ export default class ElementViewer {
         const elementList = document.getElementById('element-list');
         elementList.innerHTML = '';
         
+        // Use DocumentFragment for batch DOM operations
+        const fragment = document.createDocumentFragment();
+        const icon = ONLYWORLDS.ELEMENT_ICONS[this.currentCategory] || 'category';
+        
+        // Create all element cards at once
         elements.forEach(element => {
             const elementCard = document.createElement('div');
             elementCard.className = 'element-card';
             elementCard.dataset.id = element.id;
             
             // Create element display
-            const icon = ONLYWORLDS.ELEMENT_ICONS[this.currentCategory] || 'category';
             const supertype = element.supertype ? `<span class="element-supertype">${element.supertype}</span>` : '';
             
             // Use a fallback for elements without names
@@ -173,8 +190,11 @@ export default class ElementViewer {
             `;
             
             elementCard.addEventListener('click', () => this.selectElement(element));
-            elementList.appendChild(elementCard);
+            fragment.appendChild(elementCard);
         });
+        
+        // Append all cards at once
+        elementList.appendChild(fragment);
     }
     
     /**

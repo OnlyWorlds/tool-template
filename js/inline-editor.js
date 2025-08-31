@@ -19,13 +19,16 @@ class InlineEditor {
         this.elementType = null;
         
         // Initialize the extracted modules
-        this.fieldRenderer = new FieldRenderer((fieldName, input) => {
-            this.autoSaveManager.onFieldChange(fieldName, input);
-        });
-        
+        // Create autoSaveManager first since fieldRenderer needs it
         this.autoSaveManager = new AutoSaveManager(apiService, (updatedElement) => {
             // Callback when element is updated
             this.editingElement = updatedElement;
+        });
+        
+        this.fieldRenderer = new FieldRenderer((fieldName, input) => {
+            if (this.autoSaveManager) {
+                this.autoSaveManager.onFieldChange(fieldName, input);
+            }
         });
         
         // Keep reference to relationship editor

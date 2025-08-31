@@ -17,8 +17,8 @@ export class AutoSaveManager {
         this.editingElement = null;
         this.editingType = null;
         
-        // Import/export support
-        this.enabled = localStorage.getItem('ow_auto_save') !== 'false';
+        // Auto-save is always enabled
+        this.enabled = true;
         this.paused = false;
     }
     
@@ -320,24 +320,4 @@ export class AutoSaveManager {
         }
     }
     
-    /**
-     * Toggle auto-save on/off
-     * Persists preference to localStorage
-     */
-    toggle(enabled) {
-        this.enabled = enabled;
-        localStorage.setItem('ow_auto_save', enabled ? 'true' : 'false');
-        
-        // Update UI checkbox if it exists
-        const checkbox = document.getElementById('auto-save-toggle');
-        if (checkbox) {
-            checkbox.checked = enabled;
-        }
-        
-        // If disabling, clear any pending saves
-        if (!enabled && this.saveTimeout) {
-            clearTimeout(this.saveTimeout);
-            this.saveTimeout = null;
-        }
-    }
 }

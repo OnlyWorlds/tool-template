@@ -157,6 +157,16 @@ export default class RelationshipEditor {
             tag.classList.add('tag-invalid');
         }
         
+        // Add element type icon
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'material-icons-outlined tag-icon';
+        iconSpan.textContent = ONLYWORLDS.ELEMENT_ICONS[targetType] || 'link';
+        iconSpan.style.fontSize = '14px';
+        iconSpan.style.marginRight = '4px';
+        iconSpan.style.verticalAlign = 'middle';
+        iconSpan.style.opacity = '0.7';
+        tag.appendChild(iconSpan);
+        
         // Element name (clickable to view)
         const nameSpan = document.createElement('span');
         nameSpan.className = 'tag-name';

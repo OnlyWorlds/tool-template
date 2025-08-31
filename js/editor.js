@@ -6,7 +6,6 @@
 
 import { ONLYWORLDS } from './constants.js';
 import { getFieldType } from './field-types.js';
-import typeManager from './type-manager.js';
 
 export default class ElementEditor {
     constructor(apiService) {
@@ -58,7 +57,11 @@ export default class ElementEditor {
     createNewElement() {
         this.isEditMode = false;
         this.currentElement = null;
-        this.currentType = null;
+        
+        // Get the current category from the button's data attribute
+        const createBtn = document.getElementById('create-element-btn');
+        const preselectedType = createBtn?.dataset.elementType || null;
+        this.currentType = preselectedType;
         
         // Reset form
         document.getElementById('element-form').reset();
@@ -69,11 +72,23 @@ export default class ElementEditor {
             container.innerHTML = '';
         }
         
-        // Update modal title
-        document.getElementById('modal-title').textContent = 'Create New Element';
+        // If we have a preselected type, set it and disable the dropdown
+        const typeSelect = document.getElementById('element-type');
+        if (preselectedType && typeSelect) {
+            typeSelect.value = preselectedType;
+            typeSelect.disabled = true;
+            // Generate fields for this type
+            this.generateDynamicFields(preselectedType);
+        } else if (typeSelect) {
+            // Enable type selection if no preselected type
+            typeSelect.disabled = false;
+        }
         
-        // Enable type selection
-        document.getElementById('element-type').disabled = false;
+        // Update modal title
+        const title = preselectedType ? 
+            `Create New ${ONLYWORLDS.ELEMENT_SINGULAR[preselectedType]}` : 
+            'Create New Element';
+        document.getElementById('modal-title').textContent = title;
         
         // Show modal
         this.showModal();
@@ -95,8 +110,6 @@ export default class ElementEditor {
         // Set base fields
         document.getElementById('element-name').value = element.name || '';
         document.getElementById('element-description').value = element.description || '';
-        document.getElementById('element-supertype').value = element.supertype || '';
-        document.getElementById('element-subtype').value = element.subtype || '';
         
         // Generate and populate dynamic fields
         this.generateDynamicFields(this.currentType, element);
@@ -113,13 +126,6 @@ export default class ElementEditor {
         
         // Clear existing dynamic fields
         container.innerHTML = '';
-        
-        // Note: Type-specific fields are now handled by the field-types.js system
-        // Fields will be available for editing after creation via inline editor
-        const info = document.createElement('div');
-        info.className = 'form-info';
-        info.innerHTML = '<p><em>Additional fields will be available for editing after creation.</em></p>';
-        container.appendChild(info);
         
         // Skip dynamic field generation - now handled by getFieldType() system
         if (false) { // Disable the old field generation
@@ -273,7 +279,6 @@ export default class ElementEditor {
                 delete elementData.type; // Remove type from data as it's passed separately
                 
                 result = await this.api.createElement(elementType, elementData);
-                alert('Element created successfully');
             }
             
             // Close modal
@@ -313,9 +318,7 @@ export default class ElementEditor {
         const formData = {
             type: document.getElementById('element-type').value,
             name: document.getElementById('element-name').value.trim(),
-            description: document.getElementById('element-description').value.trim(),
-            supertype: document.getElementById('element-supertype').value.trim(),
-            subtype: document.getElementById('element-subtype').value.trim()
+            description: document.getElementById('element-description').value.trim()
         };
         
         // Collect dynamic fields
@@ -448,94 +451,13 @@ export default class ElementEditor {
             }
         });
         
-        // Add supertype suggestions based on element type and generate dynamic fields
+        // Generate dynamic fields when element type changes
         document.getElementById('element-type')?.addEventListener('change', async (e) => {
             const type = e.target.value;
-            const supertypeInput = document.getElementById('element-supertype');
-            const subtypeInput = document.getElementById('element-subtype');
-            
-            if (type && typeManager) {
-                // Load supertypes for this category
-                const supertypes = await typeManager.getSupertypes(type);
-                
-                // Create or update supertype datalist
-                let supertypeList = document.getElementById('supertype-list');
-                if (!supertypeList) {
-                    supertypeList = document.createElement('datalist');
-                    supertypeList.id = 'supertype-list';
-                    document.body.appendChild(supertypeList);
-                }
-                
-                // Clear and populate datalist
-                supertypeList.innerHTML = '';
-                supertypes.forEach(st => {
-                    const option = document.createElement('option');
-                    option.value = st;
-                    supertypeList.appendChild(option);
-                });
-                
-                // Set list attribute on input
-                supertypeInput.setAttribute('list', 'supertype-list');
-                
-                // Set default supertype if not editing
-                if (!this.isEditMode && !supertypeInput.value) {
-                    const defaultSupertype = await typeManager.getDefaultSupertype(type);
-                    if (defaultSupertype) {
-                        supertypeInput.value = defaultSupertype;
-                        // Trigger change event to load subtypes
-                        supertypeInput.dispatchEvent(new Event('change'));
-                    }
-                }
-            }
             
             // Generate dynamic fields for the selected type
             if (type && !this.isEditMode) {
                 this.generateDynamicFields(type);
-            }
-        });
-        
-        // Handle supertype changes to load subtypes
-        document.getElementById('element-supertype')?.addEventListener('change', async (e) => {
-            const supertype = e.target.value;
-            const type = document.getElementById('element-type').value;
-            const subtypeInput = document.getElementById('element-subtype');
-            
-            if (type && supertype && typeManager) {
-                // Load subtypes for this supertype
-                const subtypes = await typeManager.getSubtypes(type, supertype);
-                
-                // Create or update subtype datalist
-                let subtypeList = document.getElementById('subtype-list');
-                if (!subtypeList) {
-                    subtypeList = document.createElement('datalist');
-                    subtypeList.id = 'subtype-list';
-                    document.body.appendChild(subtypeList);
-                }
-                
-                // Clear and populate datalist
-                subtypeList.innerHTML = '';
-                subtypes.forEach(st => {
-                    const option = document.createElement('option');
-                    option.value = st;
-                    subtypeList.appendChild(option);
-                });
-                
-                // Set list attribute on input
-                subtypeInput.setAttribute('list', 'subtype-list');
-                
-                // Set default subtype if not editing
-                if (!this.isEditMode && !subtypeInput.value) {
-                    const defaultSubtype = await typeManager.getDefaultSubtype(type, supertype);
-                    if (defaultSubtype) {
-                        subtypeInput.value = defaultSubtype;
-                    }
-                }
-            } else {
-                // Clear subtype if no supertype
-                subtypeInput.removeAttribute('list');
-                if (!this.isEditMode) {
-                    subtypeInput.value = '';
-                }
             }
         });
     }

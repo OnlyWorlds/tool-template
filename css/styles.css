@@ -315,74 +315,43 @@ body {
 
 .welcome-content {
     background: var(--bg-primary);
-    border-radius: 12px;
-    padding: 60px;
-    max-width: 800px;
+    border-radius: 8px;
+    padding: 30px 40px;
+    max-width: 400px;
     width: 100%;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-md);
     text-align: center;
 }
 
-.welcome-content h1 {
+.welcome-content h2 {
     color: var(--text-primary);
-    font-size: 32px;
+    font-size: 18px;
+    font-weight: 500;
     margin-bottom: 15px;
 }
 
-.welcome-content > p {
+.welcome-content p {
     color: var(--text-secondary);
-    font-size: 18px;
-    margin-bottom: 40px;
-}
-
-.welcome-features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 30px;
-    margin: 40px 0;
-}
-
-.feature {
-    text-align: center;
-}
-
-.feature-icon {
-    font-size: 48px;
-    display: block;
-    margin-bottom: 15px;
-    font-family: 'Material Icons Outlined';
-    font-weight: normal;
-    font-style: normal;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
-    -webkit-font-smoothing: antialiased;
-}
-
-.feature h3 {
-    color: var(--text-primary);
-    font-size: 18px;
+    font-size: 14px;
     margin-bottom: 10px;
+    line-height: 1.5;
 }
 
-.feature p {
-    color: var(--text-secondary);
+.welcome-link {
+    margin-top: 15px;
+}
+
+.welcome-link a {
+    color: var(--brand-primary);
+    text-decoration: none;
     font-size: 14px;
 }
 
-.welcome-footer {
-    margin-top: 40px;
-    padding-top: 30px;
-    border-top: 1px solid var(--border-secondary);
+.welcome-link a:hover {
+    text-decoration: underline;
 }
 
-.welcome-footer p {
-    color: var(--text-secondary);
-    font-size: 14px;
-}
+/* Removed old welcome features and footer styles */
 
 .welcome-footer a {
     color: var(--brand-primary);
@@ -492,10 +461,40 @@ body {
     border-bottom: 1px solid var(--border-primary);
 }
 
+.list-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
 .list-header h2 {
     font-size: 16px;
     color: var(--text-primary);
-    margin-bottom: 10px;
+    margin: 0;
+}
+
+.btn-add-element {
+    background: var(--brand-primary);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-add-element:hover {
+    background: var(--brand-primary-hover);
+    transform: scale(1.1);
+}
+
+.btn-add-element .material-icons-outlined {
+    font-size: 18px;
 }
 
 .search-input {
@@ -504,11 +503,18 @@ body {
     border: 1px solid var(--border-primary);
     border-radius: 4px;
     font-size: 14px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.search-input::placeholder {
+    color: var(--text-tertiary);
 }
 
 .search-input:focus {
     outline: none;
     border-color: var(--brand-primary);
+    background: var(--bg-primary);
 }
 
 .element-list {
@@ -1672,4 +1678,65 @@ input[type="file"]:hover {
     outline: none;
     border-color: var(--brand-primary);
     box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+
+/* Help Modal Styles */
+.help-section {
+    margin-bottom: 25px;
+}
+
+.help-section:last-child {
+    margin-bottom: 0;
+}
+
+.help-section h3 {
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.help-section ul,
+.help-section ol {
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.8;
+}
+
+.help-section li {
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.help-section li strong {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.help-section p {
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin: 10px 0;
+}
+
+.help-section a {
+    color: var(--brand-primary);
+    text-decoration: none;
+}
+
+.help-section a:hover {
+    text-decoration: underline;
+}
+
+.help-section kbd {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--text-primary);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }

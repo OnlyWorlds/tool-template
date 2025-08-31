@@ -6,9 +6,9 @@
 import { apiService } from './api.js';
 import { authManager } from './auth.js';
 import ElementEditor from './editor.js';
-import ElementViewer from './viewer.js';
-import { themeManager } from './theme.js';
 import { ImportExportManager } from './import-export.js';
+import { themeManager } from './theme.js';
+import ElementViewer from './viewer.js';
 
 class OnlyWorldsApp {
     constructor() {
@@ -132,158 +132,6 @@ class OnlyWorldsApp {
                 this.importExportManager.exportWorld();
             }
         });
-        
-        // Import button - show modal
-        document.getElementById('import-btn')?.addEventListener('click', () => {
-            const modal = document.getElementById('import-modal');
-            if (modal) {
-                modal.classList.remove('hidden');
-            }
-        });
-        
-        // Import modal close button
-        document.getElementById('import-modal-close')?.addEventListener('click', () => {
-            this.closeImportModal();
-        });
-        
-        // Cancel import button
-        document.getElementById('cancel-import')?.addEventListener('click', () => {
-            this.closeImportModal();
-        });
-        
-        // Tab switching
-        document.querySelectorAll('.import-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                // Update active tab
-                document.querySelectorAll('.import-tab').forEach(t => t.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                // Show corresponding content
-                const tabName = e.target.dataset.tab;
-                if (tabName === 'file') {
-                    document.getElementById('import-file-tab').classList.remove('hidden');
-                    document.getElementById('import-paste-tab').classList.add('hidden');
-                } else {
-                    document.getElementById('import-file-tab').classList.add('hidden');
-                    document.getElementById('import-paste-tab').classList.remove('hidden');
-                }
-                
-                // Update confirm button state
-                this.updateImportConfirmButton();
-            });
-        });
-        
-        // File input change - enable confirm button
-        document.getElementById('import-file')?.addEventListener('change', (e) => {
-            // Show preview of file info
-            if (e.target.files && e.target.files[0]) {
-                const file = e.target.files[0];
-                const preview = document.getElementById('import-preview');
-                if (preview) {
-                    preview.innerHTML = `
-                        <strong>File:</strong> ${file.name}<br>
-                        <strong>Size:</strong> ${(file.size / 1024).toFixed(2)} KB<br>
-                        <strong>Type:</strong> ${file.type || 'application/json'}
-                    `;
-                    preview.classList.remove('hidden');
-                }
-            }
-            this.updateImportConfirmButton();
-        });
-        
-        // Paste input change - enable confirm button  
-        document.getElementById('import-paste')?.addEventListener('input', (e) => {
-            // Try to parse and show preview
-            const preview = document.getElementById('import-preview');
-            if (e.target.value.trim()) {
-                try {
-                    const data = JSON.parse(e.target.value);
-                    let elementCount = 0;
-                    for (const [key, value] of Object.entries(data)) {
-                        if (Array.isArray(value)) elementCount += value.length;
-                    }
-                    if (preview) {
-                        preview.innerHTML = `
-                            <strong>Valid JSON detected</strong><br>
-                            <strong>Element types:</strong> ${Object.keys(data).filter(k => k !== 'World').length}<br>
-                            <strong>Total elements:</strong> ${elementCount}
-                        `;
-                        preview.classList.remove('hidden');
-                    }
-                } catch (err) {
-                    if (preview && e.target.value.trim().length > 0) {
-                        preview.innerHTML = '<span style="color: var(--error-color);">Invalid JSON format</span>';
-                        preview.classList.remove('hidden');
-                    }
-                }
-            } else {
-                if (preview) preview.classList.add('hidden');
-            }
-            this.updateImportConfirmButton();
-        });
-        
-        // Confirm import button
-        document.getElementById('confirm-import')?.addEventListener('click', async () => {
-            const modeSelect = document.getElementById('import-mode');
-            const mode = modeSelect?.value || 'merge';
-            
-            // Check which tab is active
-            const isFileTab = document.querySelector('.import-tab.active')?.dataset.tab === 'file';
-            
-            if (isFileTab) {
-                // File upload
-                const fileInput = document.getElementById('import-file');
-                if (fileInput?.files && fileInput.files[0] && this.importExportManager) {
-                    const file = fileInput.files[0];
-                    
-                    // Hide modal
-                    this.closeImportModal();
-                    
-                    // Execute import
-                    await this.importExportManager.importWorld(file, mode);
-                }
-            } else {
-                // JSON paste
-                const pasteInput = document.getElementById('import-paste');
-                if (pasteInput?.value.trim() && this.importExportManager) {
-                    try {
-                        // Create a Blob from the pasted JSON
-                        const jsonBlob = new Blob([pasteInput.value], { type: 'application/json' });
-                        const file = new File([jsonBlob], 'pasted.json', { type: 'application/json' });
-                        
-                        // Hide modal
-                        this.closeImportModal();
-                        
-                        // Execute import
-                        await this.importExportManager.importWorld(file, mode);
-                    } catch (err) {
-                        alert('Invalid JSON format. Please check your data and try again.');
-                    }
-                }
-            }
-        });
-        
-        // Auto-save toggle
-        const autoSaveToggle = document.getElementById('auto-save-toggle');
-        if (autoSaveToggle) {
-            // Set initial state from localStorage
-            const savedPref = localStorage.getItem('ow_auto_save');
-            autoSaveToggle.checked = savedPref !== 'false';
-            
-            // Handle toggle changes
-            autoSaveToggle.addEventListener('change', (e) => {
-                const enabled = e.target.checked;
-                
-                // Update all auto-save managers
-                // The inline editor's auto-save manager
-                if (window.elementViewer?.inlineEditor?.autoSaveManager) {
-                    window.elementViewer.inlineEditor.autoSaveManager.toggle(enabled);
-                }
-                
-                // Store preference
-                localStorage.setItem('ow_auto_save', enabled ? 'true' : 'false');
-            });
-        }
     }
     
     /**
@@ -358,14 +206,65 @@ class OnlyWorldsApp {
      * Show help modal
      */
     showHelp() {
-        alert(`OnlyWorlds Tool Template - Help\n\n` +
-              `1. Get your API Key and PIN from onlyworlds.com\n` +
-              `2. Enter them in the top bar\n` +
-              `3. Click 'validate' to connect\n` +
-              `4. Browse elements using the sidebar\n` +
-              `5. Click elements to view details\n` +
-              `6. Use 'Create New Element' to add elements\n\n` +
-              `For more help, visit https://www.onlyworlds.com/api/docs`);
+        // Remove any existing help modal
+        const existingModal = document.getElementById('help-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Create help modal
+        const modal = document.createElement('div');
+        modal.id = 'help-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>OnlyWorlds Tool Template</h2>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="help-section">
+                        <h3>About</h3>
+                        <p>This is a template for developers to clone and build their own OnlyWorlds tools on top of.</p>
+                        <p>It has basic API validation and element viewing, editing capabilities.</p>
+                        <p><a href="https://github.com/OnlyWorlds/tool-template" target="_blank">View on GitHub</a></p>
+                    </div>
+                    
+                    <div class="help-section">
+                        <h3>Quick Start</h3>
+                        <ol>
+                            <li>Get world API credentials from <a href="https://www.onlyworlds.com" target="_blank">onlyworlds.com</a></li>
+                            <li>Enter them in the top bar and click "load world"</li>
+                            <li>Select a category to view and edit elements</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="help-section">
+                        <p>Learn more at <a href="https://onlyworlds.github.io" target="_blank">onlyworlds.github.io</a></p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add to body
+        document.body.appendChild(modal);
+        
+        // Show modal
+        modal.classList.add('visible');
+        
+        // Close button handler
+        modal.querySelector('.modal-close').addEventListener('click', () => {
+            modal.classList.remove('visible');
+            setTimeout(() => modal.remove(), 300);
+        });
+        
+        // Click outside to close
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('visible');
+                setTimeout(() => modal.remove(), 300);
+            }
+        });
     }
     
     /**
@@ -400,10 +299,8 @@ class OnlyWorldsApp {
         }
         
         // Initialize import/export manager
-        // We need to wait for the inline editor to be created
         setTimeout(() => {
-            const autoSaveManager = window.elementViewer?.inlineEditor?.autoSaveManager || null;
-            this.importExportManager = new ImportExportManager(apiService, autoSaveManager);
+            this.importExportManager = new ImportExportManager(apiService);
             
             // Show import/export controls
             const controls = document.getElementById('import-export-controls');
@@ -451,8 +348,7 @@ class OnlyWorldsApp {
             });
         }
         
-        // Note: We intentionally don't hide main content or show welcome screen
-        // This keeps the user on the main interface while loading the new world
+    
     }
     
     /**
@@ -536,67 +432,6 @@ class OnlyWorldsApp {
         localStorage.removeItem('ow_api_pin');
     }
     
-    /**
-     * Close import modal and reset form
-     */
-    closeImportModal() {
-        const modal = document.getElementById('import-modal');
-        if (modal) {
-            modal.classList.add('hidden');
-            
-            // Reset file input
-            const fileInput = document.getElementById('import-file');
-            if (fileInput) fileInput.value = '';
-            
-            // Reset paste input
-            const pasteInput = document.getElementById('import-paste');
-            if (pasteInput) pasteInput.value = '';
-            
-            // Reset preview
-            const preview = document.getElementById('import-preview');
-            if (preview) {
-                preview.innerHTML = '';
-                preview.classList.add('hidden');
-            }
-            
-            // Reset to file tab
-            document.querySelectorAll('.import-tab').forEach(tab => {
-                tab.classList.toggle('active', tab.dataset.tab === 'file');
-            });
-            document.getElementById('import-file-tab')?.classList.remove('hidden');
-            document.getElementById('import-paste-tab')?.classList.add('hidden');
-        }
-    }
-    
-    /**
-     * Update import confirm button state based on inputs
-     */
-    updateImportConfirmButton() {
-        const confirmBtn = document.getElementById('confirm-import');
-        if (!confirmBtn) return;
-        
-        // Check which tab is active
-        const isFileTab = document.querySelector('.import-tab.active')?.dataset.tab === 'file';
-        
-        if (isFileTab) {
-            // File upload tab - check if file is selected
-            const fileInput = document.getElementById('import-file');
-            confirmBtn.disabled = !fileInput?.files || fileInput.files.length === 0;
-        } else {
-            // Paste tab - check if valid JSON is pasted
-            const pasteInput = document.getElementById('import-paste');
-            if (pasteInput?.value.trim()) {
-                try {
-                    JSON.parse(pasteInput.value);
-                    confirmBtn.disabled = false;
-                } catch {
-                    confirmBtn.disabled = true;
-                }
-            } else {
-                confirmBtn.disabled = true;
-            }
-        }
-    }
     
     /**
      * Show error message to user
