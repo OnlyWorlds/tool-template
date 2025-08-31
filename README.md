@@ -65,10 +65,11 @@ tool-template/
 │   ├── auto-save.js     # Auto-save management (extracted)
 │   ├── relationship-editor.js # UUID relationship handling
 │   ├── field-types.js   # Field type definitions
-│   └── type-manager.js  # Supertype/subtype management
+│   ├── type-manager.js  # Supertype/subtype management
+│   ├── import-export.js # World export to JSON
+│   └── theme.js         # Dark/light mode management
 ├── start.py             # Python server launcher
-├── package.json         # Node.js configuration
-└── .gitattributes      # Line ending consistency
+└── package.json         # Node.js configuration
 ```
 
 ## 🎯 Key Features for Developers
@@ -135,18 +136,6 @@ python start.py  # (edit line 24 in start.py to change port)
 
 # Node with different port
 npx serve -s . -l 8081
-```
-
-### For Development
-During development, add `?dev=true` to the URL for development mode:
-```
-http://localhost:8080/?dev=true
-```
-
-Then uncomment and add your credentials in `js/app.js` lines 29-30:
-```javascript
-document.getElementById('api-key').value = 'YOUR_KEY';
-document.getElementById('api-pin').value = 'YOUR_PIN';
 ```
 
 ### Growing Your Tool

@@ -28,14 +28,6 @@ class OnlyWorldsApp {
         window.elementEditor = this.elementEditor;
         
         this.attachEventListeners();
-        
-        // Development helper - add ?dev=true to URL
-        if (window.location.search.includes('dev=true')) {
-            // Uncomment to add your credentials:
-            // document.getElementById('api-key').value = 'YOUR_KEY';
-            // document.getElementById('api-pin').value = 'YOUR_PIN';
-            console.log('Dev mode: uncomment lines 33-34 to add credentials');
-        }
     }
     
     setupErrorHandling() {

@@ -83,18 +83,6 @@ Web browsers have security restrictions (CORS) that prevent local HTML files fro
 
 ## 💡 Developer Tips
 
-### Pre-fill Credentials During Development
-Add `?dev=true` to your URL to enable development mode:
-```
-http://localhost:8080/?dev=true
-```
-
-Then uncomment and edit lines 29-30 in `js/app.js`:
-```javascript
-document.getElementById('api-key').value = 'YOUR_KEY';
-document.getElementById('api-pin').value = 'YOUR_PIN';
-```
-
 ### Change the Default Port
 For Python, edit `start.py` line 24:
 ```python
