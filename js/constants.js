@@ -4,7 +4,6 @@
  */
 
 const ONLYWORLDS = {
-    // API Base URL
     API_BASE: 'https://www.onlyworlds.com/api/worldapi',
     
     // All 22 OnlyWorlds element types
@@ -46,7 +45,7 @@ const ONLYWORLDS = {
         'world'
     ],
     
-    // Human-readable names for element types (plural for headers)
+    // Human-readable names for element types (plural)
     ELEMENT_LABELS: {
         ability: 'Abilities',
         character: 'Characters',
@@ -72,7 +71,7 @@ const ONLYWORLDS = {
         zone: 'Zones'
     },
     
-    // Singular names for sidebar
+    // Singular names
     ELEMENT_SINGULAR: {
         ability: 'Ability',
         character: 'Character',
@@ -98,7 +97,7 @@ const ONLYWORLDS = {
         zone: 'Zone'
     },
     
-    // Material Icon names for each element type (matches OnlyWorlds spec)
+    // Material Icon names for each element type
     ELEMENT_ICONS: {
         ability: 'auto_fix_normal',
         character: 'person',
@@ -148,20 +147,7 @@ const ONLYWORLDS = {
         title: '👑',
         trait: '❄️',
         zone: '🗺️'
-    },
-    
-    // Common supertypes for different element types
-    COMMON_SUPERTYPES: {
-        character: ['protagonist', 'antagonist', 'supporting', 'minor', 'historical'],
-        location: ['city', 'wilderness', 'building', 'landmark', 'region'],
-        object: ['weapon', 'armor', 'tool', 'artifact', 'consumable'],
-        event: ['battle', 'ceremony', 'disaster', 'discovery', 'political'],
-        creature: ['beast', 'monster', 'animal', 'mythical', 'alien']
-    },
-    
-    // Note: Field types are now managed in js/field-types.js
-    // This provides a single source of truth based on the authoritative OnlyWorlds schema
+    }
 };
 
-// Export for ES module usage
 export { ONLYWORLDS };
