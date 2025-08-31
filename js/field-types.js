@@ -8,7 +8,6 @@
  * Only explicitly define non-string fields here.
  */
 
-
 // Field type definitions with relationship targets
 const FIELD_TYPES = {
     // Base fields (shared by all elements)
@@ -37,7 +36,6 @@ const FIELD_TYPES = {
     'elevation': { type: 'number' },
     'hierarchy': { type: 'number' },
     'width': { type: 'number' },
-    'height': { type: 'number' },
     'depth': { type: 'number' },
     'x': { type: 'number' },
     'y': { type: 'number' },
@@ -97,10 +95,10 @@ const FIELD_TYPES = {
     'parent_map': { type: 'uuid', related_to: 'Map' },
     'map': { type: 'uuid', related_to: 'Map' },
     // Pin element special fields:
-    // element_type gets a placeholder numeric ID (1-22) representing the type of element being pinned
-    // element_id is a generic UUID that can point to any element of that type
-    'element_type': { type: 'number' }, // Numeric type ID (1-22)
-    'element_id': { type: 'uuid', related_to: null }, // Generic UUID, no specific type
+    // element_type: numeric ID (1-22) representing the type
+    // element_id: generic UUID that can point to any element
+    'element_type': { type: 'number' },
+    'element_id': { type: 'uuid', related_to: null },
     'parent_narrative': { type: 'uuid', related_to: 'Narrative' },
     'protagonist': { type: 'uuid', related_to: 'Character' },
     'antagonist': { type: 'uuid', related_to: 'Character' },
@@ -221,5 +219,4 @@ function isRelationshipField(fieldName) {
     return fieldInfo.type === 'uuid' || fieldInfo.type === 'array<uuid>';
 }
 
-// Export functions for ES module use
 export { getFieldType, getFieldTypeString, getRelationshipTarget, isRelationshipField };
