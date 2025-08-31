@@ -186,8 +186,23 @@ class InlineEditor {
         const valueContainer = document.createElement('div');
         valueContainer.className = 'compact-value';
         
-        // For relationship fields, use new relationship editor
-        if (fieldType === 'uuid' || fieldType === 'array<uuid>') {
+        // Check if this is a generic UUID field (like Pin's element_id) with no specific target
+        const fieldInfo = getFieldType(fieldName);
+        const isGenericUuid = (fieldType === 'uuid' || fieldType === 'array<uuid>') && 
+                               fieldInfo.related_to === null;
+        
+        // Make Pin's element_type, element_id, and map fields read-only
+        // Also make Marker's map field read-only (required field)
+        const isPinSpecialField = this.editingType === 'pin' && 
+                                  (fieldName === 'element_type' || fieldName === 'element_id' || fieldName === 'map');
+        const isMarkerMapField = this.editingType === 'marker' && fieldName === 'map';
+        
+        if (isPinSpecialField || isMarkerMapField) {
+            fieldType = 'readonly';
+        }
+        
+        // For relationship fields (but not generic UUIDs), use new relationship editor
+        if ((fieldType === 'uuid' || fieldType === 'array<uuid>') && !isGenericUuid && !isPinSpecialField) {
             if (!this.relationshipEditor) {
                 this.relationshipEditor = new RelationshipEditor(this.api, this);
             }
@@ -204,6 +219,16 @@ class InlineEditor {
             let displayValue = value;
             if (fieldName === 'created_at' || fieldName === 'updated_at') {
                 displayValue = this.formatDate(value);
+            } else if (fieldName === 'element_type') {
+                // Show the numeric ID for element_type with a note
+                displayValue = value ? `${value} (Pin reference - read only)` : 'N/A';
+            } else if (fieldName === 'element_id') {
+                // Show the UUID with a note
+                displayValue = value ? `${value} (Pin reference - read only)` : 'N/A';
+            } else if (fieldName === 'map' && (this.editingType === 'pin' || this.editingType === 'marker')) {
+                // Show the map UUID with a note for Pin/Marker
+                const mapId = typeof value === 'object' && value !== null ? value.id : value;
+                displayValue = mapId ? `${mapId} (Required - read only)` : 'N/A';
             }
             valueContainer.innerHTML = `<span class="readonly-value">${this.escapeHtml(displayValue || 'N/A')}</span>`;
         } else {

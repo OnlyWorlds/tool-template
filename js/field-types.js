@@ -8,7 +8,6 @@
  * Only explicitly define non-string fields here.
  */
 
-import { ONLYWORLDS } from './constants.js';
 
 // Field type definitions with relationship targets
 const FIELD_TYPES = {
@@ -97,7 +96,11 @@ const FIELD_TYPES = {
     'parent_species': { type: 'uuid', related_to: 'Species' },
     'parent_map': { type: 'uuid', related_to: 'Map' },
     'map': { type: 'uuid', related_to: 'Map' },
-    'element_type': { type: 'uuid', related_to: 'ContentType' },
+    // Pin element special fields:
+    // element_type gets a placeholder numeric ID (1-22) representing the type of element being pinned
+    // element_id is a generic UUID that can point to any element of that type
+    'element_type': { type: 'number' }, // Numeric type ID (1-22)
+    'element_id': { type: 'uuid', related_to: null }, // Generic UUID, no specific type
     'parent_narrative': { type: 'uuid', related_to: 'Narrative' },
     'protagonist': { type: 'uuid', related_to: 'Character' },
     'antagonist': { type: 'uuid', related_to: 'Character' },

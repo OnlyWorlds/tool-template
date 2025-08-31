@@ -24,6 +24,9 @@ export default class RelationshipEditor {
         // Determine target element type
         const targetType = this.guessElementType(fieldName);
         
+        // Check if this is a generic UUID field (like Pin's element_id) with no specific target
+        const isGenericUuid = !targetType && (fieldName === 'element_id' || getRelationshipTarget(fieldName) === null);
+        
         // Create tags container
         const tagsContainer = document.createElement('div');
         tagsContainer.className = 'relationship-tags';
@@ -87,8 +90,9 @@ export default class RelationshipEditor {
             tagsContainer.appendChild(tag);
         }
         
-        // Add button (only show if single value field is empty or always for arrays)
-        if (fieldType === 'array<uuid>' || !value) {
+        // Add button (only show if we have a valid target type and single value field is empty or always for arrays)
+        // Don't show add button for generic UUID fields like Pin's element_id
+        if (!isGenericUuid && targetType && (fieldType === 'array<uuid>' || !value)) {
             const addBtn = document.createElement('button');
             addBtn.className = 'btn-add-relationship';
             addBtn.innerHTML = '<span class="material-icons-outlined">add</span>';
@@ -98,6 +102,17 @@ export default class RelationshipEditor {
                 this.showSelector(container, fieldName, fieldType, targetType, currentElement);
             };
             container.appendChild(addBtn);
+        }
+        
+        // For generic UUID fields, show a note that it should be edited directly
+        if (isGenericUuid) {
+            const note = document.createElement('span');
+            note.className = 'generic-uuid-note';
+            note.textContent = '(Generic UUID - edit as text)';
+            note.style.fontSize = '0.85em';
+            note.style.color = '#666';
+            note.style.marginLeft = '8px';
+            container.appendChild(note);
         }
         
         // Store metadata
