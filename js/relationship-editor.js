@@ -17,17 +17,14 @@ export default class RelationshipEditor {
      * Create relationship field UI
      */
     async createRelationshipField(container, fieldName, value, fieldType, currentElement) {
-        // Clear container
         container.innerHTML = '';
         container.className = 'relationship-field';
         
-        // Determine target element type
         const targetType = this.guessElementType(fieldName);
         
-        // Check if this is a generic UUID field (like Pin's element_id) with no specific target
+        // Check if this is a generic UUID field with no specific target
         const isGenericUuid = !targetType && (fieldName === 'element_id' || getRelationshipTarget(fieldName) === null);
         
-        // Create tags container
         const tagsContainer = document.createElement('div');
         tagsContainer.className = 'relationship-tags';
         container.appendChild(tagsContainer);
@@ -36,12 +33,10 @@ export default class RelationshipEditor {
         if (fieldType === 'array<uuid>') {
             const values = Array.isArray(value) ? value : [];
             for (const item of values) {
-                // Handle both ID strings and objects with id property
                 const id = typeof item === 'object' && item !== null ? item.id : item;
-                if (!id) continue; // Skip null/undefined values
+                if (!id) continue;
                 
                 const tag = await this.createElementTag(id, targetType, async () => {
-                    // Remove from array (find by ID)
                     const index = values.findIndex(v => 
                         (typeof v === 'object' && v !== null ? v.id : v) === id
                     );
@@ -49,11 +44,8 @@ export default class RelationshipEditor {
                         values.splice(index, 1);
                         currentElement[fieldName] = values;
                         
-                        // Remove from array
-                        
                         await this.inlineEditor.saveField(fieldName, values);
                         
-                        // Refresh display to update tags
                         await this.createRelationshipField(
                             container, 
                             fieldName, 
@@ -66,23 +58,18 @@ export default class RelationshipEditor {
                 tagsContainer.appendChild(tag);
             }
         } else if (value) {
-            // Handle both ID strings and objects with id property
             const id = typeof value === 'object' && value !== null ? value.id : value;
-            if (!id) return; // Skip if no valid ID
+            if (!id) return;
             
             const tag = await this.createElementTag(id, targetType, async () => {
-                // Clear single value
                 currentElement[fieldName] = null;
-                
-                // Clear single value
                 
                 await this.inlineEditor.saveField(fieldName, null);
                 
-                // Refresh display to show add button
                 await this.createRelationshipField(
                     container, 
                     fieldName, 
-                    null,  // Pass null since field is now empty
+                    null,
                     fieldType, 
                     currentElement
                 );
@@ -90,8 +77,7 @@ export default class RelationshipEditor {
             tagsContainer.appendChild(tag);
         }
         
-        // Add button (only show if we have a valid target type and single value field is empty or always for arrays)
-        // Don't show add button for generic UUID fields like Pin's element_id
+        // Add button (only for valid target types and when appropriate)
         if (!isGenericUuid && targetType && (fieldType === 'array<uuid>' || !value)) {
             const addBtn = document.createElement('button');
             addBtn.className = 'btn-add-relationship';
@@ -104,7 +90,7 @@ export default class RelationshipEditor {
             container.appendChild(addBtn);
         }
         
-        // For generic UUID fields, show a note that it should be edited directly
+        // For generic UUID fields, show a note
         if (isGenericUuid) {
             const note = document.createElement('span');
             note.className = 'generic-uuid-note';
@@ -115,7 +101,6 @@ export default class RelationshipEditor {
             container.appendChild(note);
         }
         
-        // Store metadata
         container.dataset.fieldName = fieldName;
         container.dataset.fieldType = fieldType;
         container.dataset.targetType = targetType;
@@ -125,23 +110,20 @@ export default class RelationshipEditor {
      * Create element tag display
      */
     async createElementTag(elementId, targetType, onRemove) {
-        // Ensure we have a string ID
         const id = typeof elementId === 'object' && elementId !== null ? elementId.id : elementId;
         if (!id || typeof id !== 'string') {
             console.warn('Invalid element ID:', elementId);
-            return document.createElement('div'); // Return empty div
+            return document.createElement('div');
         }
         
         const tag = document.createElement('div');
         tag.className = 'element-tag';
         tag.dataset.elementId = id;
         
-        // Get element details
         let elementName = '...';
         let isValid = true;
         
         try {
-            // Check cache first
             const cacheKey = `${targetType}_${id}`;
             let element = this.elementCache.get(cacheKey);
             
@@ -157,7 +139,6 @@ export default class RelationshipEditor {
             tag.classList.add('tag-invalid');
         }
         
-        // Add element type icon
         const iconSpan = document.createElement('span');
         iconSpan.className = 'material-icons-outlined tag-icon';
         iconSpan.textContent = ONLYWORLDS.ELEMENT_ICONS[targetType] || 'link';
@@ -167,7 +148,6 @@ export default class RelationshipEditor {
         iconSpan.style.opacity = '0.7';
         tag.appendChild(iconSpan);
         
-        // Element name (clickable to view)
         const nameSpan = document.createElement('span');
         nameSpan.className = 'tag-name';
         nameSpan.textContent = elementName;
@@ -179,7 +159,6 @@ export default class RelationshipEditor {
         }
         tag.appendChild(nameSpan);
         
-        // Remove button
         const removeBtn = document.createElement('button');
         removeBtn.className = 'tag-remove';
         removeBtn.innerHTML = '×';
@@ -197,29 +176,24 @@ export default class RelationshipEditor {
      * Show inline selector dropdown
      */
     async showSelector(container, fieldName, fieldType, targetType, currentElement) {
-        // Remove any existing selector
         const existingSelector = document.querySelector('.relationship-selector');
         if (existingSelector) {
             existingSelector.remove();
         }
         
-        // Create selector dropdown
         const selector = document.createElement('div');
         selector.className = 'relationship-selector';
         
-        // Create search input
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
         searchInput.placeholder = '';
         searchInput.className = 'selector-search';
         selector.appendChild(searchInput);
         
-        // Create results container
         const results = document.createElement('div');
         results.className = 'selector-results';
         selector.appendChild(results);
         
-        // Position below the add button
         const rect = container.getBoundingClientRect();
         selector.style.position = 'absolute';
         selector.style.top = `${rect.bottom + 5}px`;
@@ -229,14 +203,12 @@ export default class RelationshipEditor {
         document.body.appendChild(selector);
         searchInput.focus();
         
-        // Load and display elements
         const loadElements = async (searchTerm = '') => {
             results.innerHTML = '<div class="selector-loading">Loading...</div>';
             
             try {
                 let elements = await this.api.getElements(targetType);
                 
-                // Filter by search term
                 if (searchTerm) {
                     elements = elements.filter(el => 
                         el.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -245,7 +217,6 @@ export default class RelationshipEditor {
                     );
                 }
                 
-                // Limit display
                 elements = elements.slice(0, 50);
                 
                 results.innerHTML = '';
@@ -255,7 +226,6 @@ export default class RelationshipEditor {
                     return;
                 }
                 
-                // Get current values for highlighting
                 const currentValues = fieldType === 'array<uuid>'
                     ? (currentElement[fieldName] || [])
                     : (currentElement[fieldName] ? [currentElement[fieldName]] : []);
@@ -264,25 +234,21 @@ export default class RelationshipEditor {
                     const item = document.createElement('div');
                     item.className = 'selector-item';
                     
-                    // Check if already selected
                     const isSelected = currentValues.includes(element.id);
                     if (isSelected) {
                         item.classList.add('selected');
                     }
                     
-                    // Add icon
                     const icon = document.createElement('span');
                     icon.className = 'material-icons-outlined selector-icon';
                     icon.textContent = ONLYWORLDS.ELEMENT_ICONS[targetType] || 'category';
                     item.appendChild(icon);
                     
-                    // Add name
                     const name = document.createElement('span');
                     name.className = 'selector-name';
                     name.textContent = element.name || element.title || 'Unnamed';
                     item.appendChild(name);
                     
-                    // Add description preview
                     if (element.description) {
                         const desc = document.createElement('span');
                         desc.className = 'selector-desc';
@@ -290,70 +256,19 @@ export default class RelationshipEditor {
                         item.appendChild(desc);
                     }
                     
-                    // Click handler
                     item.onclick = async () => {
                         if (fieldType === 'array<uuid>') {
-                            // Add to array if not already there
                             if (!isSelected) {
                                 const values = currentElement[fieldName] || [];
                                 values.push(element.id);
                                 currentElement[fieldName] = values;
                                 
-                                // Add to array
-                                
-                                // Critical world validation - prevent cross-world references
-                                let currentWorld = typeof currentElement.world === 'string' 
-                                    ? currentElement.world 
-                                    : currentElement.world?.id;
-                                const targetWorld = typeof element.world === 'string' 
-                                    ? element.world 
-                                    : element.world?.id;
-                                
-                                // If current element doesn't have world field, try to get it
-                                if (!currentWorld) {
-                                    try {
-                                        // Get the world from the API's getWorldId method
-                                        currentWorld = await this.inlineEditor.api.getWorldId();
-                                        if (currentWorld) {
-                                            // Update the current element with world info for future use
-                                            currentElement.world = currentWorld;
-                                        } else {
-                                            console.error('❌ [RelEditor] Could not retrieve world ID for validation');
-                                        }
-                                    } catch (error) {
-                                        console.error('❌ [RelEditor] Error retrieving world ID:', error);
-                                    }
-                                }
-                                
-                                if (!currentWorld) {
-                                    console.error('❌ [RelEditor] Current element missing world field and could not retrieve!', {
-                                        currentElement: currentElement.id,
-                                        currentWorld: currentElement.world
-                                    });
-                                    alert(`Warning: Current element is missing world information and could not be retrieved. Relationship update may fail.`);
-                                } else if (!targetWorld) {
-                                    console.error('❌ [RelEditor] Target element missing world field!', {
-                                        targetElement: element.id,
-                                        targetWorld: element.world
-                                    });
-                                    alert(`Warning: Target element "${element.name}" is missing world information. Relationship update may fail.`);
-                                } else if (currentWorld !== targetWorld) {
-                                    console.error('❌ [RelEditor] Cross-world reference detected!', {
-                                        currentElement: currentElement.id,
-                                        currentWorld,
-                                        targetElement: element.id,
-                                        targetWorld
-                                    });
-                                    if (!confirm(`Warning: You're linking elements from different worlds!\n\nCurrent: ${currentElement.name} (world: ${currentWorld})\nTarget: ${element.name} (world: ${targetWorld})\n\nThis will likely fail. Continue anyway?`)) {
-                                        return; // User cancelled
-                                    }
-                                } else {
-                                    // World validation passed
+                                if (!await this.validateWorldReference(currentElement, element, fieldName)) {
+                                    return;
                                 }
                                 
                                 await this.inlineEditor.saveField(fieldName, values);
                                 
-                                // Refresh display
                                 await this.createRelationshipField(
                                     container, 
                                     fieldName, 
@@ -363,63 +278,14 @@ export default class RelationshipEditor {
                                 );
                             }
                         } else {
-                            // Replace single value
-                            // Replace single value
-                            
-                            // Critical world validation - prevent cross-world references
-                            let currentWorld = typeof currentElement.world === 'string' 
-                                ? currentElement.world 
-                                : currentElement.world?.id;
-                            const targetWorld = typeof element.world === 'string' 
-                                ? element.world 
-                                : element.world?.id;
-                            
-                            // If current element doesn't have world field, try to get it
-                            if (!currentWorld) {
-                                try {
-                                    // Get the world from the API's getWorldId method
-                                    currentWorld = await this.inlineEditor.api.getWorldId();
-                                    if (currentWorld) {
-                                        // Update the current element with world info for future use
-                                        currentElement.world = currentWorld;
-                                    } else {
-                                        console.error('❌ [RelEditor] Could not retrieve world ID for validation');
-                                    }
-                                } catch (error) {
-                                    console.error('❌ [RelEditor] Error retrieving world ID:', error);
-                                }
-                            }
-                            
-                            if (!currentWorld) {
-                                console.error('❌ [RelEditor] Current element missing world field and could not retrieve!', {
-                                    currentElement: currentElement.id,
-                                    currentWorld: currentElement.world
-                                });
-                                alert(`Warning: Current element is missing world information and could not be retrieved. Relationship update may fail.`);
-                            } else if (!targetWorld) {
-                                console.error('❌ [RelEditor] Target element missing world field!', {
-                                    targetElement: element.id,
-                                    targetWorld: element.world
-                                });
-                                alert(`Warning: Target element "${element.name}" is missing world information. Relationship update may fail.`);
-                            } else if (currentWorld !== targetWorld) {
-                                console.error('❌ [RelEditor] Cross-world reference detected!', {
-                                    currentElement: currentElement.id,
-                                    currentWorld,
-                                    targetElement: element.id,
-                                    targetWorld
-                                });
-                                if (!confirm(`Warning: You're linking elements from different worlds!\n\nCurrent: ${currentElement.name} (world: ${currentWorld})\nTarget: ${element.name} (world: ${targetWorld})\n\nThis will likely fail. Continue anyway?`)) {
-                                    return; // User cancelled
-                                }
-                            } else {
-                                // World validation passed
-                            }
-                            
                             currentElement[fieldName] = element.id;
+                            
+                            if (!await this.validateWorldReference(currentElement, element, fieldName)) {
+                                return;
+                            }
+                            
                             await this.inlineEditor.saveField(fieldName, element.id);
                             
-                            // Refresh display
                             await this.createRelationshipField(
                                 container, 
                                 fieldName, 
@@ -440,10 +306,8 @@ export default class RelationshipEditor {
             }
         };
         
-        // Initial load
         loadElements();
         
-        // Search on type
         let searchTimeout;
         searchInput.oninput = () => {
             clearTimeout(searchTimeout);
@@ -452,7 +316,6 @@ export default class RelationshipEditor {
             }, 300);
         };
         
-        // Close on escape or click outside
         const closeSelector = (e) => {
             if (e.key === 'Escape') {
                 selector.remove();
@@ -478,12 +341,45 @@ export default class RelationshipEditor {
     }
     
     /**
+     * Validate world references to prevent cross-world links
+     */
+    async validateWorldReference(currentElement, targetElement, fieldName) {
+        let currentWorld = typeof currentElement.world === 'string' 
+            ? currentElement.world 
+            : currentElement.world?.id;
+        const targetWorld = typeof targetElement.world === 'string' 
+            ? targetElement.world 
+            : targetElement.world?.id;
+        
+        if (!currentWorld) {
+            try {
+                currentWorld = await this.inlineEditor.api.getWorldId();
+                if (currentWorld) {
+                    currentElement.world = currentWorld;
+                }
+            } catch (error) {
+                console.error('Error retrieving world ID:', error);
+            }
+        }
+        
+        if (!currentWorld) {
+            alert(`Warning: Current element is missing world information. Relationship update may fail.`);
+            return false;
+        } else if (!targetWorld) {
+            alert(`Warning: Target element "${targetElement.name}" is missing world information. Relationship update may fail.`);
+            return false;
+        } else if (currentWorld !== targetWorld) {
+            return confirm(`Warning: You're linking elements from different worlds!\n\nCurrent: ${currentElement.name} (world: ${currentWorld})\nTarget: ${targetElement.name} (world: ${targetWorld})\n\nThis will likely fail. Continue anyway?`);
+        }
+        
+        return true;
+    }
+    
+    /**
      * View element in detail
      */
     async viewElement(elementId, targetType) {
-        // If the target type category is already selected, just select the element
         if (window.elementViewer && window.elementViewer.currentCategory === targetType) {
-            // Find and click the element card
             const elementCard = document.querySelector(`[data-id="${elementId}"]`);
             if (elementCard) {
                 elementCard.click();
@@ -491,18 +387,14 @@ export default class RelationshipEditor {
             }
         }
         
-        // Otherwise, load the category and then select the element
         if (window.elementViewer) {
-            // First, select the category
             await window.elementViewer.selectCategory(targetType);
             
-            // Wait a bit for the elements to load
             setTimeout(() => {
                 const elementCard = document.querySelector(`[data-id="${elementId}"]`);
                 if (elementCard) {
                     elementCard.click();
                 } else {
-                    // If element not in list, try to fetch and select it directly
                     this.api.getElement(targetType, elementId).then(element => {
                         if (element) {
                             window.elementViewer.selectElement(element);
@@ -519,32 +411,24 @@ export default class RelationshipEditor {
      * Get exact element type from field name using authoritative schema
      */
     guessElementType(fieldName) {
-        // Use the authoritative relationship target from field-types.js
         const target = getRelationshipTarget(fieldName);
         if (target) {
             return target.toLowerCase();
         }
         
-        // Fallback to the old guessing logic for unknown fields
-        // Remove _id or _ids suffix first
+        // Fallback to guessing logic for unknown fields
         let cleanName = fieldName.replace(/_ids?$/, '');
         
-        // Direct matches (check before removing plural)
         if (ONLYWORLDS.ELEMENT_TYPES.includes(cleanName)) {
             return cleanName;
         }
         
-        // Remove plural 's' at the end
         cleanName = cleanName.replace(/s$/, '');
         
-        // Check again after removing plural
         if (ONLYWORLDS.ELEMENT_TYPES.includes(cleanName)) {
             return cleanName;
         }
         
-        // Return best guess or fallback to 'character'
         return cleanName || 'character';
     }
 }
-
-// Export class for ES module use

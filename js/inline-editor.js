@@ -18,10 +18,8 @@ class InlineEditor {
         this.editingType = null;
         this.elementType = null;
         
-        // Initialize the extracted modules
         // Create autoSaveManager first since fieldRenderer needs it
         this.autoSaveManager = new AutoSaveManager(apiService, (updatedElement) => {
-            // Callback when element is updated
             this.editingElement = updatedElement;
         });
         
@@ -31,7 +29,6 @@ class InlineEditor {
             }
         });
         
-        // Keep reference to relationship editor
         this.relationshipEditor = null;
     }
     
@@ -46,11 +43,9 @@ class InlineEditor {
         this.editingType = elementType;
         this.elementType = elementType;
         
-        // Set context for modules
         this.fieldRenderer.setContext(elementType, element);
         this.autoSaveManager.setEditingContext(element, elementType);
         
-        // Build the editable interface
         this.renderEditableFields(container);
     }
     
@@ -61,7 +56,6 @@ class InlineEditor {
     renderEditableFields(container) {
         container.innerHTML = '';
         
-        // Add header with element name, save status, and delete button
         const header = document.createElement('div');
         header.className = 'inline-editor-header';
         header.innerHTML = `
@@ -83,7 +77,6 @@ class InlineEditor {
         `;
         container.appendChild(header);
         
-        // Add delete button functionality
         const deleteBtn = header.querySelector('.delete-btn-icon');
         deleteBtn.onclick = async () => {
             if (confirm(`Are you sure you want to delete this ${this.editingType}?`)) {
@@ -96,11 +89,9 @@ class InlineEditor {
             }
         };
         
-        // Create fields container
         const fieldsContainer = document.createElement('div');
         fieldsContainer.className = 'inline-editor-fields';
         
-        // Render compact fields
         this.renderCompactFields(fieldsContainer);
         
         container.appendChild(fieldsContainer);
@@ -113,12 +104,10 @@ class InlineEditor {
     renderCompactFields(container) {
         const element = this.editingElement;
         
-        // Define field order and grouping
         const primaryFields = ['name', 'description'];
         const metaFields = ['supertype', 'subtype', 'image_url'];
         const systemFields = ['id', 'world', 'created_at', 'updated_at'];
         
-        // Get all fields except system fields for "other fields" section
         const allFieldNames = Object.keys(element);
         const otherFields = allFieldNames.filter(field => 
             !primaryFields.includes(field) && 
@@ -179,17 +168,15 @@ class InlineEditor {
         fieldDiv.dataset.field = fieldName;
         fieldDiv.dataset.type = fieldType;
         
-        // Create label
         const label = document.createElement('label');
         label.className = 'compact-label';
         label.textContent = this.fieldRenderer.formatFieldName(fieldName) + ':';
         fieldDiv.appendChild(label);
         
-        // Create value container
         const valueContainer = document.createElement('div');
         valueContainer.className = 'compact-value';
         
-        // Check if this is a generic UUID field (like Pin's element_id) with no specific target
+        // Check if this is a generic UUID field with no specific target
         const fieldInfo = getFieldType(fieldName);
         const isGenericUuid = (fieldType === 'uuid' || fieldType === 'array<uuid>') && 
                                fieldInfo.related_to === null;
@@ -215,27 +202,22 @@ class InlineEditor {
                 fieldName, 
                 value, 
                 fieldType, 
-                this.editingElement  // Use the stored element from initialization
+                this.editingElement
             );
         } else if (fieldType === 'readonly') {
-            // Read-only fields
             let displayValue = value;
             if (fieldName === 'created_at' || fieldName === 'updated_at') {
                 displayValue = this.formatDate(value);
             } else if (fieldName === 'element_type') {
-                // Show the numeric ID for element_type with a note
                 displayValue = value ? `${value} (Pin reference - read only)` : 'N/A';
             } else if (fieldName === 'element_id') {
-                // Show the UUID with a note
                 displayValue = value ? `${value} (Pin reference - read only)` : 'N/A';
             } else if (fieldName === 'map' && (this.editingType === 'pin' || this.editingType === 'marker')) {
-                // Show the map UUID with a note for Pin/Marker
                 const mapId = typeof value === 'object' && value !== null ? value.id : value;
                 displayValue = mapId ? `${mapId} (Required - read only)` : 'N/A';
             }
             valueContainer.innerHTML = `<span class="readonly-value">${this.escapeHtml(displayValue || 'N/A')}</span>`;
         } else {
-            // Create normal input
             let input;
             
             switch (fieldType) {
@@ -264,18 +246,15 @@ class InlineEditor {
                     break;
                     
                 default: // string
-                    // Special handling for supertype and subtype fields
                     if (fieldName === 'supertype' || fieldName === 'subtype') {
                         input = this.fieldRenderer.createTypeInput(fieldName, value);
                     } else if (fieldName === 'description' || fieldName === 'content') {
-                        // Description field gets textarea for better UX
                         input = this.fieldRenderer.createTextareaInput(fieldName, value);
                     } else {
                         input = this.fieldRenderer.createTextInput(fieldName, value);
                     }
             }
             
-            // Add event listeners
             this.fieldRenderer.attachEditingListeners(input, fieldName, fieldType);
             valueContainer.appendChild(input);
         }
@@ -292,10 +271,7 @@ class InlineEditor {
      * @returns {Promise<boolean>} Success status
      */
     async saveField(fieldName, value) {
-        // Update the editing element
         this.editingElement[fieldName] = value;
-        
-        // Delegate to auto-save manager
         return await this.autoSaveManager.saveField(fieldName, value);
     }
     
@@ -306,11 +282,9 @@ class InlineEditor {
      * @param {string} fieldType - Field type
      */
     async updateRelationshipField(fieldName, value, fieldType) {
-        // Save the field immediately using the saveField method
         const success = await this.saveField(fieldName, value);
         
         if (success) {
-            // Update display
             const fieldContainer = document.querySelector(`[data-field="${fieldName}"] .compact-value`);
             if (fieldContainer && this.relationshipEditor) {
                 fieldContainer.innerHTML = '';
@@ -351,12 +325,10 @@ class InlineEditor {
      * Clean up when leaving edit mode
      */
     cleanup() {
-        // Save any pending changes
         if (this.autoSaveManager.dirtyFields.size > 0) {
             this.autoSaveManager.saveChanges();
         }
         
-        // Clean up modules
         this.autoSaveManager.cleanup();
         
         this.editingElement = null;
@@ -365,5 +337,4 @@ class InlineEditor {
     }
 }
 
-// Export for ES module use
 export default InlineEditor;

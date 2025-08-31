@@ -53,24 +53,19 @@ export class AutoSaveManager {
      * Handle field change - main entry point for auto-save
      */
     onFieldChange(fieldName, input) {
-        // Check if auto-save is enabled and not paused
         if (!this.enabled || this.paused) {
-            return; // Don't auto-save
+            return;
         }
         
-        // Mark field as dirty
         this.dirtyFields.add(fieldName);
         
-        // Update visual state
         const fieldDiv = document.querySelector(`[data-field="${fieldName}"]`);
         if (fieldDiv) {
             fieldDiv.classList.add('dirty');
         }
         
-        // Update save status
         this.updateSaveStatus('typing');
         
-        // Clear existing timeout
         if (this.saveTimeout) {
             clearTimeout(this.saveTimeout);
         }
@@ -85,7 +80,6 @@ export class AutoSaveManager {
      * Cancel editing for a field
      */
     cancelFieldEdit(fieldName, input) {
-        // Restore original value
         const originalValue = this.originalValues[fieldName];
         
         if (input.type === 'checkbox') {
@@ -96,14 +90,12 @@ export class AutoSaveManager {
                 : (originalValue || '');
         }
         
-        // Remove dirty state
         this.dirtyFields.delete(fieldName);
         const fieldDiv = document.querySelector(`[data-field="${fieldName}"]`);
         if (fieldDiv) {
             fieldDiv.classList.remove('dirty', 'editing');
         }
         
-        // Update status
         if (this.dirtyFields.size === 0) {
             this.updateSaveStatus('saved');
         }
@@ -120,10 +112,8 @@ export class AutoSaveManager {
                 { [fieldName]: value }
             );
             
-            // Update local element
             Object.assign(this.editingElement, updated);
             
-            // Notify callback if provided
             if (this.updateCallback) {
                 this.updateCallback(this.editingElement);
             }
@@ -151,7 +141,6 @@ export class AutoSaveManager {
      * Save all changes
      */
     async saveChanges() {
-        // Check if auto-save is disabled or paused
         if (!this.enabled || this.paused) return;
         
         if (this.dirtyFields.size === 0 || this.isSaving) return;
@@ -160,23 +149,18 @@ export class AutoSaveManager {
         this.updateSaveStatus('saving');
         
         try {
-            // Collect changed values
             const updates = this.collectChangedValues();
             
-            // Call API to update
             const updated = await this.api.updateElement(
                 this.editingType,
                 this.editingElement.id,
                 updates
             );
             
-            // Update local element
             Object.assign(this.editingElement, updated);
             
-            // Update original values with new saved values
             this.storeOriginalValues(this.editingElement);
             
-            // Clear dirty fields
             this.dirtyFields.clear();
             document.querySelectorAll('.dirty').forEach(el => {
                 el.classList.remove('dirty');
@@ -184,7 +168,6 @@ export class AutoSaveManager {
             
             this.updateSaveStatus('saved');
             
-            // Notify callback if provided
             if (this.updateCallback) {
                 this.updateCallback(this.editingElement);
             }
@@ -193,7 +176,6 @@ export class AutoSaveManager {
             console.error('Save failed:', error);
             this.updateSaveStatus('error');
             
-            // Show error message
             alert(`Failed to save: ${error.message}`);
         } finally {
             this.isSaving = false;
@@ -319,5 +301,4 @@ export class AutoSaveManager {
             this.saveChanges();
         }
     }
-    
 }

@@ -26,7 +26,6 @@ export class FieldRenderer {
      * Format field name for display
      */
     formatFieldName(fieldName) {
-        // Convert snake_case to Title Case
         return fieldName
             .split('_')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -42,12 +41,10 @@ export class FieldRenderer {
         fieldDiv.dataset.field = fieldName;
         fieldDiv.dataset.type = fieldType;
         
-        // Create label
         const label = document.createElement('label');
         label.textContent = this.formatFieldName(fieldName);
         fieldDiv.appendChild(label);
         
-        // Create appropriate input based on type
         let input;
         
         switch (fieldType) {
@@ -84,7 +81,6 @@ export class FieldRenderer {
                 }
         }
         
-        // Add event listeners for editing
         this.attachEditingListeners(input, fieldName, fieldType);
         
         fieldDiv.appendChild(input);
@@ -111,7 +107,6 @@ export class FieldRenderer {
         textarea.rows = 1;
         textarea.placeholder = '';
         
-        // Auto-resize textarea
         textarea.addEventListener('input', () => {
             textarea.style.height = 'auto';
             textarea.style.height = textarea.scrollHeight + 'px';
@@ -139,10 +134,8 @@ export class FieldRenderer {
         // Load type suggestions asynchronously
         if (typeManager && this.elementType) {
             if (fieldName === 'supertype') {
-                // Load supertypes for the category
                 typeManager.getSupertypes(this.elementType).then(supertypes => {
                     if (supertypes.length > 0) {
-                        // Create or update datalist
                         let datalistId = `inline-supertype-list-${this.editingElement.id}`;
                         let datalist = document.getElementById(datalistId);
                         if (!datalist) {
@@ -162,12 +155,10 @@ export class FieldRenderer {
                     }
                 });
             } else if (fieldName === 'subtype') {
-                // Load subtypes based on current supertype
                 const currentSupertype = this.editingElement.supertype;
                 if (currentSupertype) {
                     typeManager.getSubtypes(this.elementType, currentSupertype).then(subtypes => {
                         if (subtypes.length > 0) {
-                            // Create or update datalist
                             let datalistId = `inline-subtype-list-${this.editingElement.id}`;
                             let datalist = document.getElementById(datalistId);
                             if (!datalist) {
@@ -193,17 +184,13 @@ export class FieldRenderer {
         // If supertype changes, update the subtype field
         if (fieldName === 'supertype') {
             input.addEventListener('change', () => {
-                // Update the stored element's supertype
                 this.editingElement.supertype = input.value;
                 
-                // Find and update the subtype field if it exists
                 const subtypeField = document.querySelector('.compact-field[data-field="subtype"] input');
                 if (subtypeField && typeManager) {
-                    // Clear subtype value when supertype changes
                     subtypeField.value = '';
                     this.editingElement.subtype = '';
                     
-                    // Load new subtypes
                     typeManager.getSubtypes(this.elementType, input.value).then(subtypes => {
                         if (subtypes.length > 0) {
                             let datalistId = `inline-subtype-list-${this.editingElement.id}`;
@@ -244,7 +231,6 @@ export class FieldRenderer {
         textarea.rows = 3;
         textarea.placeholder = '';
         
-        // Auto-resize textarea
         textarea.addEventListener('input', () => {
             textarea.style.height = 'auto';
             textarea.style.height = textarea.scrollHeight + 'px';
@@ -367,10 +353,8 @@ export class FieldRenderer {
      * Attach editing event listeners to input
      */
     attachEditingListeners(input, fieldName, fieldType) {
-        // Get the actual input element (might be wrapped)
         const actualInput = input.querySelector('input, textarea') || input;
         
-        // Track changes for auto-save
         actualInput.addEventListener('input', () => {
             if (this.onFieldChange) {
                 this.onFieldChange(fieldName, actualInput);
@@ -389,24 +373,22 @@ export class FieldRenderer {
         // Handle keyboard shortcuts
         actualInput.addEventListener('keydown', (e) => {
             if (actualInput.tagName === 'INPUT' && actualInput.type !== 'checkbox' && actualInput.type !== 'number' && actualInput.type !== 'date') {
-                // For non-text inputs: Enter saves (no multiline needed)
+                // For non-text inputs: Enter saves
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    actualInput.blur(); // Trigger save
+                    actualInput.blur();
                 }
             } else if (actualInput.tagName === 'TEXTAREA') {
-                // For all textareas: Ctrl+Enter saves, Enter adds new line
+                // For textareas: Ctrl+Enter saves, Enter adds new line
                 if (e.key === 'Enter' && e.ctrlKey) {
                     e.preventDefault();
-                    actualInput.blur(); // Trigger save
+                    actualInput.blur();
                 }
-                // Regular Enter creates new line (default behavior - no preventDefault)
             }
             
-            // Escape cancels editing for both inputs and textareas
+            // Escape cancels editing
             if (e.key === 'Escape') {
                 e.preventDefault();
-                // TODO: Implement cancel functionality
                 actualInput.blur();
             }
         });
