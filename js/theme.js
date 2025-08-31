@@ -6,7 +6,7 @@
 class ThemeManager {
     constructor() {
         this.STORAGE_KEY = 'ow_theme';
-        this.DEFAULT_THEME = 'light'; // Default to light mode
+        this.DEFAULT_THEME = 'light';
         this.currentTheme = null;
         this.toggleButton = null;
     }
@@ -15,17 +15,14 @@ class ThemeManager {
      * Initialize the theme system
      */
     init() {
-        // Apply theme immediately to prevent flash
         this.applyInitialTheme();
         
-        // Set up the toggle button when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.setupToggleButton());
         } else {
             this.setupToggleButton();
         }
         
-        // Listen for system theme changes
         this.watchSystemPreference();
     }
 
@@ -33,14 +30,11 @@ class ThemeManager {
      * Apply the initial theme based on saved preference or default
      */
     applyInitialTheme() {
-        // Check for saved theme preference
         const savedTheme = localStorage.getItem(this.STORAGE_KEY);
         
         if (savedTheme) {
-            // Use saved preference
             this.currentTheme = savedTheme;
         } else {
-            // No saved preference, use default (light mode)
             this.currentTheme = this.DEFAULT_THEME;
         }
         
@@ -55,7 +49,6 @@ class ThemeManager {
         document.documentElement.setAttribute('data-theme', theme);
         this.currentTheme = theme;
         
-        // Update button icon if it exists
         if (this.toggleButton) {
             this.updateButtonIcon();
         }
@@ -65,7 +58,6 @@ class ThemeManager {
      * Set up the theme toggle button
      */
     setupToggleButton() {
-        // Create the toggle button
         const button = document.createElement('button');
         button.id = 'theme-toggle';
         button.className = 'btn-icon';
@@ -76,10 +68,8 @@ class ThemeManager {
             </span>
         `;
         
-        // Add click handler
         button.addEventListener('click', () => this.toggleTheme());
         
-        // Insert before help button
         const helpBtn = document.getElementById('help-btn');
         if (helpBtn && helpBtn.parentNode) {
             helpBtn.parentNode.insertBefore(button, helpBtn);
@@ -94,10 +84,8 @@ class ThemeManager {
         const newTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
         this.applyTheme(newTheme);
         
-        // Save preference
         localStorage.setItem(this.STORAGE_KEY, newTheme);
         
-        // Update button
         this.updateButtonIcon();
     }
 
@@ -128,9 +116,7 @@ class ThemeManager {
         
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         
-        // Handle changes
         mediaQuery.addEventListener('change', (e) => {
-            // Only apply if user hasn't set a manual preference
             if (!localStorage.getItem(this.STORAGE_KEY)) {
                 this.applyTheme(e.matches ? 'dark' : 'light');
             }
@@ -154,6 +140,5 @@ class ThemeManager {
     }
 }
 
-// Create and export singleton instance
 const themeManager = new ThemeManager();
 export { themeManager };

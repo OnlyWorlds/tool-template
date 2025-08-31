@@ -35,18 +35,7 @@ export default class ElementEditor {
         ONLYWORLDS.ELEMENT_TYPES.forEach(type => {
             const option = document.createElement('option');
             option.value = type;
-            // Use proper singular form
-            const label = ONLYWORLDS.ELEMENT_LABELS[type];
-            let singular = label;
-            // Handle special pluralization cases
-            if (label === 'Abilities') singular = 'Ability';
-            else if (label === 'Families') singular = 'Family';
-            else if (label === 'Species') singular = 'Species';
-            else if (label === 'Phenomena') singular = 'Phenomenon';
-            else if (label.endsWith('ies')) singular = label.slice(0, -3) + 'y';
-            else if (label.endsWith('s')) singular = label.slice(0, -1);
-            
-            option.textContent = singular;
+            option.textContent = ONLYWORLDS.ELEMENT_SINGULAR[type];
             typeSelect.appendChild(option);
         });
     }
@@ -58,199 +47,64 @@ export default class ElementEditor {
         this.isEditMode = false;
         this.currentElement = null;
         
-        // Get the current category from the button's data attribute
         const createBtn = document.getElementById('create-element-btn');
         const preselectedType = createBtn?.dataset.elementType || null;
         this.currentType = preselectedType;
         
-        // Reset form
         document.getElementById('element-form').reset();
         
-        // Clear dynamic fields
         const container = document.getElementById('dynamic-fields-container');
         if (container) {
             container.innerHTML = '';
         }
         
-        // If we have a preselected type, set it and disable the dropdown
         const typeSelect = document.getElementById('element-type');
         if (preselectedType && typeSelect) {
             typeSelect.value = preselectedType;
             typeSelect.disabled = true;
-            // Generate fields for this type
             this.generateDynamicFields(preselectedType);
         } else if (typeSelect) {
-            // Enable type selection if no preselected type
             typeSelect.disabled = false;
         }
         
-        // Update modal title
         const title = preselectedType ? 
             `Create New ${ONLYWORLDS.ELEMENT_SINGULAR[preselectedType]}` : 
             'Create New Element';
         document.getElementById('modal-title').textContent = title;
         
-        // Show modal
         this.showModal();
     }
-    
-    /**
-     * Note: Editing is now handled by inline-editor.js
-     * This modal is only for creating new elements
-     */
     
     /**
      * Populate the form with element data
      * @param {Object} element - Element to populate form with
      */
     populateForm(element) {
-        // Set type
         document.getElementById('element-type').value = this.currentType;
-        
-        // Set base fields
         document.getElementById('element-name').value = element.name || '';
         document.getElementById('element-description').value = element.description || '';
         
-        // Generate and populate dynamic fields
         this.generateDynamicFields(this.currentType, element);
     }
     
     /**
      * Generate dynamic form fields based on element type
-     * @param {string} elementType - Type of element
-     * @param {Object} elementData - Existing element data (for edit mode)
+     * Currently disabled - inline editor handles field editing after creation
      */
     generateDynamicFields(elementType, elementData = {}) {
         const container = document.getElementById('dynamic-fields-container');
         if (!container) return;
         
-        // Clear existing dynamic fields
         container.innerHTML = '';
-        
-        // Skip dynamic field generation - now handled by getFieldType() system
-        if (false) { // Disable the old field generation
-            const dummyFieldEntries = [];
-            const formGroup = document.createElement('div');
-            formGroup.className = 'form-group';
-            
-            // Create label
-            const label = document.createElement('label');
-            label.setAttribute('for', `field-${fieldName}`);
-            const labelText = fieldName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            label.textContent = labelText;
-            
-            // Create input based on field type
-            let input;
-            const fieldValue = elementData[fieldName];
-            
-            switch(fieldType) {
-                case 'date':
-                    input = document.createElement('input');
-                    input.type = 'date';
-                    input.id = `field-${fieldName}`;
-                    input.name = fieldName;
-                    if (fieldValue) {
-                        // Convert ISO date to YYYY-MM-DD format for date input
-                        const dateValue = fieldValue.split('T')[0];
-                        input.value = dateValue;
-                    }
-                    break;
-                    
-                case 'number':
-                    input = document.createElement('input');
-                    input.type = 'number';
-                    input.id = `field-${fieldName}`;
-                    input.name = fieldName;
-                    input.value = fieldValue || '';
-                    break;
-                    
-                case 'boolean':
-                    input = document.createElement('input');
-                    input.type = 'checkbox';
-                    input.id = `field-${fieldName}`;
-                    input.name = fieldName;
-                    input.checked = fieldValue === true;
-                    break;
-                    
-                case 'array<uuid>':
-                case 'array<string>':
-                    input = document.createElement('input');
-                    input.type = 'text';
-                    input.id = `field-${fieldName}`;
-                    input.name = fieldName;
-                    input.placeholder = '';
-                    if (Array.isArray(fieldValue)) {
-                        input.value = fieldValue.join(', ');
-                    } else {
-                        input.value = fieldValue || '';
-                    }
-                    // Add a help text for UUID arrays
-                    if (fieldType === 'array<uuid>') {
-                        const helpText = document.createElement('small');
-                        helpText.className = 'form-help-text';
-                        helpText.textContent = '';
-                        formGroup.appendChild(label);
-                        formGroup.appendChild(input);
-                        formGroup.appendChild(helpText);
-                        container.appendChild(formGroup);
-                        return;
-                    }
-                    break;
-                    
-                case 'uuid':
-                    input = document.createElement('input');
-                    input.type = 'text';
-                    input.id = `field-${fieldName}`;
-                    input.name = fieldName;
-                    input.placeholder = '';
-                    input.value = fieldValue || '';
-                    // Add help text
-                    const helpText = document.createElement('small');
-                    helpText.className = 'form-help-text';
-                    helpText.textContent = '';
-                    formGroup.appendChild(label);
-                    formGroup.appendChild(input);
-                    formGroup.appendChild(helpText);
-                    container.appendChild(formGroup);
-                    return;
-                    
-                case 'object':
-                    input = document.createElement('textarea');
-                    input.id = `field-${fieldName}`;
-                    input.name = fieldName;
-                    input.rows = 2;
-                    input.placeholder = '';
-                    if (fieldValue && typeof fieldValue === 'object') {
-                        input.value = JSON.stringify(fieldValue);
-                    } else {
-                        input.value = fieldValue || '';
-                    }
-                    break;
-                    
-                default: // string
-                    input = document.createElement('input');
-                    input.type = 'text';
-                    input.id = `field-${fieldName}`;
-                    input.name = fieldName;
-                    input.value = fieldValue || '';
-                    break;
-            }
-            
-            // Add data attribute for field type (useful for form processing)
-            input.setAttribute('data-field-type', fieldType);
-            
-            // This code is disabled - use inline editor after creation instead
-            } // End disabled section
+        // Dynamic field generation disabled - use inline editor after creation
     }
     
     /**
      * Save the element (create or update)
      */
     async saveElement() {
-        // Get form values
         const formData = this.getFormData();
         
-        // Validate
         if (!formData.name) {
             alert('Name is required');
             return false;
@@ -265,38 +119,32 @@ export default class ElementEditor {
             let result;
             
             if (this.isEditMode) {
-                // Update existing element - include all fields from formData except 'type'
                 const updates = { ...formData };
-                delete updates.type; // Remove type field as it shouldn't be updated
+                delete updates.type;
                 
                 result = await this.api.updateElement(this.currentType, this.currentElement.id, updates);
                 alert('Element updated successfully');
                 
             } else {
-                // Create new element - use all fields except 'type'
                 const elementData = { ...formData };
                 const elementType = elementData.type;
-                delete elementData.type; // Remove type from data as it's passed separately
+                delete elementData.type;
                 
                 result = await this.api.createElement(elementType, elementData);
             }
             
-            // Close modal
             this.hideModal();
             
-            // Refresh the viewer if it's showing this type
             if (window.elementViewer && 
                 (window.elementViewer.currentCategory === this.currentType || 
                  window.elementViewer.currentCategory === formData.type)) {
                 await window.elementViewer.loadElements(window.elementViewer.currentCategory);
                 
-                // If we were editing, refresh the detail view
                 if (this.isEditMode) {
                     await window.elementViewer.selectElement(result);
                 }
             }
             
-            // Update category count
             if (window.elementViewer) {
                 window.elementViewer.updateCategoryCounts();
             }
@@ -321,7 +169,6 @@ export default class ElementEditor {
             description: document.getElementById('element-description').value.trim()
         };
         
-        // Collect dynamic fields
         const dynamicInputs = document.querySelectorAll('#dynamic-fields-container [data-field-type]');
         dynamicInputs.forEach(input => {
             const fieldName = input.name;
@@ -329,7 +176,6 @@ export default class ElementEditor {
             
             if (!fieldName) return;
             
-            // Process value based on field type
             let value;
             switch(fieldType) {
                 case 'boolean':
@@ -346,7 +192,6 @@ export default class ElementEditor {
                     
                 case 'array<uuid>':
                 case 'array<string>':
-                    // Convert comma-separated string to array
                     if (input.value.trim()) {
                         value = input.value.split(',').map(v => v.trim()).filter(v => v);
                     } else {
@@ -355,12 +200,10 @@ export default class ElementEditor {
                     break;
                     
                 case 'object':
-                    // Try to parse JSON
                     if (input.value.trim()) {
                         try {
                             value = JSON.parse(input.value);
                         } catch (e) {
-                            // If JSON is invalid, store as string
                             value = input.value.trim();
                         }
                     } else {
@@ -368,12 +211,11 @@ export default class ElementEditor {
                     }
                     break;
                     
-                default: // string, uuid
+                default:
                     value = input.value.trim() || null;
                     break;
             }
             
-            // Only add field if it has a value
             if (value !== null && value !== '' && (!Array.isArray(value) || value.length > 0)) {
                 formData[fieldName] = value;
             }
@@ -387,9 +229,8 @@ export default class ElementEditor {
      */
     showModal() {
         document.getElementById('modal').classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; // Prevent scrolling
+        document.body.style.overflow = 'hidden';
         
-        // Focus on first input
         setTimeout(() => {
             if (this.isEditMode) {
                 document.getElementById('element-name').focus();
@@ -404,9 +245,8 @@ export default class ElementEditor {
      */
     hideModal() {
         document.getElementById('modal').classList.add('hidden');
-        document.body.style.overflow = ''; // Re-enable scrolling
+        document.body.style.overflow = '';
         
-        // Reset state
         this.currentElement = null;
         this.isEditMode = false;
         this.currentType = null;
@@ -416,51 +256,41 @@ export default class ElementEditor {
      * Attach event listeners
      */
     attachEventListeners() {
-        // Create button
         document.getElementById('create-element-btn')?.addEventListener('click', () => {
             this.createNewElement();
         });
         
-        // Modal close button
         document.getElementById('modal-close')?.addEventListener('click', () => {
             this.hideModal();
         });
         
-        // Cancel button
         document.getElementById('cancel-btn')?.addEventListener('click', () => {
             this.hideModal();
         });
         
-        // Form submit
         document.getElementById('element-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             await this.saveElement();
         });
         
-        // Close modal on backdrop click
         document.getElementById('modal')?.addEventListener('click', (e) => {
             if (e.target.id === 'modal') {
                 this.hideModal();
             }
         });
         
-        // Close modal on escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !document.getElementById('modal').classList.contains('hidden')) {
                 this.hideModal();
             }
         });
         
-        // Generate dynamic fields when element type changes
         document.getElementById('element-type')?.addEventListener('change', async (e) => {
             const type = e.target.value;
             
-            // Generate dynamic fields for the selected type
             if (type && !this.isEditMode) {
                 this.generateDynamicFields(type);
             }
         });
     }
 }
-
-// Export for ES module use

@@ -30,7 +30,6 @@ export default class ElementViewer {
         this.currentElements = [];
         this.selectedElement = null;
         
-        // Clear any open inline editor
         if (this.inlineEditor && this.inlineEditor.cleanup) {
             this.inlineEditor.cleanup();
         }
@@ -58,7 +57,6 @@ export default class ElementViewer {
             categoryList.appendChild(categoryItem);
         });
         
-        // Load counts for all categories
         this.updateCategoryCounts();
     }
     
@@ -70,10 +68,8 @@ export default class ElementViewer {
         const countPromises = ONLYWORLDS.ELEMENT_TYPES.map((type) => 
             this.api.getElements(type)
                 .then(elements => {
-                    // Update UI immediately when this request completes
                     const countElement = document.getElementById(`count-${type}`);
                     if (countElement) {
-                        // Use requestAnimationFrame to batch DOM updates
                         requestAnimationFrame(() => {
                             countElement.textContent = elements.length;
                         });
@@ -101,7 +97,6 @@ export default class ElementViewer {
      * @param {string} type - Element type to select
      */
     async selectCategory(type) {
-        // Update UI to show selected category
         document.querySelectorAll('.category-item').forEach(item => {
             item.classList.remove('active');
         });
@@ -109,20 +104,16 @@ export default class ElementViewer {
         
         this.currentCategory = type;
         
-        // Update list title
         document.getElementById('list-title').textContent = ONLYWORLDS.ELEMENT_LABELS[type];
         
-        // Show search input
         document.getElementById('search-input').classList.remove('hidden');
         
-        // Show create button
         const createBtn = document.getElementById('create-element-btn');
         if (createBtn) {
             createBtn.classList.remove('hidden');
             createBtn.dataset.elementType = type;
         }
         
-        // Load elements
         await this.loadElements(type);
     }
     
@@ -133,7 +124,6 @@ export default class ElementViewer {
     async loadElements(type) {
         const elementList = document.getElementById('element-list');
         
-        // Show loading state
         elementList.innerHTML = '<p class="loading-text">Loading...</p>';
         
         try {
@@ -145,7 +135,6 @@ export default class ElementViewer {
                 return;
             }
             
-            // Display elements
             this.displayElements(elements);
             
         } catch (error) {
@@ -166,16 +155,13 @@ export default class ElementViewer {
         const fragment = document.createDocumentFragment();
         const icon = ONLYWORLDS.ELEMENT_ICONS[this.currentCategory] || 'category';
         
-        // Create all element cards at once
         elements.forEach(element => {
             const elementCard = document.createElement('div');
             elementCard.className = 'element-card';
             elementCard.dataset.id = element.id;
             
-            // Create element display
             const supertype = element.supertype ? `<span class="element-supertype">${element.supertype}</span>` : '';
             
-            // Use a fallback for elements without names
             const displayName = element.name || element.title || `Unnamed ${this.currentCategory}`;
             
             elementCard.innerHTML = `
@@ -193,7 +179,6 @@ export default class ElementViewer {
             fragment.appendChild(elementCard);
         });
         
-        // Append all cards at once
         elementList.appendChild(fragment);
     }
     
@@ -202,7 +187,6 @@ export default class ElementViewer {
      * @param {Object} element - Element to display
      */
     async selectElement(element) {
-        // Update UI to show selected element
         document.querySelectorAll('.element-card').forEach(card => {
             card.classList.remove('selected');
         });
@@ -210,7 +194,6 @@ export default class ElementViewer {
         
         this.selectedElement = element;
         
-        // Display element details
         await this.displayElementDetails(element);
     }
     
@@ -221,15 +204,12 @@ export default class ElementViewer {
     async displayElementDetails(element) {
         const detailContainer = document.getElementById('element-detail');
         
-        // Initialize inline editor instead of static display
         if (!this.inlineEditor) {
             this.inlineEditor = new InlineEditor(this.api);
         }
         
-        // Clean up any previous editing session
         this.inlineEditor.cleanup();
         
-        // Initialize editor with the element
         this.inlineEditor.initializeEditor(element, this.currentCategory, detailContainer);
     }
     
@@ -262,13 +242,10 @@ export default class ElementViewer {
         try {
             await this.api.deleteElement(type, id);
             
-            // Refresh the list
             await this.loadElements(type);
             
-            // Clear detail view
             document.getElementById('element-detail').innerHTML = '<p class="empty-state">Select an element to view details</p>';
             
-            // Update count
             const countElement = document.getElementById(`count-${type}`);
             if (countElement) {
                 countElement.textContent = this.currentElements.length;
@@ -290,7 +267,6 @@ export default class ElementViewer {
         if (!this.currentCategory) return;
         
         if (!searchTerm) {
-            // If search is empty, reload all elements
             await this.loadElements(this.currentCategory);
             return;
         }
@@ -309,7 +285,6 @@ export default class ElementViewer {
      * Attach event listeners
      */
     attachEventListeners() {
-        // Search input
         const searchInput = document.getElementById('search-input');
         let searchTimeout;
         
@@ -348,5 +323,3 @@ export default class ElementViewer {
         }
     }
 }
-
-// Export for ES module use
