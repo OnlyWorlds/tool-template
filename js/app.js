@@ -289,8 +289,7 @@ class OnlyWorldsApp {
         }
     }
     
-    showError(message) {
-        // TODO: Replace with better notification system
+    showError(message) { 
         alert(message);
     }
 }

@@ -1,10 +1,16 @@
 /**
  * API Service Module
- * Handles all CRUD operations with the OnlyWorlds API
+ * Handles all CRUD operations with the OnlyWorlds API 
+ * Note: Error handling is intentionally kept simple for clarity.
+ * Consider adding:
+ * - Retry logic with exponential backoff
+ * - Network timeout configuration
+ * - Offline detection and queueing
+ * - More sophisticated error recovery
  */
 
-import { ONLYWORLDS } from './constants.js';
 import { authManager } from './auth.js';
+import { ONLYWORLDS } from './constants.js';
 import { getFieldType, isRelationshipField } from './field-types.js';
 
 export default class OnlyWorldsAPI {

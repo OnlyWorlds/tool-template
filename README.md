@@ -1,8 +1,31 @@
 # OnlyWorlds Tool Template
 
-A clean, minimal template for building tools that interact with the OnlyWorlds API. Perfect for beginners to learn the OnlyWorlds ecosystem and create world-building applications.
+A clean, minimal template for building tools and games using the OnlyWorlds standard and API.  
 
-## 🚀 Quick Start
+## Using This Template
+
+### For New Tools (Recommended)
+Use GitHub's template feature to create your own tool:
+
+#### Create a new repository
+1. **Click "Use this template"** (green button, top right)
+2. **Select "Create a new repository"**
+2. **Name your repository** (e.g., `my-perfect-tool`)
+3. **Set to Public** for free GitHub Pages hosting
+
+This creates a clean new repository without any connection to this template.
+
+#### Clone the repository
+1. **Click  "<> Code"** (green button, top right)
+2. **Copy the HTTPS URL** 
+3. **Open a terminal on your computer**
+4. **Run `git clone HTTPS-URL`**
+5. **Open the created folder in your IDE of choice** (VSCode, Cursor, etc.)
+
+This enables you track and control changes you make to files in that folder.
+
+
+## Quick Start
 
 ### Option 1: Python (Mac/Linux usually have this)
 ```bash
@@ -24,20 +47,18 @@ npm start
 
 Browser opens automatically at http://localhost:8080
 
-## 🔑 Getting Started
+## Deployment
 
-1. **Download or clone this repository**
+### GitHub Pages (Recommended)
+Deploy your customized tool for free:
 
-2. **Run one of the commands above**
+1. **Push your changes** to your GitHub repository
+2. **Go to Settings** → **Pages** (in your repository)
+3. **Set Source** to "Deploy from a branch"
+4. **Select Branch** "main" and Folder "/ (root)" (then Save)
+5. **Your tool will be live** at `https://[username].github.io/[repository-name]`
 
-3. **Enter your OnlyWorlds credentials**
-   - Get them from [onlyworlds.com](https://www.onlyworlds.com)
-   - API Key: 10 digits
-   - PIN: 4 digits
-
-4. **Click "Connect" to start building!**
-
-## ✨ What This Template Does
+## What This Template Does
 
 - **Full CRUD Operations** - Create, Read, Update, Delete all element types
 - **All 22 Element Types** - Complete OnlyWorlds support
@@ -46,7 +67,7 @@ Browser opens automatically at http://localhost:8080
 - **Clean Interface** - Responsive, modern design
 - **Educational Code** - Well-commented vanilla JavaScript for learning
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 tool-template/
@@ -71,104 +92,39 @@ tool-template/
 ├── start.py             # Python server launcher
 └── package.json         # Node.js configuration
 ```
+ 
 
-## 🎯 Key Features for Developers
-
-### Inline Editing Experience
-- Click any field to edit immediately (no "edit mode")
-- Auto-saves after 2 seconds of inactivity
-- Visual feedback: yellow = editing, blue = saving, green = saved
-- Keyboard shortcuts: Ctrl+Enter to save, Escape to cancel
-
-### Smart Relationship Handling
-- UUID fields automatically show relationship picker
-- Type detection from field names (e.g., `character_id` → Character type)
-- Single and multiple selection support
-- Graceful handling of broken references
-
-### Educational Design
-- **Modern ES Modules** - Clean imports/exports, no build step required
-- **Modular architecture** - Clear separation of concerns
-- **Extensive comments** - Learn patterns like debouncing, state management
-- **Manual UUID v7 generation** - Understanding time-ordered IDs
-- **Refactored for clarity** - Inline editor split into focused modules
-
-## 🛠️ Customization Ideas
-
-### Quick Customizations
-- **Colors**: Edit CSS variables in `css/styles.css`
-- **Fields**: Add custom fields in `js/constants.js`
-- **Validation**: Enhance form validation in `js/editor.js`
-
-### Build Your Own Tool
-This template is designed to be extended:
-
-- **Visualizers** - Add maps, timelines, relationship graphs
-- **Generators** - Create content programmatically
-- **Analyzers** - Extract insights from world data
-- **Converters** - Import/export to other formats
-- **Games** - Build interactive experiences with your world data
-
-## 🐛 Troubleshooting
+## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
 | `python: command not found` | Try `python3` instead, or install from python.org |
 | `npm: command not found` | Install Node.js from nodejs.org |
 | Port 8080 already in use | Edit start.py or use `npm start -- -l 8081` |
-| CORS errors | Make sure you're using the server, not opening index.html directly |
-| Authentication fails | Check API Key (10 digits) and PIN (4 digits) |
-| No elements showing | Create some elements at onlyworlds.com first |
+| CORS errors | Make sure you're using the server, not opening index.html directly | 
 
-## 📚 Resources
+Make sure to use the [OnlyWorlds Discord](https://discord.gg/twCjqvVBwb) to ask any technical or creative questions.
 
+## Customization
+
+This template is designed to offer **modular building blocks**. Common patterns:
+
+- **API-only integration** - Keep auth.js + api.js, remove UI files
+- **Different UI framework** - Replace UI layer with React/Vue/Svelte
+- **Specialized tools** - Focus on specific element types
+- **Enhanced features** - Add maps, timelines, AI generation
+
+→ **[Full Customization Guide](CUSTOMIZATION-GUIDE.md)** - Complete patterns and LLM-friendly documentation
+
+## Resources
+
+- **[OnlyWorlds Documentation](https://onlyworlds.github.io/)** - Complete documentation, including developer support and an example guide for extending this tool
 - **[API Documentation](https://www.onlyworlds.com/api/docs)** - Complete API reference
-- **[Developer Guide](https://onlyworlds.github.io/)** - Tutorials and best practices
-- **[GitHub](https://github.com/OnlyWorlds/OnlyWorlds)** - Main OnlyWorlds repository
-- **[Discord Community](https://discord.gg/twCjqvVBwb)** - Get help and share your tools
+- **[GitHub](https://github.com/OnlyWorlds/OnlyWorlds)** - Main OnlyWorlds repository 
+ 
 
-## 🚀 Advanced Usage
-
-### Alternative Ports
-```bash
-# Python with different port
-python start.py  # (edit line 24 in start.py to change port)
-
-# Node with different port
-npx serve -s . -l 8081
-```
-
-### Growing Your Tool
-Once you're ready to add frameworks or build tools:
-```bash
-# Add a framework
-npm install react vue svelte
-
-# Add TypeScript
-npm install --save-dev typescript
-
-# Add a bundler
-npm install --save-dev vite webpack parcel
-```
-
-## 💡 Tips for Building Tools
-
-1. **Start Simple** - Get basic CRUD working first
-2. **Test Edge Cases** - Empty worlds, broken references, slow connections
-3. **Follow Conventions** - Use the standard field names and types
-4. **Handle Errors Gracefully** - Users might have network issues
-5. **Keep It Educational** - Your tool might be someone's first look at the API
-
-## 🤝 Contributing
-
-This template is meant to be forked and modified! Share your tools with the OnlyWorlds community.
-
-## 📄 License
+## License
 
 MIT License - Free to use and modify for any OnlyWorlds tools.
 
----
-
-**Ready to build?** This template gives you everything needed to create OnlyWorlds tools. Simple enough for beginners, flexible enough for any application.
-
-*Made with ❤️ for the OnlyWorlds community*
+ 
