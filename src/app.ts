@@ -1,5 +1,5 @@
 /**
- * Main Application Module
+ * Main Application Module (TypeScript)
  * Coordinates all modules and handles the main application flow
  */
 
@@ -11,46 +11,46 @@ import { themeManager } from './theme.js';
 import ElementViewer from './viewer.js';
 
 class OnlyWorldsApp {
-    constructor() {
-        this.isConnected = false;
-        this.importExportManager = null;
-    }
-    
-    init() {
+    private isConnected: boolean = false;
+    private elementViewer!: ElementViewer;
+    private elementEditor!: ElementEditor;
+    private importExportManager: ImportExportManager | null = null;
+
+    init(): void {
         themeManager.init();
         this.setupErrorHandling();
-        
+
         this.elementViewer = new ElementViewer(apiService);
         this.elementEditor = new ElementEditor(apiService);
-        
+
         // Make globally accessible for debugging
-        window.elementViewer = this.elementViewer;
-        window.elementEditor = this.elementEditor;
-        
+        (window as any).elementViewer = this.elementViewer;
+        (window as any).elementEditor = this.elementEditor;
+
         this.attachEventListeners();
     }
-    
-    setupErrorHandling() {
+
+    private setupErrorHandling(): void {
         window.addEventListener('error', (event) => {
             console.error('Global error:', event.error);
             this.showError('An unexpected error occurred. Please refresh the page.');
         });
-        
+
         window.addEventListener('unhandledrejection', (event) => {
             console.error('Unhandled promise rejection:', event.reason);
             this.showError('An error occurred while processing your request.');
         });
     }
-    
-    attachEventListeners() {
+
+    private attachEventListeners(): void {
         document.getElementById('validate-btn')?.addEventListener('click', () => {
             this.validateCredentials();
         });
-        
+
         document.getElementById('help-btn')?.addEventListener('click', () => {
             this.showHelp();
         });
-        
+
         // Enter key on auth inputs
         ['api-key', 'api-pin'].forEach(id => {
             document.getElementById(id)?.addEventListener('keypress', (e) => {
@@ -59,86 +59,94 @@ class OnlyWorldsApp {
                 }
             });
         });
-        
+
         // Handle credential input changes
         this.setupCredentialInputs();
-        
+
         this.attachImportExportListeners();
     }
-    
-    setupCredentialInputs() {
-        const apiKeyInput = document.getElementById('api-key');
-        const apiPinInput = document.getElementById('api-pin');
-        
-        const handleCredentialChange = (input, maxLength) => {
+
+    private setupCredentialInputs(): void {
+        const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
+        const apiPinInput = document.getElementById('api-pin') as HTMLInputElement;
+
+        const handleCredentialChange = (input: HTMLInputElement | null, maxLength: number): void => {
             input?.addEventListener('input', (e) => {
+                const target = e.target as HTMLInputElement;
                 // Only allow digits and limit length
-                e.target.value = e.target.value.replace(/\D/g, '').slice(0, maxLength);
-                
+                target.value = target.value.replace(/\D/g, '').slice(0, maxLength);
+
                 // Reset connection status if credentials change
                 if (this.isConnected) {
                     this.isConnected = false;
                     this.showAuthStatus('Credentials changed. Please validate again.', 'info');
                 }
-                
+
                 this.updateValidateButton();
             });
         };
-        
+
         handleCredentialChange(apiKeyInput, 10);
         handleCredentialChange(apiPinInput, 4);
     }
-    
-    attachImportExportListeners() {
+
+    private attachImportExportListeners(): void {
         document.getElementById('export-btn')?.addEventListener('click', () => {
             if (this.importExportManager) {
                 this.importExportManager.exportWorld();
             }
         });
     }
-    
-    async validateCredentials() {
-        const apiKey = document.getElementById('api-key').value.trim();
-        const apiPin = document.getElementById('api-pin').value.trim();
-        
+
+    private async validateCredentials(): Promise<void> {
+        const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
+        const apiPinInput = document.getElementById('api-pin') as HTMLInputElement;
+
+        const apiKey = apiKeyInput.value.trim();
+        const apiPin = apiPinInput.value.trim();
+
         if (!apiKey || !apiPin) {
             this.showAuthStatus('Please enter both API Key and PIN', 'error');
             return;
         }
-        
-        const validateBtn = document.getElementById('validate-btn');
-        const originalText = validateBtn.textContent;
+
+        const validateBtn = document.getElementById('validate-btn') as HTMLButtonElement;
+        const originalText = validateBtn.textContent || '';
         validateBtn.disabled = true;
         validateBtn.textContent = 'loading...';
-        
+
         this.showAuthStatus('');
-        
+
         // Clear UI before loading new world (in case switching worlds)
         if (this.elementViewer) {
             this.clearMainUI();
         }
-        
+
         try {
             await authManager.authenticate(apiKey, apiPin);
-            
+
             this.showMainApp();
             validateBtn.textContent = 'validated';
             validateBtn.classList.add('validated');
             this.showAuthStatus('', 'success');
-            
+
         } catch (error) {
-            this.showAuthStatus(error.message, 'error');
+            const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
+            this.showAuthStatus(errorMessage, 'error');
             validateBtn.textContent = originalText;
             validateBtn.disabled = false;
             console.error('Authentication error:', error);
         }
     }
-    
-    updateValidateButton() {
-        const apiKey = document.getElementById('api-key').value.trim();
-        const apiPin = document.getElementById('api-pin').value.trim();
-        const validateBtn = document.getElementById('validate-btn');
-        
+
+    private updateValidateButton(): void {
+        const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
+        const apiPinInput = document.getElementById('api-pin') as HTMLInputElement;
+        const validateBtn = document.getElementById('validate-btn') as HTMLButtonElement;
+
+        const apiKey = apiKeyInput.value.trim();
+        const apiPin = apiPinInput.value.trim();
+
         if (this.isConnected) {
             validateBtn.disabled = true;
             validateBtn.textContent = 'Connected ✓';
@@ -150,13 +158,13 @@ class OnlyWorldsApp {
             validateBtn.classList.remove('validated');
         }
     }
-    
-    showHelp() {
+
+    private showHelp(): void {
         const existingModal = document.getElementById('help-modal');
         if (existingModal) {
             existingModal.remove();
         }
-        
+
         const modal = document.createElement('div');
         modal.id = 'help-modal';
         modal.className = 'modal';
@@ -173,7 +181,7 @@ class OnlyWorldsApp {
                         <p>It has basic API validation and element viewing, editing capabilities.</p>
                         <p><a href="https://github.com/OnlyWorlds/tool-template" target="_blank">View on GitHub</a></p>
                     </div>
-                    
+
                     <div class="help-section">
                         <h3>Quick Start</h3>
                         <ol>
@@ -182,22 +190,23 @@ class OnlyWorldsApp {
                             <li>Select a category to view and edit elements</li>
                         </ol>
                     </div>
-                    
+
                     <div class="help-section">
                         <p>Learn more at <a href="https://onlyworlds.github.io" target="_blank">onlyworlds.github.io</a></p>
                     </div>
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(modal);
         modal.classList.add('visible');
-        
-        modal.querySelector('.modal-close').addEventListener('click', () => {
+
+        const closeBtn = modal.querySelector('.modal-close') as HTMLButtonElement;
+        closeBtn.addEventListener('click', () => {
             modal.classList.remove('visible');
             setTimeout(() => modal.remove(), 300);
         });
-        
+
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.classList.remove('visible');
@@ -205,21 +214,27 @@ class OnlyWorldsApp {
             }
         });
     }
-    
-    showMainApp() {
-        const isAlreadyShowing = !document.getElementById('main-content').classList.contains('hidden');
-        
-        document.getElementById('welcome-screen').classList.add('hidden');
-        document.getElementById('main-content').classList.remove('hidden');
-        
+
+    private showMainApp(): void {
+        const mainContent = document.getElementById('main-content');
+        if (!mainContent) return;
+
+        const isAlreadyShowing = !mainContent.classList.contains('hidden');
+
+        const welcomeScreen = document.getElementById('welcome-screen');
+        welcomeScreen?.classList.add('hidden');
+        mainContent.classList.remove('hidden');
+
         // Display world name
         const world = authManager.getCurrentWorld();
         if (world) {
             const worldNameElement = document.getElementById('world-name');
-            worldNameElement.textContent = world.name || 'Unnamed World';
-            worldNameElement.classList.remove('hidden');
+            if (worldNameElement) {
+                worldNameElement.textContent = world.name || 'Unnamed World';
+                worldNameElement.classList.remove('hidden');
+            }
         }
-        
+
         // If switching worlds, just refresh; otherwise initialize
         if (isAlreadyShowing) {
             this.elementViewer.updateCategoryCounts();
@@ -227,47 +242,47 @@ class OnlyWorldsApp {
             this.elementViewer.init();
             this.elementEditor.init();
         }
-        
+
         // Initialize import/export manager
         setTimeout(() => {
             this.importExportManager = new ImportExportManager(apiService);
-            
+
             const controls = document.getElementById('import-export-controls');
             if (controls) {
                 controls.classList.remove('hidden');
             }
         }, 100);
-        
+
         this.isConnected = true;
     }
-    
-    clearMainUI() {
+
+    private clearMainUI(): void {
         if (this.elementViewer) {
             this.elementViewer.clear();
-            
+
             const elementLists = document.querySelectorAll('.element-list');
             elementLists.forEach(list => {
                 list.innerHTML = '';
             });
-            
+
             const detailView = document.getElementById('detail-view');
             if (detailView) {
                 detailView.innerHTML = '<div class="empty-state">Select an element to view details</div>';
             }
-            
+
             const activeCategory = document.querySelector('.category-item.active');
             if (activeCategory) {
                 activeCategory.classList.remove('active');
             }
-            
+
             const categoryCounts = document.querySelectorAll('.category-count');
             categoryCounts.forEach(count => {
                 count.textContent = '-';
             });
         }
     }
-    
-    showAuthStatus(message, type = '') {
+
+    private showAuthStatus(message: string, type: 'info' | 'success' | 'error' | '' = ''): void {
         const statusElement = document.getElementById('auth-status');
         if (statusElement) {
             statusElement.textContent = message;
@@ -277,8 +292,8 @@ class OnlyWorldsApp {
             }
         }
     }
-    
-    showLoading(show) {
+
+    private showLoading(show: boolean): void {
         const loadingElement = document.getElementById('loading');
         if (loadingElement) {
             if (show) {
@@ -288,8 +303,8 @@ class OnlyWorldsApp {
             }
         }
     }
-    
-    showError(message) { 
+
+    private showError(message: string): void {
         alert(message);
     }
 }
@@ -306,4 +321,6 @@ if (document.readyState === 'loading') {
 }
 
 // Make app globally accessible for debugging
-window.app = app;
+(window as any).app = app;
+
+export default OnlyWorldsApp;

@@ -1058,6 +1058,21 @@ body {
     border-color: var(--status-error);
 }
 
+.element-tag.tag-broken {
+    background: rgba(255, 152, 0, 0.1);
+    border-color: #ff9800;
+    opacity: 0.7;
+}
+
+.tag-broken .tag-name {
+    color: #ff9800;
+    font-style: italic;
+}
+
+.tag-broken .tag-icon {
+    color: #ff9800;
+}
+
 .tag-name {
     color: var(--status-info);
     cursor: pointer;

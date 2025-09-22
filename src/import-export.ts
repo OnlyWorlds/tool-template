@@ -1,70 +1,101 @@
 /**
- * Export Manager for OnlyWorlds
- * 
+ * Import/Export Manager for OnlyWorlds
+ *
  * Handles JSON export functionality for entire worlds
  * Educational patterns demonstrated: Blob API, Promise.all(), retry logic
  */
 
 import { authManager } from './auth.js';
+import type OnlyWorldsAPI from './api.js';
+
+// Element types from OnlyWorlds (capitalized for website compatibility)
+// Use dynamic element types from API service
+type ElementType = string;
+
+interface ElementData {
+    type: ElementType;
+    elements: any[];
+}
+
+interface WorldMetadata {
+    id: string | null;
+    name: string;
+    description?: string;
+    created_at?: string | null;
+    updated_at?: string | null;
+}
+
+interface ExportData {
+    metadata: {
+        version: string;
+        exportDate: string;
+        worldId: string | null;
+        worldName: string;
+        elementCount: number;
+    };
+    world: WorldMetadata;
+    [key: string]: any; // Dynamic element type properties
+}
+
+type NotificationType = 'info' | 'success' | 'error';
 
 export class ImportExportManager {
-    constructor(apiService) {
+    private api: OnlyWorldsAPI;
+
+    constructor(apiService: OnlyWorldsAPI) {
         this.api = apiService;
-        
-        // All 22 OnlyWorlds element types (capital case for website compatibility)
-        this.ELEMENT_TYPES = [
-            'Ability', 'Character', 'Collective', 'Construct',
-            'Creature', 'Event', 'Family', 'Institution',
-            'Language', 'Law', 'Location', 'Map', 'Marker',
-            'Narrative', 'Object', 'Phenomenon', 'Pin',
-            'Relation', 'Species', 'Title', 'Trait', 'Zone'
-        ];
     }
-    
+
     /**
      * Export world to JSON file
      * Downloads all elements in website-compatible format
      */
-    async exportWorld() {
+    async exportWorld(): Promise<void> {
         try {
             this.showLoading(true, 'Preparing export...');
-            
+
             // Fetch all elements in parallel for efficiency
             const allData = await this.fetchAllElements();
-            
+
             const world = authManager.getCurrentWorld();
             const worldName = world?.name || 'world';
-            
+
             const exportData = this.formatExportData(allData, world);
-            
+
             const timestamp = new Date().toISOString().split('T')[0];
             const safeName = worldName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
             const filename = `onlyworlds_${safeName}_${timestamp}.json`;
-            
+
             this.downloadAsFile(exportData, filename);
-            
-            const elementCount = allData.reduce((sum, item) => 
+
+            const elementCount = allData.reduce((sum, item) =>
                 sum + (item.elements?.length || 0), 0);
-            
+
             this.showNotification(`✓ Exported ${elementCount} elements`, 'success');
-            
+
         } catch (error) {
             console.error('Export failed:', error);
-            this.showNotification(`Export failed: ${error.message}`, 'error');
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.showNotification(`Export failed: ${errorMessage}`, 'error');
         } finally {
             this.showLoading(false);
         }
     }
-    
+
     /**
      * Fetch all elements from API in parallel
      * Uses Promise.all() for concurrent requests
      */
-    async fetchAllElements() {
+    private async fetchAllElements(): Promise<ElementData[]> {
         this.showLoading(true, 'Fetching elements...');
-        
-        const promises = this.ELEMENT_TYPES.map(type => 
-            this.fetchWithRetry(() => 
+
+        // Get dynamic element types and capitalize for export format
+        const elementTypes = this.api.getElementTypes().map(type =>
+            type.charAt(0).toUpperCase() + type.slice(1)
+        );
+
+        const promises = elementTypes.map(type =>
+            this.fetchWithRetry(() =>
                 this.api.getElements(type.toLowerCase())
             ).then(elements => ({
                 type,
@@ -74,26 +105,26 @@ export class ImportExportManager {
                 return { type, elements: [] };
             })
         );
-        
+
         const results = await Promise.all(promises);
-        
+
         return results.filter(r => r.elements.length > 0);
     }
-    
+
     /**
      * Format data for export (website-compatible)
      */
-    formatExportData(allData, world) {
-        const exportData = {
+    private formatExportData(allData: ElementData[], world: any): ExportData {
+        const exportData: ExportData = {
             metadata: {
                 version: '1.0',
                 exportDate: new Date().toISOString(),
                 worldId: world?.id || null,
                 worldName: world?.name || 'Unknown World',
-                elementCount: allData.reduce((sum, item) => 
+                elementCount: allData.reduce((sum, item) =>
                     sum + item.elements.length, 0)
             },
-            
+
             world: {
                 id: world?.id || null,
                 name: world?.name || '',
@@ -102,79 +133,79 @@ export class ImportExportManager {
                 updated_at: world?.updated_at || null
             }
         };
-        
+
         // Add each element type's data
         for (const { type, elements } of allData) {
             exportData[type] = elements;
         }
-        
+
         return exportData;
     }
-    
+
     /**
      * Download data as a file using Blob API
      */
-    downloadAsFile(data, filename) {
+    private downloadAsFile(data: ExportData, filename: string): void {
         const jsonString = JSON.stringify(data, null, 2);
-        
+
         const blob = new Blob([jsonString], { type: 'application/json' });
-        
+
         const url = URL.createObjectURL(blob);
-        
+
         const link = document.createElement('a');
         link.href = url;
         link.download = filename;
-        
+
         document.body.appendChild(link);
         link.click();
-        
+
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     }
-    
+
     /**
      * Retry failed requests with exponential backoff
      */
-    async fetchWithRetry(fetchFn, maxRetries = 3) {
-        let lastError;
-        
+    private async fetchWithRetry<T>(fetchFn: () => Promise<T>, maxRetries: number = 3): Promise<T> {
+        let lastError: Error | unknown;
+
         for (let i = 0; i < maxRetries; i++) {
             try {
                 return await fetchFn();
             } catch (error) {
                 lastError = error;
-                
+
                 // Don't retry on 4xx errors
-                if (error.message?.includes('4')) {
+                if (error instanceof Error && error.message?.includes('4')) {
                     throw error;
                 }
-                
+
                 // Exponential backoff: 1s, 2s, 4s...
                 const delay = Math.pow(2, i) * 1000;
                 await this.sleep(delay);
             }
         }
-        
+
         throw lastError;
     }
-    
+
     /**
      * Utility sleep function for delays
      */
-    sleep(ms) {
+    private sleep(ms: number): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-    
+
     /**
      * Show loading indicator with message
      */
-    showLoading(show, message = '') {
+    private showLoading(show: boolean, message: string = ''): void {
         const loading = document.getElementById('loading');
         if (loading) {
             loading.classList.toggle('hidden', !show);
-            
+
             if (message) {
-                const messageEl = loading.querySelector('.loading-message');
+                const messageEl = loading.querySelector('.loading-message') as HTMLElement;
                 if (messageEl) {
                     messageEl.textContent = message;
                 } else if (show) {
@@ -186,21 +217,21 @@ export class ImportExportManager {
             }
         }
     }
-    
+
     /**
      * Show notification message
      */
-    showNotification(message, type = 'info') {
+    private showNotification(message: string, type: NotificationType = 'info'): void {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
-        
+
         document.body.appendChild(notification);
-        
+
         requestAnimationFrame(() => {
             notification.classList.add('notification-visible');
         });
-        
+
         setTimeout(() => {
             notification.classList.remove('notification-visible');
             setTimeout(() => notification.remove(), 300);

@@ -1,9 +1,14 @@
 {
   "name": "onlyworlds-tool-template",
   "version": "1.0.0",
+  "type": "module",
   "description": "OnlyWorlds Tool Template - Build world-building applications",
   "scripts": {
-    "start": "npx serve -s . -l 8080"
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "dev": "ts-node src/app.ts",
+    "start": "npm run build && npx serve -s . -l 8080",
+    "start:js": "npx serve -s . -l 8080"
   },
   "keywords": [
     "onlyworlds",
@@ -16,5 +21,13 @@
     "type": "git",
     "url": "git+https://github.com/OnlyWorlds/tool-template.git"
   },
-  "homepage": "https://github.com/OnlyWorlds/tool-template#readme"
+  "homepage": "https://github.com/OnlyWorlds/tool-template#readme",
+  "dependencies": {
+    "@onlyworlds/sdk": "^1.0.1",
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
+  }
 }

@@ -60,6 +60,8 @@ If not installed:
 | Port 8080 already in use | Change the port in start.py (line 24) or use `npx serve -s . -l 8081` |
 | Browser doesn't open | Manually navigate to http://localhost:8080 |
 | CORS errors | You must use the server - don't open index.html directly |
+| TypeScript errors | Run `npm run build` to compile TypeScript, check console for errors |
+| Module not found errors | Ensure `npm install` and `npm run build` completed successfully |
 
 ### Why Do I Need a Server?
 
@@ -72,13 +74,19 @@ Web browsers have security restrictions (CORS) that prevent local HTML files fro
    - Navigate to your API settings
    - Copy your API Key (10 digits) and PIN (4 digits)
 
-2. **Run the Tool**
+2. **Build the TypeScript (First Time Only)**
+   ```bash
+   npm install
+   npm run build
+   ```
+
+3. **Run the Tool**
    - Use either `python start.py` or `npm start`
    - Browser opens automatically
 
-3. **Connect to OnlyWorlds**
+4. **Connect to OnlyWorlds**
    - Enter your API Key and PIN
-   - Click "Connect"
+   - Click "load world"
    - Start creating and managing your world elements!
 
 ## 💡 Developer Tips
@@ -122,25 +130,34 @@ Once you've customized your tool, you can host it online:
 
 ## 📚 Next Steps
 
-1. **Explore the Code**
-   - `js/app.js` - Main ES module entry point
-   - `js/constants.js` - Element types and fields
-   - `js/api.js` - API integration
-   - `js/viewer.js` - Display logic
-   - `js/inline-editor.js` - Editing functionality (now modular)
-   - `js/field-renderer.js` - Field rendering logic
-   - `js/auto-save.js` - Auto-save management
-   - `js/relationship-editor.js` - Relationship field handling
+1. **Explore the TypeScript Code**
+   - `src/app.ts` - Main application controller
+   - `src/auth.ts` - OnlyWorlds SDK authentication
+   - `src/api.ts` - SDK-based API operations
+   - `src/viewer.ts` - Element browsing and display
+   - `src/editor.ts` - Element creation modal
+   - `src/inline-editor.ts` - Direct field editing
+   - `src/field-renderer.ts` - Dynamic field rendering
+   - `src/auto-save.ts` - Auto-save management
+   - `src/relationship-editor.ts` - UUID relationship handling
+   - `src/compatibility.ts` - Element type constants and field mapping
 
-2. **Make It Your Own**
+2. **Development Workflow**
+   - Edit TypeScript files in `src/`
+   - Run `npm run build` to compile to `dist/`
+   - Use `npm run build:watch` for automatic compilation
+   - TypeScript provides full IntelliSense and type safety
+
+3. **Make It Your Own**
    - Customize the styling in `css/styles.css`
-   - Add new features in the JavaScript files
+   - Add new TypeScript modules in `src/`
+   - Leverage full OnlyWorlds SDK capabilities
    - Create specialized tools for specific element types
 
-3. **Share Your Creation**
+4. **Share Your Creation**
    - Join the [Discord Community](https://discord.gg/twCjqvVBwb)
    - Share your tools and get feedback
-   - Help others learn from your code
+   - Help others learn from your TypeScript code
 
 ## 🆘 Getting Help
 

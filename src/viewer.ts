@@ -1,169 +1,205 @@
 /**
- * Viewer Module
- * Handles displaying elements in the UI
+ * Viewer Module (TypeScript)
+ * Handles displaying elements in the UI with full type safety
  */
 
-import { ONLYWORLDS } from './constants.js';
-import InlineEditor from './inline-editor.js';
+import { ONLYWORLDS } from './compatibility.js';
+import OnlyWorldsAPI from './api.js';
+import InlineEditorClass from './inline-editor.js';
+
+// Type definitions
+type ElementType = typeof ONLYWORLDS.ELEMENT_TYPES[number];
+
+interface BaseElement {
+    id: string;
+    name: string;
+    description?: string;
+    supertype?: string;
+    subtype?: string;
+    image_url?: string;
+    world: string;
+    created_at: string;
+    updated_at: string;
+}
+
+interface OnlyWorldsElement extends BaseElement {
+    [key: string]: any;
+}
+
+// InlineEditor interface for compatibility
+interface InlineEditorInterface {
+    cleanup?(): void;
+    initializeEditor?(element: OnlyWorldsElement, category: string, container: HTMLElement): void;
+}
 
 export default class ElementViewer {
-    constructor(apiService) {
+    private api: OnlyWorldsAPI;
+    private currentCategory: ElementType | null = null;
+    private currentElements: OnlyWorldsElement[] = [];
+    private selectedElement: OnlyWorldsElement | null = null;
+    private inlineEditor?: InlineEditorInterface;
+
+    constructor(apiService: OnlyWorldsAPI) {
         this.api = apiService;
-        this.currentCategory = null;
-        this.currentElements = [];
-        this.selectedElement = null;
     }
-    
+
     /**
      * Initialize the viewer and populate categories
      */
-    init() {
+    init(): void {
         this.populateCategories();
         this.attachEventListeners();
     }
-    
+
     /**
      * Clear all cached data and reset the viewer
      */
-    clear() {
+    clear(): void {
         this.currentCategory = null;
         this.currentElements = [];
         this.selectedElement = null;
-        
-        if (this.inlineEditor && this.inlineEditor.cleanup) {
+
+        if (this.inlineEditor && typeof this.inlineEditor.cleanup === 'function') {
             this.inlineEditor.cleanup();
         }
     }
-    
+
     /**
      * Populate the category sidebar
      */
-    populateCategories() {
+    populateCategories(): void {
         const categoryList = document.getElementById('category-list');
+        if (!categoryList) return;
+
         categoryList.innerHTML = '';
-        
-        ONLYWORLDS.ELEMENT_TYPES.forEach(type => {
+
+        ONLYWORLDS.ELEMENT_TYPES.forEach((type: ElementType) => {
             const categoryItem = document.createElement('div');
             categoryItem.className = 'category-item';
             categoryItem.dataset.type = type;
-            
+
             categoryItem.innerHTML = `
                 <span class="category-icon material-icons-outlined">${ONLYWORLDS.ELEMENT_ICONS[type]}</span>
                 <span class="category-name">${ONLYWORLDS.ELEMENT_SINGULAR[type]}</span>
                 <span class="category-count" id="count-${type}">-</span>
             `;
-            
+
             categoryItem.addEventListener('click', () => this.selectCategory(type));
             categoryList.appendChild(categoryItem);
         });
-        
+
         this.updateCategoryCounts();
     }
-    
+
     /**
      * Update element counts for each category
      */
-    async updateCategoryCounts() {
+    async updateCategoryCounts(): Promise<void> {
         // Create all promises at once to ensure true parallel execution
-        const countPromises = ONLYWORLDS.ELEMENT_TYPES.map((type) => 
-            this.api.getElements(type)
-                .then(elements => {
-                    const countElement = document.getElementById(`count-${type}`);
-                    if (countElement) {
-                        requestAnimationFrame(() => {
-                            countElement.textContent = elements.length;
-                        });
-                    }
-                    return elements.length;
-                })
-                .catch(error => {
-                    console.warn(`Could not get count for ${type}:`, error);
-                    const countElement = document.getElementById(`count-${type}`);
-                    if (countElement) {
-                        requestAnimationFrame(() => {
-                            countElement.textContent = '0';
-                        });
-                    }
-                    return 0;
-                })
-        );
-        
+        const countPromises = ONLYWORLDS.ELEMENT_TYPES.map(async (type: ElementType) => {
+            try {
+                const elements = await this.api.getElements(type);
+                const countElement = document.getElementById(`count-${type}`);
+                if (countElement) {
+                    requestAnimationFrame(() => {
+                        countElement.textContent = elements.length.toString();
+                    });
+                }
+                return elements.length;
+            } catch (error) {
+                console.warn(`Could not get count for ${type}:`, error);
+                const countElement = document.getElementById(`count-${type}`);
+                if (countElement) {
+                    requestAnimationFrame(() => {
+                        countElement.textContent = '0';
+                    });
+                }
+                return 0;
+            }
+        });
+
         // Wait for all to complete (they're still parallel)
         await Promise.all(countPromises);
     }
-    
+
     /**
      * Select a category and load its elements
-     * @param {string} type - Element type to select
      */
-    async selectCategory(type) {
-        document.querySelectorAll('.category-item').forEach(item => {
-            item.classList.remove('active');
+    async selectCategory(type: ElementType): Promise<void> {
+        document.querySelectorAll('.category-item').forEach((item) => {
+            (item as HTMLElement).classList.remove('active');
         });
-        document.querySelector(`[data-type="${type}"]`)?.classList.add('active');
-        
+
+        const categoryElement = document.querySelector(`[data-type="${type}"]`);
+        categoryElement?.classList.add('active');
+
         this.currentCategory = type;
-        
-        document.getElementById('list-title').textContent = ONLYWORLDS.ELEMENT_LABELS[type];
-        
-        document.getElementById('search-input').classList.remove('hidden');
-        
+
+        const listTitle = document.getElementById('list-title');
+        if (listTitle) {
+            listTitle.textContent = ONLYWORLDS.ELEMENT_LABELS[type];
+        }
+
+        const searchInput = document.getElementById('search-input');
+        searchInput?.classList.remove('hidden');
+
         const createBtn = document.getElementById('create-element-btn');
         if (createBtn) {
             createBtn.classList.remove('hidden');
             createBtn.dataset.elementType = type;
         }
-        
+
         await this.loadElements(type);
     }
-    
+
     /**
      * Load elements for a category
-     * @param {string} type - Element type to load
      */
-    async loadElements(type) {
+    async loadElements(type: ElementType): Promise<void> {
         const elementList = document.getElementById('element-list');
-        
+        if (!elementList) return;
+
         elementList.innerHTML = '<p class="loading-text">Loading...</p>';
-        
+
         try {
             const elements = await this.api.getElements(type);
             this.currentElements = elements;
-            
+
             if (elements.length === 0) {
                 elementList.innerHTML = `<p class="empty-state">No ${ONLYWORLDS.ELEMENT_LABELS[type].toLowerCase()} found</p>`;
                 return;
             }
-            
+
             this.displayElements(elements);
-            
+
         } catch (error) {
-            elementList.innerHTML = `<p class="error-text">Error loading ${type}s: ${error.message}</p>`;
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            elementList.innerHTML = `<p class="error-text">Error loading ${type}s: ${errorMessage}</p>`;
             console.error('Error loading elements:', error);
         }
     }
-    
+
     /**
      * Display a list of elements
-     * @param {Array} elements - Elements to display
      */
-    displayElements(elements) {
+    displayElements(elements: OnlyWorldsElement[]): void {
         const elementList = document.getElementById('element-list');
+        if (!elementList || !this.currentCategory) return;
+
         elementList.innerHTML = '';
-        
+
         // Use DocumentFragment for batch DOM operations
         const fragment = document.createDocumentFragment();
         const icon = ONLYWORLDS.ELEMENT_ICONS[this.currentCategory] || 'category';
-        
-        elements.forEach(element => {
+
+        elements.forEach((element: OnlyWorldsElement) => {
             const elementCard = document.createElement('div');
             elementCard.className = 'element-card';
             elementCard.dataset.id = element.id;
-            
+
             const supertype = element.supertype ? `<span class="element-supertype">${element.supertype}</span>` : '';
-            
             const displayName = element.name || element.title || `Unnamed ${this.currentCategory}`;
-            
+
             elementCard.innerHTML = `
                 <div class="element-header">
                     <span class="element-icon material-icons-outlined">${icon}</span>
@@ -174,146 +210,147 @@ export default class ElementViewer {
                 </div>
                 ${element.description ? `<p class="element-description">${this.escapeHtml(element.description)}</p>` : ''}
             `;
-            
+
             elementCard.addEventListener('click', () => this.selectElement(element));
             fragment.appendChild(elementCard);
         });
-        
+
         elementList.appendChild(fragment);
     }
-    
+
     /**
      * Select and display an element's details
-     * @param {Object} element - Element to display
      */
-    async selectElement(element) {
-        document.querySelectorAll('.element-card').forEach(card => {
-            card.classList.remove('selected');
+    async selectElement(element: OnlyWorldsElement): Promise<void> {
+        document.querySelectorAll('.element-card').forEach((card) => {
+            (card as HTMLElement).classList.remove('selected');
         });
-        document.querySelector(`[data-id="${element.id}"]`)?.classList.add('selected');
-        
+
+        const selectedCard = document.querySelector(`[data-id="${element.id}"]`);
+        selectedCard?.classList.add('selected');
+
         this.selectedElement = element;
-        
+
         await this.displayElementDetails(element);
     }
-    
+
     /**
      * Display detailed view of an element with inline editing
-     * @param {Object} element - Element to display in detail
      */
-    async displayElementDetails(element) {
+    async displayElementDetails(element: OnlyWorldsElement): Promise<void> {
         const detailContainer = document.getElementById('element-detail');
-        
+        if (!detailContainer || !this.currentCategory) return;
+
         if (!this.inlineEditor) {
-            this.inlineEditor = new InlineEditor(this.api);
+            this.inlineEditor = new InlineEditorClass(this.api);
         }
-        
-        this.inlineEditor.cleanup();
-        
-        this.inlineEditor.initializeEditor(element, this.currentCategory, detailContainer);
+
+        if (typeof this.inlineEditor.cleanup === 'function') {
+            this.inlineEditor.cleanup();
+        }
+
+        if (typeof this.inlineEditor.initializeEditor === 'function') {
+            this.inlineEditor.initializeEditor(element, this.currentCategory, detailContainer);
+        }
     }
-    
+
     /**
      * Delete element with confirmation
-     * @param {string} type - Element type
-     * @param {string} id - Element ID
      */
-    async deleteElementWithConfirm(type, id) {
-        const element = this.currentElements.find(e => e.id === id);
+    async deleteElementWithConfirm(type: ElementType, id: string): Promise<void> {
+        const element = this.currentElements.find((e: OnlyWorldsElement) => e.id === id);
         const name = element?.name || 'this element';
-        
+
         if (!confirm(`Are you sure you want to delete "${name}"? This cannot be undone.`)) {
             return;
         }
-        
+
         await this.deleteElement(type, id);
     }
-    
+
     /**
      * Delete an element after confirmation
-     * @param {string} type - Element type
-     * @param {string} id - Element ID
      */
-    async deleteElement(type, id) {
+    async deleteElement(type: ElementType, id: string): Promise<void> {
         if (!confirm('Are you sure you want to delete this element? This cannot be undone.')) {
             return;
         }
-        
+
         try {
             await this.api.deleteElement(type, id);
-            
+
             await this.loadElements(type);
-            
-            document.getElementById('element-detail').innerHTML = '<p class="empty-state">Select an element to view details</p>';
-            
+
+            const detailContainer = document.getElementById('element-detail');
+            if (detailContainer) {
+                detailContainer.innerHTML = '<p class="empty-state">Select an element to view details</p>';
+            }
+
             const countElement = document.getElementById(`count-${type}`);
             if (countElement) {
-                countElement.textContent = this.currentElements.length;
+                countElement.textContent = this.currentElements.length.toString();
             }
-            
+
             alert('Element deleted successfully');
-            
+
         } catch (error) {
-            alert(`Error deleting element: ${error.message}`);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            alert(`Error deleting element: ${errorMessage}`);
             console.error('Error deleting element:', error);
         }
     }
-    
+
     /**
      * Search elements in the current category
-     * @param {string} searchTerm - Search term
      */
-    async searchElements(searchTerm) {
+    async searchElements(searchTerm: string): Promise<void> {
         if (!this.currentCategory) return;
-        
+
         if (!searchTerm) {
             await this.loadElements(this.currentCategory);
             return;
         }
-        
+
         // Filter current elements locally for quick response
-        const filtered = this.currentElements.filter(element => 
+        const filtered = this.currentElements.filter((element: OnlyWorldsElement) =>
             element.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             element.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             element.supertype?.toLowerCase().includes(searchTerm.toLowerCase())
         );
-        
+
         this.displayElements(filtered);
     }
-    
+
     /**
      * Attach event listeners
      */
-    attachEventListeners() {
-        const searchInput = document.getElementById('search-input');
-        let searchTimeout;
-        
-        searchInput?.addEventListener('input', (e) => {
+    attachEventListeners(): void {
+        const searchInput = document.getElementById('search-input') as HTMLInputElement;
+        let searchTimeout: ReturnType<typeof setTimeout>;
+
+        searchInput?.addEventListener('input', (e: Event) => {
+            const target = e.target as HTMLInputElement;
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                this.searchElements(e.target.value);
+                this.searchElements(target.value);
             }, 300);
         });
     }
-    
+
     /**
      * Escape HTML to prevent XSS
-     * @param {string} text - Text to escape
-     * @returns {string} Escaped text
      */
-    escapeHtml(text) {
+    private escapeHtml(text: string): string {
         if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
-    
+
     /**
      * Format date for display
-     * @param {string} dateString - ISO date string
-     * @returns {string} Formatted date
      */
-    formatDate(dateString) {
+    formatDate(dateString: string): string {
         if (!dateString) return 'Unknown';
         try {
             const date = new Date(dateString);
@@ -321,5 +358,18 @@ export default class ElementViewer {
         } catch {
             return dateString;
         }
+    }
+
+    // Getters for current state
+    getCurrentCategory(): ElementType | null {
+        return this.currentCategory;
+    }
+
+    getCurrentElements(): OnlyWorldsElement[] {
+        return this.currentElements;
+    }
+
+    getSelectedElement(): OnlyWorldsElement | null {
+        return this.selectedElement;
     }
 }

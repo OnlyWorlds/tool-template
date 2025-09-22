@@ -61,36 +61,38 @@ Deploy your customized tool for free:
 ## What This Template Does
 
 - **Full CRUD Operations** - Create, Read, Update, Delete all element types
-- **All 22 Element Types** - Complete OnlyWorlds support
+- **All 22 Element Types** - Complete OnlyWorlds support with dynamic detection
 - **Inline Editing** - Click any field to edit, auto-saves after 2 seconds
-- **Relationship Management** - Link elements together with smart pickers
+- **Relationship Management** - Link elements together with smart pickers and broken reference handling
 - **Clean Interface** - Responsive, modern design
-- **Educational Code** - Well-commented vanilla JavaScript for learning
+- **TypeScript + SDK** - Modern development with full type safety and OnlyWorlds SDK
+- **Dynamic Architecture** - Automatically adapts to schema changes, no hardcoded values
 
 ## Project Structure
 
 ```
 tool-template/
-├── index.html           # Main application (loads ES modules)
+├── index.html           # Main application (loads compiled modules)
 ├── css/
 │   └── styles.css       # Styling
-├── js/                  # Modern ES modules architecture
-│   ├── app.js           # Main entry point & application controller
-│   ├── constants.js     # Element types and field definitions
-│   ├── auth.js          # Authentication management
-│   ├── api.js           # OnlyWorlds API integration
-│   ├── viewer.js        # Element display and listing
-│   ├── editor.js        # Create new elements modal
-│   ├── inline-editor.js # Direct field editing (refactored)
-│   ├── field-renderer.js # Field rendering logic (extracted)
-│   ├── auto-save.js     # Auto-save management (extracted)
-│   ├── relationship-editor.js # UUID relationship handling
-│   ├── field-types.js   # Field type definitions
-│   ├── type-manager.js  # Supertype/subtype management
-│   ├── import-export.js # World export to JSON
-│   └── theme.js         # Dark/light mode management
+├── src/                 # TypeScript source code (SDK-based)
+│   ├── app.ts           # Main entry point & application controller
+│   ├── auth.ts          # Authentication management via SDK
+│   ├── api.ts           # OnlyWorlds SDK integration
+│   ├── viewer.ts        # Element display and listing
+│   ├── editor.ts        # Create new elements modal
+│   ├── inline-editor.ts # Direct field editing system
+│   ├── field-renderer.ts # Field rendering logic
+│   ├── auto-save.ts     # Auto-save management
+│   ├── relationship-editor.ts # UUID relationship handling
+│   ├── import-export.ts # World export to JSON
+│   ├── theme.ts         # Dark/light mode management
+│   └── compatibility.ts # SDK integration & type definitions
+├── dist/                # Compiled JavaScript modules
+│   └── *.js            # TypeScript compiled output
 ├── start.py             # Python server launcher
-└── package.json         # Node.js configuration
+├── package.json         # Node.js configuration
+└── tsconfig.json        # TypeScript configuration
 ```
  
 
@@ -101,15 +103,24 @@ tool-template/
 | `python: command not found` | Try `python3` instead, or install from python.org |
 | `npm: command not found` | Install Node.js from nodejs.org |
 | Port 8080 already in use | Edit start.py or use `npm start -- -l 8081` |
-| CORS errors | Make sure you're using the server, not opening index.html directly | 
+| CORS errors | Make sure you're using the server, not opening index.html directly |
+| TypeScript errors | Run `npm run build` to compile TypeScript to JavaScript |
+| Broken references show errors | The template handles this gracefully - check console for details | 
 
 Make sure to use the [OnlyWorlds Discord](https://discord.gg/twCjqvVBwb) to ask any technical or creative questions.
 
 ## Customization
 
-This template is designed to offer **modular building blocks**. Common patterns:
+This template is designed to offer **modular building blocks** with a **dynamic, future-proof architecture**:
 
-- **API-only integration** - Keep auth.js + api.js, remove UI files
+### **Core Features**
+- **Dynamic Element Types** - Automatically detects available element types from SDK
+- **Smart Field Detection** - Infers field types from actual data
+- **Broken Reference Handling** - Gracefully handles deleted element references
+- **TypeScript Safety** - Full compile-time checking with SDK integration
+
+### **Common Patterns**
+- **API-only integration** - Keep auth.ts + api.ts, remove UI files
 - **Different UI framework** - Replace UI layer with React/Vue/Svelte
 - **Specialized tools** - Focus on specific element types
 - **Enhanced features** - Add maps, timelines, AI generation

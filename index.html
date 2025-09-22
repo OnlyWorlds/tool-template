@@ -140,7 +140,16 @@
     </div>
 
 
-    <!-- Load JavaScript as ES Module -->
-    <script type="module" src="js/app.js"></script>
+    <!-- Import Map for npm packages -->
+    <script type="importmap">
+    {
+        "imports": {
+            "@onlyworlds/sdk": "./node_modules/@onlyworlds/sdk/dist/index.mjs"
+        }
+    }
+    </script>
+
+    <!-- Load TypeScript (compiled) as ES Module -->
+    <script type="module" src="dist/app.js"></script>
 </body>
 </html>
