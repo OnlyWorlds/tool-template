@@ -5,8 +5,9 @@
  * Educational patterns demonstrated: Blob API, Promise.all(), retry logic
  */
 
-import { authManager } from './auth.js';
 import type OnlyWorldsAPI from './api.js';
+import { authManager } from './auth.js';
+import { ONLYWORLDS_VERSION } from '@onlyworlds/sdk';
 
 // Element types from OnlyWorlds (capitalized for website compatibility)
 // Use dynamic element types from API service
@@ -117,7 +118,7 @@ export class ImportExportManager {
     private formatExportData(allData: ElementData[], world: any): ExportData {
         const exportData: ExportData = {
             metadata: {
-                version: '1.0',
+                version: ONLYWORLDS_VERSION,
                 exportDate: new Date().toISOString(),
                 worldId: world?.id || null,
                 worldName: world?.name || 'Unknown World',

@@ -122,6 +122,9 @@ export class AutoSaveManager {
             return false;
         }
 
+        // Show saving indicator
+        this.updateSaveStatus('saving');
+
         try {
             const updated = await this.api.updateElement(
                 this.editingType,
@@ -135,8 +138,14 @@ export class AutoSaveManager {
                 this.updateCallback(this.editingElement);
             }
 
+            // Show saved indicator
+            this.updateSaveStatus('saved');
+
             return true;
         } catch (error) {
+            // Show error indicator
+            this.updateSaveStatus('error');
+
             // Enhanced error message for relationship fields
             const isRelField = isRelationshipField && isRelationshipField(fieldName);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';

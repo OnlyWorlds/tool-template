@@ -474,27 +474,9 @@ export default class RelationshipEditor {
     }
 
     /**
-     * Get exact element type from field name using authoritative schema
+     * Get element type from field name using FIELD_SCHEMA
      */
     private guessElementType(fieldName: string): string | null {
-        const target = getRelationshipTarget(fieldName);
-        if (target) {
-            return target.toLowerCase();
-        }
-
-        // Fallback to guessing logic for unknown fields
-        let cleanName = fieldName.replace(/_ids?$/, '');
-
-        if ((ONLYWORLDS.ELEMENT_TYPES as string[]).includes(cleanName)) {
-            return cleanName;
-        }
-
-        cleanName = cleanName.replace(/s$/, '');
-
-        if ((ONLYWORLDS.ELEMENT_TYPES as string[]).includes(cleanName)) {
-            return cleanName;
-        }
-
-        return cleanName || 'character';
+        return getRelationshipTarget(fieldName);
     }
 }

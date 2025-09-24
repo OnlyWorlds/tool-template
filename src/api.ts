@@ -6,7 +6,7 @@
  * the same interface for UI compatibility.
  */
 
-import { OnlyWorldsClient } from '@onlyworlds/sdk';
+import { OnlyWorldsClient, FIELD_SCHEMA } from '@onlyworlds/sdk';
 import { authManager } from './auth.js';
 
 // Dynamic element types - extracted from SDK at runtime
@@ -90,15 +90,8 @@ export default class OnlyWorldsAPI {
         } catch (error) {
             console.warn('Could not extract element types from SDK, using fallback:', error);
 
-            // Fallback to hardcoded list if SDK introspection fails
-            const fallbackTypes = [
-                'ability', 'character', 'collective', 'construct', 'creature', 'event',
-                'family', 'institution', 'language', 'law', 'location', 'map', 'marker',
-                'narrative', 'object', 'phenomenon', 'pin', 'relation', 'species',
-                'title', 'trait', 'zone'
-            ];
-
-            _cachedElementTypes = fallbackTypes;
+            // Fallback to extracting from FIELD_SCHEMA if SDK introspection fails
+            _cachedElementTypes = Object.keys(FIELD_SCHEMA).sort();
             return _cachedElementTypes;
         }
     }
@@ -514,7 +507,7 @@ export default class OnlyWorldsAPI {
     }
 
     /**
-     * Check if a field is a link/relationship field
+     * Check if a field is a link/relationship field using FIELD_SCHEMA
      * @param fieldName - Name of the field
      * @param value - Value of the field
      * @returns True if field is a relationship
@@ -530,13 +523,20 @@ export default class OnlyWorldsAPI {
             return true;
         }
 
-        // Check field name patterns that suggest relationships
-        const relationshipPatterns = [
-            '_id', '_ids', 'location', 'character', 'ability', 'trait', 'species',
-            'language', 'institution', 'family', 'world', 'map', 'zone'
-        ];
+        // Use FIELD_SCHEMA to determine if field is a link field
+        for (const [elementType, schema] of Object.entries(FIELD_SCHEMA)) {
+            const fieldSchema = (schema as any)[fieldName];
+            if (fieldSchema && (fieldSchema.type === 'single_link' || fieldSchema.type === 'multi_link')) {
+                return true;
+            }
+        }
 
-        return relationshipPatterns.some(pattern => fieldName.includes(pattern));
+        // Special case for world field
+        if (fieldName === 'world') {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -661,29 +661,18 @@ export default class OnlyWorldsAPI {
     }
 
     /**
-     * Guess target element type from field name using dynamic analysis
+     * Get target element type from field name using FIELD_SCHEMA
      */
     private guessTargetType(fieldName: string): string | null {
-        // Use the existing dynamic field type detection from compatibility layer
-        try {
-            const { getRelationshipTarget } = require('./compatibility.js');
-            const target = getRelationshipTarget(fieldName);
-            if (target) {
-                return target.toLowerCase();
+        // Use FIELD_SCHEMA to find relationship target - search across all element types
+        for (const [elementType, schema] of Object.entries(FIELD_SCHEMA)) {
+            const fieldSchema = (schema as any)[fieldName];
+            if (fieldSchema && fieldSchema.target) {
+                return fieldSchema.target;
             }
-        } catch (error) {
-            // Fallback if compatibility layer not available
         }
 
-        // Remove common suffixes for direct matching
-        let cleanName = fieldName.replace(/_ids?$/, '').replace(/s$/, '');
-
-        // Check if it's a direct element type
-        if (this.getElementTypes().includes(cleanName)) {
-            return cleanName;
-        }
-
-        return null; // Let the caller handle validation
+        return null; // No target found in schema
     }
 
     /**

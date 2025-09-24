@@ -3,94 +3,35 @@
  * Provides the same API as the old manual modules but uses SDK under the hood
  */
 
+import { FIELD_SCHEMA, ELEMENT_LABELS, ELEMENT_MATERIAL_ICONS, getElementLabel } from '@onlyworlds/sdk';
+
 // Constants that were in constants.js
 export const ONLYWORLDS = {
     API_BASE: 'https://www.onlyworlds.com/api/worldapi',
-    // Static fallback types - will be replaced by dynamic loading where needed
-    ELEMENT_TYPES: [
-        'ability', 'character', 'collective', 'construct', 'creature', 'event',
-        'family', 'institution', 'language', 'law', 'location', 'map', 'marker',
-        'narrative', 'object', 'phenomenon', 'pin', 'relation', 'species',
-        'title', 'trait', 'zone'
-    ],
 
-    // Human-readable names for element types (plural)
-    ELEMENT_LABELS: {
-        ability: 'Abilities',
-        character: 'Characters',
-        collective: 'Collectives',
-        construct: 'Constructs',
-        creature: 'Creatures',
-        event: 'Events',
-        family: 'Families',
-        institution: 'Institutions',
-        language: 'Languages',
-        law: 'Laws',
-        location: 'Locations',
-        map: 'Maps',
-        marker: 'Markers',
-        narrative: 'Narratives',
-        object: 'Objects',
-        phenomenon: 'Phenomena',
-        pin: 'Pins',
-        relation: 'Relations',
-        species: 'Species',
-        title: 'Titles',
-        trait: 'Traits',
-        zone: 'Zones'
-    } as Record<string, string>,
+    // Dynamic element types from SDK FIELD_SCHEMA
+    get ELEMENT_TYPES() {
+        return Object.keys(FIELD_SCHEMA).sort();
+    },
 
-    // Singular names
-    ELEMENT_SINGULAR: {
-        ability: 'Ability',
-        character: 'Character',
-        collective: 'Collective',
-        construct: 'Construct',
-        creature: 'Creature',
-        event: 'Event',
-        family: 'Family',
-        institution: 'Institution',
-        language: 'Language',
-        law: 'Law',
-        location: 'Location',
-        map: 'Map',
-        marker: 'Marker',
-        narrative: 'Narrative',
-        object: 'Object',
-        phenomenon: 'Phenomenon',
-        pin: 'Pin',
-        relation: 'Relation',
-        species: 'Species',
-        title: 'Title',
-        trait: 'Trait',
-        zone: 'Zone'
-    } as Record<string, string>,
+    // Plural labels from SDK
+    get ELEMENT_LABELS() {
+        return ELEMENT_LABELS;
+    },
 
-    // Material Icon names for each element type
-    ELEMENT_ICONS: {
-        ability: 'auto_fix_normal',
-        character: 'person',
-        collective: 'groups',
-        construct: 'api',
-        creature: 'bug_report',
-        event: 'event',
-        family: 'supervisor_account',
-        institution: 'business',
-        language: 'translate',
-        law: 'gavel',
-        location: 'castle',
-        map: 'map',
-        marker: 'place',
-        narrative: 'menu_book',
-        object: 'hub',
-        phenomenon: 'thunderstorm',
-        pin: 'push_pin',
-        relation: 'link',
-        species: 'child_care',
-        title: 'military_tech',
-        trait: 'ac_unit',
-        zone: 'architecture'
-    } as Record<string, string>
+    // Singular names - generated dynamically
+    get ELEMENT_SINGULAR() {
+        const singular: Record<string, string> = {};
+        for (const type of Object.keys(FIELD_SCHEMA)) {
+            singular[type] = type.charAt(0).toUpperCase() + type.slice(1);
+        }
+        return singular;
+    },
+
+    // Material Icon names for each element type - from SDK
+    get ELEMENT_ICONS() {
+        return ELEMENT_MATERIAL_ICONS;
+    }
 };
 
 // Dynamic field type analysis cache
@@ -177,102 +118,33 @@ function inferTypeFromValue(fieldName: string, value: any): { type: string; rela
  * Static field type detection (fallback)
  */
 function getStaticFieldType(fieldName: string): { type: string; related_to?: string } {
-    // Basic type detection for compatibility
-    if (fieldName.includes('date') || fieldName === 'created_at' || fieldName === 'updated_at') {
+    // Basic type detection for compatibility - only for actual date fields
+    if (fieldName === 'created_at' || fieldName === 'updated_at') {
         return { type: 'date' };
     }
 
-    // Numeric fields
-    const numericFields = [
-        'duration', 'potency', 'range', 'weight', 'height', 'amount', 'count',
-        'charisma', 'coercion', 'competence', 'compassion', 'creativity', 'courage',
-        'level', 'hit_points', 'STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA',
-        'challenge_rating', 'armor_class', 'speed', 'aggression', 'elevation',
-        'hierarchy', 'width', 'depth', 'x', 'y', 'z', 'order', 'intensity'
-    ];
 
-    if (numericFields.includes(fieldName)) {
-        return { type: 'number' };
-    }
-
-    // Long text fields
-    const longTextFields = ['background', 'motivations', 'story'];
-    if (longTextFields.includes(fieldName)) {
-        return { type: 'longtext' };
-    }
 
     // Relationship fields
     if (fieldName === 'world') {
         return { type: 'uuid', related_to: 'World' };
     }
 
-    // Array relationships (plural names ending with 's')
-    const arrayRelationshipFields = [
-        'effects', 'talents', 'requisites', 'instruments', 'systems', 'materials',
-        'technology', 'abilities', 'consumes', 'affinities', 'species', 'traits',
-        'languages', 'objects', 'institutions', 'family', 'friends', 'rivals',
-        'equipment', 'symbolism', 'characters', 'creatures', 'phenomena',
-        'locations', 'collectives', 'zones', 'constructs', 'relations', 'titles',
-        'events', 'narratives', 'actions', 'triggers', 'families', 'traditions'
-    ];
-
-    if (arrayRelationshipFields.includes(fieldName)) {
-        return { type: 'array<uuid>' };
-    }
-
-    // Single relationships
-    const singleRelationshipFields = [
-        'tradition', 'source', 'locus', 'parent_object', 'location', 'language',
-        'birthplace', 'operator', 'founder', 'custodian', 'zone', 'parent_institution',
-        'classification', 'parent_law', 'author', 'parent_location', 'primary_power',
-        'governing_title', 'rival', 'partner', 'system', 'actor', 'parent_species',
-        'parent_map', 'map', 'element_id', 'parent_narrative', 'protagonist',
-        'antagonist', 'narrator', 'conservator', 'issuer', 'body', 'superior_title',
-        'anti_trait'
-    ];
-
-    if (singleRelationshipFields.includes(fieldName)) {
-        // Map field names to their target element types
-        const fieldToTypeMapping: Record<string, string | null> = {
-            'tradition': 'collective',
-            'source': 'object',
-            'locus': 'location',
-            'parent_object': 'object',
-            'location': 'location',
-            'language': 'language',
-            'birthplace': 'location',
-            'operator': 'character',
-            'founder': 'character',
-            'custodian': 'character',
-            'zone': 'zone',
-            'parent_institution': 'institution',
-            'classification': 'collective',
-            'parent_law': 'law',
-            'author': 'character',
-            'parent_location': 'location',
-            'primary_power': 'ability',
-            'governing_title': 'title',
-            'rival': 'character',
-            'partner': 'character',
-            'system': 'construct',
-            'actor': 'character',
-            'parent_species': 'species',
-            'parent_map': 'map',
-            'map': 'map',
-            'element_id': null, // Generic UUID field
-            'parent_narrative': 'narrative',
-            'protagonist': 'character',
-            'antagonist': 'character',
-            'narrator': 'character',
-            'conservator': 'character',
-            'issuer': 'character',
-            'body': 'character',
-            'superior_title': 'title',
-            'anti_trait': 'trait'
-        };
-
-        const targetType = fieldToTypeMapping[fieldName];
-        return { type: 'uuid', related_to: targetType || undefined };
+    // Use explicit FIELD_SCHEMA for perfect field type detection
+    const fieldSchema = getFieldSchema(fieldName);
+    if (fieldSchema) {
+        switch (fieldSchema.type) {
+            case 'single_link':
+                return { type: 'uuid', related_to: fieldSchema.target };
+            case 'multi_link':
+                return { type: 'array<uuid>', related_to: fieldSchema.target };
+            case 'text':
+                return { type: 'string' };
+            case 'integer':
+                return { type: 'number' };
+            default:
+                return { type: 'string' };
+        }
     }
 
     // Default to string
@@ -284,8 +156,47 @@ export function getFieldTypeString(fieldName: string): string {
 }
 
 export function getRelationshipTarget(fieldName: string): string | null {
+    // Use FIELD_SCHEMA to find relationship target - search across all element types
+    for (const [elementType, schema] of Object.entries(FIELD_SCHEMA)) {
+        const fieldSchema = (schema as any)[fieldName];
+        if (fieldSchema && fieldSchema.target) {
+            return fieldSchema.target;
+        }
+    }
+
+    // Fallback to static analysis for backwards compatibility
     const fieldInfo = getFieldType(fieldName);
     return fieldInfo.related_to || null;
+}
+
+/**
+ * Get field mapping for specific element type and field (more efficient when element type is known)
+ */
+export function getFieldMapping(elementType: string, fieldName: string): string | null {
+    const schema = (FIELD_SCHEMA as any)[elementType.toLowerCase()];
+    return schema?.[fieldName]?.target || null;
+}
+
+/**
+ * Get field schema information from FIELD_SCHEMA (searches all element types)
+ */
+function getFieldSchema(fieldName: string): { type: string; target?: string } | null {
+    // Search across all element types for this field
+    for (const [elementType, schema] of Object.entries(FIELD_SCHEMA)) {
+        const fieldSchema = (schema as any)[fieldName];
+        if (fieldSchema) {
+            return fieldSchema;
+        }
+    }
+    return null;
+}
+
+/**
+ * Get field schema for specific element type and field (more efficient when element type is known)
+ */
+export function getElementFieldSchema(elementType: string, fieldName: string): { type: string; target?: string } | null {
+    const schema = (FIELD_SCHEMA as any)[elementType.toLowerCase()];
+    return schema?.[fieldName] || null;
 }
 
 export function isRelationshipField(fieldName: string): boolean {
@@ -366,21 +277,15 @@ function isDateString(value: string): boolean {
 }
 
 /**
- * Guess element type from field name (improved version)
+ * Get element type from field name using FIELD_SCHEMA
  */
 function guessElementTypeFromField(fieldName: string): string | null {
-    // Use the existing relationship mapping first
-    const target = getRelationshipTarget(fieldName);
-    if (target) {
-        return target.toLowerCase();
-    }
-
-    // Extract potential type from field name
-    let cleanName = fieldName.replace(/_ids?$/, '').replace(/s$/, '');
-
-    // Check if it matches any known element types (using static list for now)
-    if (ONLYWORLDS.ELEMENT_TYPES.includes(cleanName)) {
-        return cleanName;
+    // Use FIELD_SCHEMA to find relationship target
+    for (const [elementType, schema] of Object.entries(FIELD_SCHEMA)) {
+        const fieldSchema = (schema as any)[fieldName];
+        if (fieldSchema && fieldSchema.target) {
+            return fieldSchema.target;
+        }
     }
 
     return null;

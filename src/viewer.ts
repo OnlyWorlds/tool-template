@@ -79,7 +79,7 @@ export default class ElementViewer {
             categoryItem.dataset.type = type;
 
             categoryItem.innerHTML = `
-                <span class="category-icon material-icons-outlined">${ONLYWORLDS.ELEMENT_ICONS[type]}</span>
+                <span class="category-icon material-icons-outlined">${(ONLYWORLDS.ELEMENT_ICONS as any)[type] || 'category'}</span>
                 <span class="category-name">${ONLYWORLDS.ELEMENT_SINGULAR[type]}</span>
                 <span class="category-count" id="count-${type}">-</span>
             `;
@@ -137,7 +137,7 @@ export default class ElementViewer {
 
         const listTitle = document.getElementById('list-title');
         if (listTitle) {
-            listTitle.textContent = ONLYWORLDS.ELEMENT_LABELS[type];
+            listTitle.textContent = (ONLYWORLDS.ELEMENT_LABELS as any)[type];
         }
 
         const searchInput = document.getElementById('search-input');
@@ -166,7 +166,7 @@ export default class ElementViewer {
             this.currentElements = elements;
 
             if (elements.length === 0) {
-                elementList.innerHTML = `<p class="empty-state">No ${ONLYWORLDS.ELEMENT_LABELS[type].toLowerCase()} found</p>`;
+                elementList.innerHTML = `<p class="empty-state">No ${(ONLYWORLDS.ELEMENT_LABELS as any)[type].toLowerCase()} found</p>`;
                 return;
             }
 
@@ -190,7 +190,7 @@ export default class ElementViewer {
 
         // Use DocumentFragment for batch DOM operations
         const fragment = document.createDocumentFragment();
-        const icon = ONLYWORLDS.ELEMENT_ICONS[this.currentCategory] || 'category';
+        const icon = (ONLYWORLDS.ELEMENT_ICONS as any)[this.currentCategory] || 'category';
 
         elements.forEach((element: OnlyWorldsElement) => {
             const elementCard = document.createElement('div');

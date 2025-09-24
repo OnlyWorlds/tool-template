@@ -271,8 +271,14 @@ export class FieldRenderer {
         const input = document.createElement('input');
         input.type = 'date';
         input.name = fieldName;
-        if (value) {
-            input.value = value.split('T')[0]; // Convert ISO to date format
+        if (value && typeof value === 'string' && value.trim()) {
+            // Only process if value is a non-empty string
+            try {
+                input.value = value.split('T')[0]; // Convert ISO to date format
+            } catch (error) {
+                console.warn(`Invalid date value for ${fieldName}:`, value);
+                input.value = '';
+            }
         }
         input.className = 'inline-input';
         return input;
