@@ -163,10 +163,25 @@ import { Feature } from './features/feature-name.js';
 npm install @types/library-name  # or use 'as any'
 ```
 
+## **Testing**
+
+Uses **Vitest** (zero-config TypeScript + ES modules). Basic unit tests demonstrate SDK mocking, authentication flows, and data transformations. User should indicate their unit/integration testing preferences and requirements. 
+
+**Key patterns:**
+- `vi.mock('@onlyworlds/sdk')` - Mock SDK
+- `vi.stubGlobal('localStorage')` - Mock browser APIs
+- `await expect(promise).resolves.toBe()` - Async testing
+
+**Add tests for your modifications:**
+```bash
+npm test              # Run tests
+npm run test:watch    # Watch mode
+```
+
 ## **Validation**
 ```bash
 npm run build && npm start  # Must work
+npm test                    # All tests pass
 # Check browser console (F12) - no errors
-# Test auth + CRUD operations
 ```
  

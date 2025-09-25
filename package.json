@@ -11,7 +11,11 @@
     "start": "npm run build && npx serve -s . -l 8080",
     "start:js": "npx serve -s . -l 8080",
     "clean": "rm -rf dist/ && npm run build",
-    "validate": "npm run build:check && echo 'TypeScript validation passed!'"
+    "validate": "npm run build:check && echo 'TypeScript validation passed!'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "keywords": [
     "onlyworlds",
@@ -31,6 +35,7 @@
     "typescript": "^5.9.2"
   },
   "devDependencies": {
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "vitest": "^3.2.4"
   }
 }

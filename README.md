@@ -10,8 +10,8 @@ Use GitHub's template feature to create your own tool:
 #### Create a new repository
 1. **Click "Use this template"** (green button, top right)
 2. **Select "Create a new repository"**
-2. **Name your repository** (e.g. `my-perfect-tool`)
-3. **Set to Public** for free GitHub Pages hosting
+3. **Name your repository** (e.g. `my-perfect-tool`)
+4. **Set to Public** for free GitHub Pages hosting
 
 This creates a clean new repository without any backward connection to this template.
 
@@ -27,9 +27,10 @@ This enables you track and control changes you make to files in that folder.
 ## Quick Start
 
 ### Prerequisites
-You need **Node.js** installed for TypeScript compilation and package management.
+You need **Node.js 18+** installed for TypeScript compilation and package management.
 - **Install Node.js**: https://nodejs.org (includes npm)
 - **Check installation**: `node --version` and `npm --version`
+- **Minimum versions**: Node.js 18.x, npm 8.x
 
 ### First Time Setup
 ```bash
@@ -47,6 +48,7 @@ npm run build && python start.py    # Manual build + python server
 ```
 
 Both options serve at http://localhost:8080
+
 
 ## Deployment
 
@@ -113,7 +115,8 @@ tool-template/
 | Port 8080 already in use | Use `npm start -- -l 8081` or edit start.py |
 | CORS errors | Use the server, don't open index.html directly |
 | `@onlyworlds/sdk not found` | Run `npm install` to install dependencies |
-| Broken references show errors | The template handles this gracefully - check console for details | 
+| Broken references show errors | The template handles this gracefully - check console for details |
+| Can't find "Use this template" button | Make sure you're logged into GitHub and viewing the main repository page | 
 
 Make sure to use the [OnlyWorlds Discord](https://discord.gg/twCjqvVBwb) to ask any technical or creative questions.
 
@@ -136,6 +139,15 @@ Foundation    → @onlyworlds/sdk, package.json
 5. **🚀 Build Something Unique** - Game engines, analytics, anything
 
 **🎯 [Template Modification Guide](TEMPLATE-MODIFICATION-GUIDE.md)** - LLM-optimized with decision matrix, exact commands, and troubleshooting
+
+## Unit Tests
+
+Basic setup is included that uses **Vitest** for TypeScript + ES modules. Tests in `tests/` directory demonstrate authentication, API mocking, and data transformations. Extend or ignore as needed.
+
+```bash
+npm test           # Run tests
+npm run test:watch # Watch mode
+```
 
 ## Resources
 
