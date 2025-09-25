@@ -84,7 +84,7 @@ export default class AuthManager {
     }
 
     /**
-     * Get headers for manual API requests (legacy compatibility)
+     * Get headers for manual API requests
      * @returns Headers object with authentication
      */
     getHeaders(): Record<string, string> {

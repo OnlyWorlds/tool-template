@@ -1,6 +1,6 @@
 /**
- * Compatibility layer for legacy imports
- * Provides the same API as the old manual modules but uses SDK under the hood
+ * Compatibility layer for SDK integration
+ * Provides unified API access to OnlyWorlds SDK functionality
  */
 
 import { FIELD_SCHEMA, ELEMENT_LABELS, ELEMENT_MATERIAL_ICONS, getElementLabel } from '@onlyworlds/sdk';

@@ -8,6 +8,7 @@
 
 import { OnlyWorldsClient, FIELD_SCHEMA } from '@onlyworlds/sdk';
 import { authManager } from './auth.js';
+import { ApiResult, ApiSuccess, ApiError, isSuccess } from './types/api-result.js';
 
 // Dynamic element types - extracted from SDK at runtime
 let _cachedElementTypes: string[] | null = null;
@@ -143,38 +144,37 @@ export default class OnlyWorldsAPI {
         return uuid;
     }
 
+
     /**
-     * Fetch all elements of a specific type
+     * Fetch all elements of a specific type using Result pattern for robust error handling
      * @param elementType - Type of element (e.g., 'character', 'location')
      * @param filters - Optional filters (e.g., { supertype: 'protagonist' })
-     * @returns Array of elements
+     * @returns ApiResult containing either elements array or typed error
      */
-    async getElements(elementType: ElementType | string, filters: Record<string, any> = {}): Promise<Element[]> {
+    async getElements(elementType: ElementType | string, filters: Record<string, any> = {}): Promise<ApiResult<Element[]>> {
         if (!authManager.checkAuth()) {
-            throw new Error('Not authenticated');
+            return ApiError.auth('Authentication required. Please connect to your world first.');
         }
 
         if (!this.getElementTypes().includes(elementType)) {
-            throw new Error(`Invalid element type: ${elementType}. Available types: ${this.getElementTypes().join(', ')}`);
+            return ApiError.validation('elementType',
+                `Invalid element type: ${elementType}. Available types: ${this.getElementTypes().join(', ')}`);
         }
 
         try {
             const client = this.getClient();
-            // Convert singular element type to proper plural resource name
             const resourceName = this.getResourceName(elementType);
             const resource = (client as any)[resourceName];
 
             if (!resource) {
-                throw new Error(`Resource ${resourceName} not available in SDK`);
+                return ApiError.sdk(`Resource ${resourceName} not available in SDK`);
             }
 
             // Use SDK to fetch elements
             let elements: Element[];
 
             if (Object.keys(filters).length > 0) {
-                // SDK might support filtering, or we'll filter manually
                 elements = await resource.list();
-
                 // Apply filters manually for now
                 elements = elements.filter((element: Element) => {
                     return Object.entries(filters).every(([key, value]) => {
@@ -217,11 +217,40 @@ export default class OnlyWorldsAPI {
                 return element;
             });
 
-            return processedElements;
+            return ApiSuccess(processedElements);
 
         } catch (error) {
-            console.error(`Error fetching ${elementType}s:`, error);
-            throw error;
+            // Structured logging for better debugging
+            console.error(`OnlyWorlds API Error [getElements]:`, {
+                elementType,
+                filters,
+                error: error instanceof Error ? {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                } : error,
+                timestamp: new Date().toISOString()
+            });
+
+            // Categorize the error for better handling
+            if (error instanceof Error) {
+                if (error.message.includes('404') || error.message.includes('not found')) {
+                    return ApiError.notFound(elementType);
+                }
+                if (error.message.includes('401') || error.message.includes('unauthorized')) {
+                    return ApiError.auth('Authentication expired. Please reconnect.');
+                }
+                if (error.message.includes('403') || error.message.includes('forbidden')) {
+                    return ApiError.auth('Access denied. Check your API credentials.');
+                }
+                if (error.message.includes('network') || error.message.includes('fetch')) {
+                    return ApiError.network(`Network error: Unable to connect to OnlyWorlds API. ${error.message}`, 0);
+                }
+
+                return ApiError.sdk(`SDK error: ${error.message}`, error);
+            }
+
+            return ApiError.unknown('An unexpected error occurred while fetching elements', error);
         }
     }
 
@@ -435,9 +464,9 @@ export default class OnlyWorldsAPI {
      * @param searchTerm - Search term
      * @returns Matching elements
      */
-    async searchElements(elementType: ElementType | string, searchTerm: string): Promise<Element[]> {
+    async searchElements(elementType: ElementType | string, searchTerm: string): Promise<ApiResult<Element[]>> {
         if (!searchTerm || searchTerm.length < 2) {
-            return [];
+            return ApiSuccess([]);
         }
 
         return this.getElements(elementType, {
@@ -697,7 +726,7 @@ export default class OnlyWorldsAPI {
     }
 
     /**
-     * Legacy method: resolve element references (for backward compatibility)
+     * Resolve element references by loading related elements
      * @param element - Element with potential references
      * @param referenceFields - Fields that contain references
      * @returns Element with resolved references
@@ -740,7 +769,7 @@ export default class OnlyWorldsAPI {
     }
 
     /**
-     * Legacy method: clean link fields (maintained for backward compatibility)
+     * Clean link fields for API submission
      * @param element - Element with potential object references
      * @returns Cleaned element
      */

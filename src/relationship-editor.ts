@@ -267,7 +267,14 @@ export default class RelationshipEditor {
             results.innerHTML = '<div class="selector-loading">Loading...</div>';
 
             try {
-                let elements = await this.api.getElements(targetType);
+                const result = await this.api.getElements(targetType);
+
+                if (!result.success) {
+                    results.innerHTML = '<div class="selector-error">Error loading elements</div>';
+                    return;
+                }
+
+                let elements = result.data;
 
                 if (searchTerm) {
                     elements = elements.filter(el =>

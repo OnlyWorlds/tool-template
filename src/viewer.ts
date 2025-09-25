@@ -6,6 +6,8 @@
 import { ONLYWORLDS } from './compatibility.js';
 import OnlyWorldsAPI from './api.js';
 import InlineEditorClass from './inline-editor.js';
+import { matchApiResult } from './types/api-result.js';
+import { mapApiErrorToUiState, renderErrorState, UiErrorState } from './types/ui-error.js';
 
 // Type definitions
 type ElementType = typeof ONLYWORLDS.ELEMENT_TYPES[number];
@@ -98,14 +100,26 @@ export default class ElementViewer {
         // Create all promises at once to ensure true parallel execution
         const countPromises = ONLYWORLDS.ELEMENT_TYPES.map(async (type: ElementType) => {
             try {
-                const elements = await this.api.getElements(type);
+                const result = await this.api.getElements(type);
                 const countElement = document.getElementById(`count-${type}`);
-                if (countElement) {
-                    requestAnimationFrame(() => {
-                        countElement.textContent = elements.length.toString();
-                    });
+
+                if (result.success) {
+                    const elements = result.data;
+                    if (countElement) {
+                        requestAnimationFrame(() => {
+                            countElement.textContent = elements.length.toString();
+                        });
+                    }
+                    return elements.length;
+                } else {
+                    // Handle error case
+                    if (countElement) {
+                        requestAnimationFrame(() => {
+                            countElement.textContent = '?';
+                        });
+                    }
+                    return 0;
                 }
-                return elements.length;
             } catch (error) {
                 console.warn(`Could not get count for ${type}:`, error);
                 const countElement = document.getElementById(`count-${type}`);
@@ -159,25 +173,79 @@ export default class ElementViewer {
         const elementList = document.getElementById('element-list');
         if (!elementList) return;
 
-        elementList.innerHTML = '<p class="loading-text">Loading...</p>';
+        // Show loading state
+        const loadingState: UiErrorState = {
+            type: 'loading',
+            message: `Loading ${(ONLYWORLDS.ELEMENT_LABELS as any)[type]}...`
+        };
+        renderErrorState(loadingState, elementList);
 
-        try {
-            const elements = await this.api.getElements(type);
-            this.currentElements = elements;
+        // Define retry handler for error recovery
+        const retryHandler = async (): Promise<void> => {
+            await this.loadElements(type);
+        };
 
-            if (elements.length === 0) {
-                elementList.innerHTML = `<p class="empty-state">No ${(ONLYWORLDS.ELEMENT_LABELS as any)[type].toLowerCase()} found</p>`;
-                return;
+        // Use the Result-based API with pattern matching for error handling
+        const result = await this.api.getElements(type);
+
+        matchApiResult(result, {
+            success: (elements) => {
+                this.currentElements = elements;
+
+                if (elements.length === 0) {
+                    const emptyState: UiErrorState = {
+                        type: 'empty',
+                        message: `No ${(ONLYWORLDS.ELEMENT_LABELS as any)[type].toLowerCase()} found in this world.`,
+                        action: {
+                            label: `Create ${ONLYWORLDS.ELEMENT_SINGULAR[type]}`,
+                            handler: () => {
+                                const createBtn = document.getElementById('create-element-btn') as HTMLButtonElement;
+                                if (createBtn) {
+                                    createBtn.dataset.elementType = type;
+                                    createBtn.click();
+                                }
+                            }
+                        }
+                    };
+                    renderErrorState(emptyState, elementList);
+                } else {
+                    // Success: display the elements
+                    this.displayElements(elements);
+                }
+            },
+            authError: (message) => {
+                const errorState = mapApiErrorToUiState({ type: 'AUTHENTICATION_ERROR', message }, retryHandler);
+                renderErrorState(errorState, elementList);
+                console.error(`OnlyWorlds API Error [AUTHENTICATION_ERROR]:`, { message, elementType: type });
+            },
+            networkError: (message, statusCode) => {
+                const errorState = mapApiErrorToUiState({ type: 'NETWORK_ERROR', message, statusCode }, retryHandler);
+                renderErrorState(errorState, elementList);
+                console.error(`OnlyWorlds API Error [NETWORK_ERROR]:`, { message, statusCode, elementType: type });
+            },
+            validationError: (field, message) => {
+                const errorState = mapApiErrorToUiState({ type: 'VALIDATION_ERROR', field, message }, retryHandler);
+                renderErrorState(errorState, elementList);
+                console.error(`OnlyWorlds API Error [VALIDATION_ERROR]:`, { field, message, elementType: type });
+            },
+            notFound: (resourceType, resourceId) => {
+                const errorState = mapApiErrorToUiState({ type: 'RESOURCE_NOT_FOUND', resourceType, resourceId }, retryHandler);
+                renderErrorState(errorState, elementList);
+                console.error(`OnlyWorlds API Error [RESOURCE_NOT_FOUND]:`, { resourceType, resourceId });
+            },
+            sdkError: (message, originalError) => {
+                const errorState = mapApiErrorToUiState({ type: 'SDK_ERROR', message, originalError }, retryHandler);
+                renderErrorState(errorState, elementList);
+                console.error(`OnlyWorlds API Error [SDK_ERROR]:`, { message, originalError, elementType: type });
+            },
+            unknownError: (message, originalError) => {
+                const errorState = mapApiErrorToUiState({ type: 'UNKNOWN_ERROR', message, originalError }, retryHandler);
+                renderErrorState(errorState, elementList);
+                console.error(`OnlyWorlds API Error [UNKNOWN_ERROR]:`, { message, originalError, elementType: type });
             }
-
-            this.displayElements(elements);
-
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            elementList.innerHTML = `<p class="error-text">Error loading ${type}s: ${errorMessage}</p>`;
-            console.error('Error loading elements:', error);
-        }
+        });
     }
+
 
     /**
      * Display a list of elements

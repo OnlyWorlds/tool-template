@@ -96,9 +96,10 @@ export class ImportExportManager {
         );
 
         const promises = elementTypes.map(type =>
-            this.fetchWithRetry(() =>
-                this.api.getElements(type.toLowerCase())
-            ).then(elements => ({
+            this.fetchWithRetry(async () => {
+                const result = await this.api.getElements(type.toLowerCase());
+                return result.success ? result.data : [];
+            }).then(elements => ({
                 type,
                 elements: elements || []
             })).catch(error => {
