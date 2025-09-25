@@ -27,36 +27,41 @@ This enables you track and control changes you make to files in that folder.
 
 ## Quick Start
 
-### Option 1: Python (Mac/Linux usually have this)
-```bash
-python start.py
-```
-or
-```bash
-python3 start.py
-```
+### Prerequisites
+You need **Node.js** installed for TypeScript compilation and package management.
+- **Install Node.js**: https://nodejs.org (includes npm)
+- **Check installation**: `node --version` and `npm --version`
 
-### Option 2: Node.js (Web developers usually have this)
+### Option 1: Node.js with TypeScript (Recommended)
 ```bash
-npm start
+npm install    # Install dependencies (including @onlyworlds/sdk)
+npm start      # Build TypeScript + start server
 ```
 
-**Don't have either?**
-- **Windows** → Install Node.js: https://nodejs.org
-- **Mac/Linux** → You probably have Python, try `python --version`
+### Option 2: Python server 
+```bash
+npm install && npm run build                       
+python start.py   (or: python3 start.py )        
+``` 
 
-Browser opens automatically at http://localhost:8080
+Tool is then available at http://localhost:8080
 
 ## Deployment
 
 ### GitHub Pages (Recommended)
-Deploy your customized tool for free:
+Deploy your customized tool for free - **ready out of the box**:
 
 1. **Push your changes** to your GitHub repository
 2. **Go to Settings** → **Pages** (in your repository)
-3. **Set Source** to "Deploy from a branch"
-4. **Select Branch** "main" and Folder "/ (root)" (then Save)
-5. **Your tool will be live** at `https://[username].github.io/[repository-name]`
+3. **Set Source** to "GitHub Actions"
+4. **Your tool will be live** at `https://[username].github.io/[repository-name]`
+
+**That's it!** The template includes a pre-configured `.github/workflows/deploy.yml` that automatically:
+- ✅ Installs Node.js 20 with npm caching
+- ✅ Builds TypeScript to JavaScript (`npm run build`)
+- ✅ Deploys to GitHub Pages on every push to main
+
+**Why this works:** The `dist/` folder is gitignored (following Node.js best practices), so GitHub Actions builds it fresh on every deployment.
 
 ## What This Template Does
 
@@ -96,15 +101,43 @@ tool-template/
 ```
  
 
+## Development Workflow
+
+### First Time Setup
+```bash
+git clone <your-template-repo>
+cd <your-template-name>
+npm install          # Installs @onlyworlds/sdk v1.3.0+ and TypeScript
+npm start           # Build + serve at http://localhost:8080
+```
+
+### Development Commands
+
+| Command | Description |
+|---------|-----------|
+| `npm install` | Install all dependencies (including @onlyworlds/sdk) |
+| `npm run build` | Compile TypeScript to JavaScript (dist/ folder) |
+| `npm run build:watch` | Auto-rebuild TypeScript when files change |
+| `npm start` | Build + serve (production-like) |
+| `npm run start:js` | Serve without rebuilding (development) |
+| `npm run dev` | Run TypeScript directly (experimental) |
+
+### Development Tips
+- **Edit TypeScript files** in `src/` folder
+- **Automatic compilation**: Use `npm run build:watch` during development
+- **Live reload**: Changes require browser refresh (no hot reload)
+- **Debugging**: Check browser console and Network tab for API calls
+
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| `python: command not found` | Try `python3` instead, or install from python.org |
 | `npm: command not found` | Install Node.js from nodejs.org |
-| Port 8080 already in use | Edit start.py or use `npm start -- -l 8081` |
-| CORS errors | Make sure you're using the server, not opening index.html directly |
-| TypeScript errors | Run `npm run build` to compile TypeScript to JavaScript |
+| `Module loading errors` | Use `npm start` instead of Python server for proper MIME types |
+| `TypeScript errors` | Run `npm run build` to check compilation |
+| Port 8080 already in use | Use `npm start -- -l 8081` or edit start.py |
+| CORS errors | Use the server, don't open index.html directly |
+| `@onlyworlds/sdk not found` | Run `npm install` to install dependencies |
 | Broken references show errors | The template handles this gracefully - check console for details | 
 
 Make sure to use the [OnlyWorlds Discord](https://discord.gg/twCjqvVBwb) to ask any technical or creative questions.

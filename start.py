@@ -13,28 +13,46 @@ try:
     # Python 3
     from http.server import HTTPServer, SimpleHTTPRequestHandler
     import socketserver
+    import mimetypes
 except ImportError:
     # Python 2
     import SimpleHTTPServer
     import SocketServer as socketserver
+    import mimetypes
     HTTPServer = socketserver.TCPServer
     SimpleHTTPRequestHandler = SimpleHTTPServer.SimpleHTTPRequestHandler
 
 def main():
     port = 8080
-    
+
     print("")
     print("=" * 40)
     print("     OnlyWorlds Tool Template")
     print("=" * 40)
     print("")
+
+    # Check if TypeScript has been compiled
+    if not os.path.exists('dist/app.js'):
+        print("⚠️  TypeScript files not found in dist/ folder.")
+        print("   Please run: npm install && npm run build")
+        print("   Or use: npm start (recommended)")
+        print("")
+        print("Continuing anyway...")
+        print("")
+
     print(f"Starting server at http://localhost:{port}")
     print("Press Ctrl+C to stop")
     print("")
     print("Note: 'Broken pipe' errors are normal and can be ignored.")
     print("They occur when the browser cancels requests.")
     print("")
-    
+    print("Tip: For better development experience, use 'npm start'")
+    print("")
+
+    # Configure MIME types for ES modules
+    mimetypes.add_type('application/javascript', '.mjs')
+    mimetypes.add_type('application/javascript', '.js')
+
     # Change to script directory
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     

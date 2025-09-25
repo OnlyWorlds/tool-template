@@ -347,6 +347,7 @@ export default class ElementViewer {
         try {
             await this.api.deleteElement(type, id);
 
+            // Immediately update the UI to reflect the deletion
             await this.loadElements(type);
 
             const detailContainer = document.getElementById('element-detail');
@@ -359,12 +360,32 @@ export default class ElementViewer {
                 countElement.textContent = this.currentElements.length.toString();
             }
 
-            alert('Element deleted successfully');
+            // Show success message
+            console.log(`Element deleted successfully: ${type} ${id}`);
 
         } catch (error) {
+            // Handle 404 errors gracefully - element might already be deleted
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            alert(`Error deleting element: ${errorMessage}`);
-            console.error('Error deleting element:', error);
+
+            if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+                // Element was already deleted, just update the UI
+                console.log(`Element already deleted: ${type} ${id}`);
+                await this.loadElements(type);
+
+                const detailContainer = document.getElementById('element-detail');
+                if (detailContainer) {
+                    detailContainer.innerHTML = '<p class="empty-state">Select an element to view details</p>';
+                }
+
+                const countElement = document.getElementById(`count-${type}`);
+                if (countElement) {
+                    countElement.textContent = this.currentElements.length.toString();
+                }
+            } else {
+                // Show error for other types of failures
+                alert(`Error deleting element: ${errorMessage}`);
+                console.error('Error deleting element:', error);
+            }
         }
     }
 

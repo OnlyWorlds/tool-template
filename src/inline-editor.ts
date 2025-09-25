@@ -86,15 +86,9 @@ class InlineEditor {
 
         const deleteBtn = header.querySelector('.delete-btn-icon') as HTMLButtonElement;
         deleteBtn.onclick = async () => {
-            if (confirm(`Are you sure you want to delete this ${this.editingType}?`)) {
-                try {
-                    await this.api.deleteElement(this.editingType!, this.editingElement!.id);
-                    (window as any).elementViewer.deleteElement(this.editingType, this.editingElement!.id);
-                } catch (error) {
-                    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                    alert(`Failed to delete: ${errorMessage}`);
-                }
-            }
+            // Use the viewer's deleteElement method which has the confirmation dialog
+            // This avoids double popups and handles the UI updates properly
+            (window as any).elementViewer.deleteElement(this.editingType, this.editingElement!.id);
         };
 
         const fieldsContainer = document.createElement('div');
