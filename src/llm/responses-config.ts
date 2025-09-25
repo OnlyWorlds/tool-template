@@ -44,5 +44,24 @@ export const UI_LABELS = {
     SETUP_SUCCESS: 'Perfect! I\'m all set up. What would you like to discuss about your world?',
     INVALID_KEY: 'That doesn\'t look like a valid OpenAI API key. Keys should start with "sk-" and be around 50+ characters long.',
     CONNECTION_ERROR: 'I couldn\'t connect with that API key. Please check it\'s valid and try again.',
-    ERROR_MESSAGE: 'Sorry, there was an error. Please try again or check your API key.'
+    ERROR_MESSAGE: 'Sorry, there was an error. Please try again or check your API key.',
+
+    // New context system labels
+    CONTEXT_PANEL_TITLE: 'Context Configuration',
+    CONTEXT_TOGGLE: 'Configure Context',
+    WORLD_SECTION: 'World Information',
+    WORLD_ALWAYS_INCLUDED: 'Always included: world name, element counts',
+    SELECTED_ELEMENT_SECTION: 'Selected Element',
+    SELECTED_MINIMAL: 'Minimal (name, description, core fields)',
+    SELECTED_FULL: 'Full (+ all linked elements)',
+    CATEGORIES_SECTION: 'Element Categories',
+    SELECT_ALL_CATEGORIES: 'Select All',
+    SELECT_NONE_CATEGORIES: 'Select None',
+    TOKEN_ESTIMATE: 'Estimated tokens',
+    TOKEN_WARNING_YELLOW: 'Large context - may increase API costs',
+    TOKEN_WARNING_RED: 'Very large context - will be expensive',
+    MAX_TOKENS_SETTING: 'Token limit',
+    AUTO_SELECT_ELEMENT: 'Auto-include selected element',
+    PREFERENCES_SAVED: 'Preferences saved',
+    BACK_TO_CHAT: 'Back to Chat'
 };

@@ -4,6 +4,7 @@
  */
 
 import OnlyWorldsAPI from './api.js';
+import { authManager } from './auth.js';
 import { ONLYWORLDS } from './compatibility.js';
 import InlineEditorClass from './inline-editor.js';
 import { responsesUI } from './llm/responses-ui.js';
@@ -533,9 +534,13 @@ export default class ElementViewer {
     }
 
     private getAllWorldData(): any {
-        // TODO: This is a placeholder for world data collection
-        // Will be refined when we implement proper context handling
+        // Get world metadata from auth manager
+        const worldMetadata = authManager.getCurrentWorld();
+
         return {
+            name: worldMetadata?.name || 'Unnamed World',
+            id: worldMetadata?.id,
+            description: worldMetadata?.description,
             elements: this.currentElements,
             category: this.currentCategory,
             selectedElement: this.selectedElement

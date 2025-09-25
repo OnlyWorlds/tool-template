@@ -5,6 +5,8 @@
 
 import { responsesService, OnlyWorldsContext } from './responses-service.js';
 import { UI_LABELS } from './responses-config.js';
+import { contextService, ContextPreferences, ContextData } from './context-service.js';
+import { ONLYWORLDS } from '../compatibility.js';
 
 interface ChatMessage {
     role: 'user' | 'assistant';
@@ -15,21 +17,43 @@ interface ChatMessage {
 export class ResponsesUI {
     private chatMessages: ChatMessage[] = [];
     private isVisible: boolean = false;
+    private isContextView: boolean = false;
     private currentElement: any = null;
     private currentWorld: any = null;
+    private preferences: ContextPreferences = contextService.loadPreferences();
+    private elementCounts: Record<string, number> = {};
+    private tokenEstimates: Record<string, number> = {};
+    private isLoadingCounts: boolean = false;
+    private isLoadingTokens: boolean = false;
 
     init(): void {
+        this.preferences = contextService.loadPreferences();
         this.setupEventListeners();
+        // Don't load element counts here - wait until authentication is complete
     }
 
     showChatInterface(): void {
         this.isVisible = true;
+        this.isContextView = false;
         this.renderChatInterface();
         this.hideElementListView();
     }
 
+    showContextView(): void {
+        this.isVisible = true;
+        this.isContextView = true;
+        this.renderContextInterface();
+        this.hideElementListView();
+
+        // Ensure element counts are loaded when opening context view
+        if (!Object.keys(this.elementCounts).length) {
+            this.loadElementCounts();
+        }
+    }
+
     hideChatInterface(): void {
         this.isVisible = false;
+        this.isContextView = false;
 
         // Restore the original element list structure
         const container = document.querySelector('.element-list-container') as HTMLElement;
@@ -62,6 +86,14 @@ export class ResponsesUI {
         }
     }
 
+    toggleContextView(): void {
+        if (this.isContextView) {
+            this.showChatInterface();
+        } else {
+            this.showContextView();
+        }
+    }
+
     private renderChatInterface(): void {
         const container = document.querySelector('.element-list-container') as HTMLElement;
         if (!container) return;
@@ -90,15 +122,11 @@ export class ResponsesUI {
 
                 <div class="chat-input-area">
                     ${isConfigured ? `
-                        <div class="chat-context-options">
-                            <label class="context-option">
-                                <input type="checkbox" id="include-selected" ${!this.currentElement ? 'disabled' : ''}>
-                                <span>${UI_LABELS.INCLUDE_SELECTED} ${!this.currentElement ? '(none selected)' : ''}</span>
-                            </label>
-                            <label class="context-option">
-                                <input type="checkbox" id="include-world">
-                                <span>${UI_LABELS.INCLUDE_WORLD}</span>
-                            </label>
+                        <div class="chat-context-bar">
+                            <button id="context-toggle-btn" class="btn-context-toggle" title="${UI_LABELS.CONTEXT_TOGGLE}">
+                                <span class="material-icons-outlined">tune</span>
+                                <span class="token-indicator" id="token-indicator">~0</span>
+                            </button>
                         </div>
                     ` : ''}
 
@@ -122,6 +150,178 @@ export class ResponsesUI {
 
         this.attachChatEventListeners();
         this.setupAutoResizeTextarea();
+
+        // Update token estimate
+        this.updateTokenEstimate();
+    }
+
+    private renderContextInterface(): void {
+        const container = document.querySelector('.element-list-container') as HTMLElement;
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="context-interface">
+                <div class="context-header">
+                    <div class="context-title-section">
+                        <h2>${UI_LABELS.CONTEXT_PANEL_TITLE}</h2>
+                        <div class="header-token-display" id="header-token-display">
+                            <span class="header-token-count" id="header-token-count">~0</span>
+                            <span class="header-token-label">tokens</span>
+                        </div>
+                    </div>
+                    <div class="context-controls">
+                        <button id="back-to-chat-btn" class="btn-back" title="${UI_LABELS.BACK_TO_CHAT}">
+                            <span class="material-icons-outlined">arrow_back</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="context-sections">
+                    ${this.renderWorldSection()}
+                    ${this.renderSelectedElementSection()}
+                    ${this.renderCategoriesSection()}
+                    ${this.renderSettingsSection()}
+                </div>
+            </div>
+        `;
+
+        this.attachContextEventListeners();
+        this.updateHeaderTokenDisplay();
+    }
+
+    private renderWorldSection(): string {
+        return `
+            <div class="context-section">
+                <h3>${UI_LABELS.WORLD_SECTION}</h3>
+                <p class="context-description">${UI_LABELS.WORLD_ALWAYS_INCLUDED}</p>
+                <div class="world-info">
+                    <strong>${this.currentWorld?.name || 'Unnamed World'}</strong>
+                    <div class="element-counts-preview">
+                        ${Object.entries(this.elementCounts).map(([type, count]) =>
+                            `<span class="count-item">${type}: ${count}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    private renderSelectedElementSection(): string {
+        if (!this.currentElement) {
+            return `
+                <div class="context-section">
+                    <h3>${UI_LABELS.SELECTED_ELEMENT_SECTION}</h3>
+                    <p class="context-description">No element selected</p>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="context-section">
+                <h3>${UI_LABELS.SELECTED_ELEMENT_SECTION}</h3>
+                <div class="selected-element-info">
+                    <strong>${this.currentElement.name}</strong>
+                    <span class="element-type">(${this.currentElement.element_type || 'unknown'})</span>
+                </div>
+
+                <div class="selected-element-options">
+                    <label class="context-option">
+                        <input type="checkbox" id="auto-select-element" ${this.preferences.autoSelect ? 'checked' : ''}>
+                        <span>${UI_LABELS.AUTO_SELECT_ELEMENT}</span>
+                    </label>
+
+                    <div class="element-level-options">
+                        <label class="context-option">
+                            <input type="radio" name="element-level" value="minimal" ${this.preferences.selectedElementLevel === 'minimal' ? 'checked' : ''}>
+                            <span>${UI_LABELS.SELECTED_MINIMAL}</span>
+                        </label>
+                        <label class="context-option">
+                            <input type="radio" name="element-level" value="full" ${this.preferences.selectedElementLevel === 'full' ? 'checked' : ''}>
+                            <span>${UI_LABELS.SELECTED_FULL}</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    private renderCategoriesSection(): string {
+        const categories = ONLYWORLDS.ELEMENT_TYPES;
+
+        return `
+            <div class="context-section">
+                <h3>${UI_LABELS.CATEGORIES_SECTION}</h3>
+
+                <div class="category-controls">
+                    <button id="select-all-categories" class="btn-category-toggle">${UI_LABELS.SELECT_ALL_CATEGORIES}</button>
+                    <button id="select-none-categories" class="btn-category-toggle">${UI_LABELS.SELECT_NONE_CATEGORIES}</button>
+                </div>
+
+                <div class="category-list">
+                    ${categories.map(category => `
+                        <label class="category-option">
+                            <input type="checkbox" id="category-${category}" ${this.preferences.enabledCategories[category] ? 'checked' : ''}>
+                            <span class="category-name">${category}</span>
+                            <span class="category-count">(${this.elementCounts[category] || 0})</span>
+                            <span class="category-tokens" id="tokens-${category}">~${this.tokenEstimates[category] || 0}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    private renderSettingsSection(): string {
+        return `
+            <div class="context-section">
+                <h3>Settings</h3>
+
+                <div class="setting-item">
+                    <label for="max-tokens">${UI_LABELS.MAX_TOKENS_SETTING}:</label>
+                    <input type="number" id="max-tokens" value="${this.preferences.maxTokens}" min="1000" max="100000" step="1000">
+                </div>
+            </div>
+        `;
+    }
+
+    private updateHeaderTokenDisplay(): void {
+        const totalTokens = this.calculateTotalTokens();
+        const warningLevel = contextService.getTokenWarningLevel(totalTokens);
+
+        const headerDisplay = document.getElementById('header-token-display');
+        const tokenCount = document.getElementById('header-token-count');
+
+        if (headerDisplay && tokenCount) {
+            tokenCount.textContent = `~${totalTokens}`;
+            headerDisplay.className = `header-token-display ${warningLevel}`;
+        }
+    }
+
+    private showLoadingState(): void {
+        // Update header to show loading
+        const headerTokenCount = document.getElementById('header-token-count');
+        if (headerTokenCount) {
+            headerTokenCount.innerHTML = '<span class="loading-spinner"></span>Loading...';
+        }
+
+        // Update world section to show loading element counts
+        const elementCountsPreview = document.querySelector('.element-counts-preview');
+        if (elementCountsPreview) {
+            elementCountsPreview.innerHTML = '<span class="loading-text">Loading element counts...</span>';
+        }
+
+        // Update category counts to show loading
+        ONLYWORLDS.ELEMENT_TYPES.forEach(category => {
+            const categoryCount = document.querySelector(`#category-${category} + .category-count`);
+            if (categoryCount) {
+                categoryCount.textContent = '(...)';
+            }
+
+            const categoryTokens = document.getElementById(`tokens-${category}`);
+            if (categoryTokens) {
+                categoryTokens.innerHTML = '<span class="loading-spinner-small"></span>';
+            }
+        });
     }
 
     private renderMessages(): string {
@@ -163,23 +363,9 @@ export class ResponsesUI {
 
         // No longer need setup button - everything is conversational now
 
-        // Handle context checkboxes
-        const includeSelected = document.getElementById('include-selected') as HTMLInputElement;
-        const includeWorld = document.getElementById('include-world') as HTMLInputElement;
-
-        includeWorld?.addEventListener('change', (e) => {
-            if ((e.target as HTMLInputElement).checked && includeSelected) {
-                includeSelected.checked = false;
-                includeSelected.disabled = true;
-            } else if (includeSelected) {
-                includeSelected.disabled = !this.currentElement;
-            }
-        });
-
-        includeSelected?.addEventListener('change', (e) => {
-            if ((e.target as HTMLInputElement).checked && includeWorld) {
-                includeWorld.checked = false;
-            }
+        // Handle context configuration button
+        document.getElementById('context-toggle-btn')?.addEventListener('click', () => {
+            this.toggleContextView();
         });
     }
 
@@ -219,7 +405,7 @@ export class ResponsesUI {
             const context = this.getSelectedContext();
 
             // Get AI response
-            const response = await responsesService.sendMessage(message, context);
+            const response = await responsesService.sendMessage(message, await context);
 
             // Remove typing indicator
             this.hideTypingIndicator();
@@ -239,23 +425,26 @@ export class ResponsesUI {
         }
     }
 
-    private getSelectedContext(): OnlyWorldsContext | undefined {
-        const includeSelected = document.getElementById('include-selected') as HTMLInputElement;
-        const includeWorld = document.getElementById('include-world') as HTMLInputElement;
+    private async getSelectedContext(): Promise<OnlyWorldsContext | undefined> {
+        try {
+            const contextData = await contextService.buildContextData(
+                this.currentElement,
+                this.preferences,
+                this.currentWorld
+            );
 
-        if (includeWorld?.checked && this.currentWorld) {
-            return {
-                type: 'full_world',
-                data: this.currentWorld
-            };
-        } else if (includeSelected?.checked && this.currentElement) {
-            return {
-                type: 'selected_element',
-                data: this.currentElement
-            };
+            if (contextData.selectedElement || contextData.categories.length > 0) {
+                return {
+                    type: 'structured_context',
+                    data: contextData
+                };
+            }
+
+            return undefined;
+        } catch (error) {
+            console.warn('Failed to build context:', error);
+            return undefined;
         }
-
-        return undefined;
     }
 
     private addMessage(role: 'user' | 'assistant', content: string): void {
@@ -347,6 +536,220 @@ export class ResponsesUI {
 
     setCurrentWorld(worldData: any): void {
         this.currentWorld = worldData;
+
+        // Load element counts when world data is set (after authentication)
+        if (worldData && !Object.keys(this.elementCounts).length) {
+            this.loadElementCounts();
+        }
+    }
+
+    private attachContextEventListeners(): void {
+        // Back to chat button
+        document.getElementById('back-to-chat-btn')?.addEventListener('click', () => {
+            this.showChatInterface();
+        });
+
+        // Auto-select element checkbox
+        document.getElementById('auto-select-element')?.addEventListener('change', (e) => {
+            this.preferences.autoSelect = (e.target as HTMLInputElement).checked;
+            this.savePreferencesAndUpdate();
+        });
+
+        // Element level radio buttons
+        document.querySelectorAll('input[name="element-level"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.preferences.selectedElementLevel = (e.target as HTMLInputElement).value as 'minimal' | 'full';
+                this.savePreferencesAndUpdate();
+            });
+        });
+
+        // Category checkboxes
+        ONLYWORLDS.ELEMENT_TYPES.forEach(category => {
+            document.getElementById(`category-${category}`)?.addEventListener('change', (e) => {
+                this.preferences.enabledCategories[category] = (e.target as HTMLInputElement).checked;
+                this.savePreferencesAndUpdate();
+            });
+        });
+
+        // Select all/none buttons
+        document.getElementById('select-all-categories')?.addEventListener('click', () => {
+            ONLYWORLDS.ELEMENT_TYPES.forEach(category => {
+                this.preferences.enabledCategories[category] = true;
+                const checkbox = document.getElementById(`category-${category}`) as HTMLInputElement;
+                if (checkbox) checkbox.checked = true;
+            });
+            this.savePreferencesAndUpdate();
+        });
+
+        document.getElementById('select-none-categories')?.addEventListener('click', () => {
+            ONLYWORLDS.ELEMENT_TYPES.forEach(category => {
+                this.preferences.enabledCategories[category] = false;
+                const checkbox = document.getElementById(`category-${category}`) as HTMLInputElement;
+                if (checkbox) checkbox.checked = false;
+            });
+            this.savePreferencesAndUpdate();
+        });
+
+        // Max tokens setting
+        document.getElementById('max-tokens')?.addEventListener('change', (e) => {
+            this.preferences.maxTokens = parseInt((e.target as HTMLInputElement).value) || 50000;
+            this.savePreferencesAndUpdate();
+        });
+    }
+
+    private async loadElementCounts(): Promise<void> {
+        if (this.isLoadingCounts) return; // Prevent duplicate loading
+
+        try {
+            this.isLoadingCounts = true;
+            console.log('Loading element counts...');
+
+            // Show loading state in UI
+            if (this.isContextView) {
+                this.showLoadingState();
+            }
+
+            // Use progressive loading with callback
+            this.elementCounts = await contextService.getElementCounts((elementType, count, progress) => {
+                // Update individual counts as they come in
+                this.elementCounts[elementType] = count;
+
+                // Update UI progressively
+                if (this.isContextView) {
+                    this.updateProgressiveUI(elementType, count, progress);
+                }
+            });
+
+            console.log('Element counts loaded:', this.elementCounts);
+
+            await this.updateTokenEstimates();
+
+            // Final refresh of the context interface
+            if (this.isContextView) {
+                this.renderContextInterface();
+            }
+        } catch (error) {
+            console.warn('Failed to load element counts:', error);
+        } finally {
+            this.isLoadingCounts = false;
+        }
+    }
+
+    private updateProgressiveUI(elementType: string, count: number, progress: number): void {
+        // Update specific category count
+        const categoryLabel = document.querySelector(`#category-${elementType}`)?.parentElement;
+        if (categoryLabel) {
+            const countSpan = categoryLabel.querySelector('.category-count');
+            if (countSpan) {
+                countSpan.textContent = `(${count})`;
+            }
+        }
+
+        // Update world section element counts
+        this.updateWorldElementCounts();
+
+        // Update header progress
+        const headerTokenCount = document.getElementById('header-token-count');
+        if (headerTokenCount) {
+            headerTokenCount.innerHTML = `<span class="loading-spinner"></span>Loading... ${progress}%`;
+        }
+
+        // Update token estimate as we get data
+        this.updateHeaderTokenDisplay();
+    }
+
+    private updateWorldElementCounts(): void {
+        const elementCountsPreview = document.querySelector('.element-counts-preview');
+        if (elementCountsPreview) {
+            elementCountsPreview.innerHTML = Object.entries(this.elementCounts)
+                .map(([type, count]) => `<span class="count-item">${type}: ${count}</span>`)
+                .join('');
+        }
+    }
+
+    private async updateTokenEstimates(): Promise<void> {
+        for (const category of ONLYWORLDS.ELEMENT_TYPES) {
+            if (this.preferences.enabledCategories[category]) {
+                try {
+                    this.tokenEstimates[category] = await contextService.estimateCategoryTokens(category);
+                } catch (error) {
+                    console.warn(`Failed to estimate tokens for ${category}:`, error);
+                    this.tokenEstimates[category] = 0;
+                }
+            } else {
+                this.tokenEstimates[category] = 0;
+            }
+        }
+
+        // Update UI if in context view
+        if (this.isContextView) {
+            this.updateTokenDisplays();
+        }
+    }
+
+    private calculateTotalTokens(): number {
+        let total = 0;
+
+        // World info (always included)
+        const worldText = `World: ${this.currentWorld?.name || 'Unnamed World'}`;
+        total += contextService.estimateTokens(worldText);
+
+        // Selected element
+        if (this.preferences.autoSelect && this.currentElement) {
+            const elementSize = this.preferences.selectedElementLevel === 'full' ? 500 : 200; // Rough estimate
+            total += elementSize;
+        }
+
+        // Categories
+        Object.entries(this.preferences.enabledCategories).forEach(([category, enabled]) => {
+            if (enabled) {
+                total += this.tokenEstimates[category] || 0;
+            }
+        });
+
+        return total;
+    }
+
+    private updateTokenDisplays(): void {
+        // Update category token displays
+        ONLYWORLDS.ELEMENT_TYPES.forEach(category => {
+            const tokenDisplay = document.getElementById(`tokens-${category}`);
+            if (tokenDisplay) {
+                tokenDisplay.textContent = `~${this.tokenEstimates[category] || 0}`;
+            }
+        });
+
+        // Update header token display
+        this.updateHeaderTokenDisplay();
+    }
+
+    private async updateTokenEstimate(): Promise<void> {
+        const indicator = document.getElementById('token-indicator');
+        if (indicator) {
+            const totalTokens = this.calculateTotalTokens();
+            indicator.textContent = `~${totalTokens}`;
+
+            const warningLevel = contextService.getTokenWarningLevel(totalTokens);
+            indicator.className = `token-indicator ${warningLevel}`;
+        }
+    }
+
+    private savePreferencesAndUpdate(): void {
+        contextService.savePreferences(this.preferences);
+        this.updateTokenEstimates();
+
+        // Show brief "saved" feedback
+        const sections = document.querySelector('.context-sections');
+        if (sections) {
+            const feedback = document.createElement('div');
+            feedback.className = 'preferences-feedback';
+            feedback.textContent = UI_LABELS.PREFERENCES_SAVED;
+            sections.appendChild(feedback);
+
+            setTimeout(() => {
+                feedback.remove();
+            }, 2000);
+        }
     }
 
     // Method to check if chat is visible (for other components)

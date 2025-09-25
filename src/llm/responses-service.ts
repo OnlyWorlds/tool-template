@@ -5,10 +5,11 @@
 
 import OpenAI from 'openai';
 import { SYSTEM_PROMPT, AI_CONFIG } from './responses-config.js';
+import { ContextData } from './context-service.js';
 
 export interface OnlyWorldsContext {
-    type: 'selected_element' | 'full_world';
-    data: any; // Will be refined later - flexible for now
+    type: 'selected_element' | 'full_world' | 'structured_context';
+    data: any | ContextData; // Support both legacy and new structured context
 }
 
 export interface ChatResponse {
@@ -97,7 +98,7 @@ class ResponsesService {
             // Build instructions with system prompt and context
             let instructions = SYSTEM_PROMPT;
             if (context) {
-                instructions += `\n\nContext: ${JSON.stringify(context.data, null, 2)}`;
+                instructions += '\n\n' + this.formatContext(context);
             }
 
             // Use Responses API - it maintains conversation state automatically
@@ -175,6 +176,73 @@ class ResponsesService {
     // Method to get conversation status for UI
     hasActiveConversation(): boolean {
         return this.messages.length > 0;
+    }
+
+    private formatContext(context: OnlyWorldsContext): string {
+        switch (context.type) {
+            case 'structured_context':
+                return this.formatStructuredContext(context.data as ContextData);
+
+            case 'selected_element':
+                return `Selected Element Context:\n${JSON.stringify(context.data, null, 2)}`;
+
+            case 'full_world':
+                return `Full World Context:\n${JSON.stringify(context.data, null, 2)}`;
+
+            default:
+                return `Context: ${JSON.stringify(context.data, null, 2)}`;
+        }
+    }
+
+    private formatStructuredContext(contextData: ContextData): string {
+        let formattedContext = '';
+
+        // Always include world info
+        formattedContext += `World Information:\n`;
+        formattedContext += `Name: ${contextData.world.name}\n`;
+        formattedContext += `Element Counts: ${Object.entries(contextData.world.elementCounts)
+            .map(([type, count]) => `${type}: ${count}`)
+            .join(', ')}\n`;
+
+        if (contextData.world.version) {
+            formattedContext += `Version: ${contextData.world.version}\n`;
+        }
+
+        // Add selected element if present
+        if (contextData.selectedElement) {
+            formattedContext += `\nSelected Element (${contextData.selectedElement.level}):\n`;
+            formattedContext += `Type: ${contextData.selectedElement.data.type}\n`;
+            formattedContext += `Name: ${contextData.selectedElement.data.name}\n`;
+
+            if (contextData.selectedElement.level === 'minimal') {
+                formattedContext += `Description: ${contextData.selectedElement.data.data.description || 'No description'}\n`;
+                formattedContext += `Supertype: ${contextData.selectedElement.data.data.supertype || 'None'}\n`;
+                formattedContext += `Subtype: ${contextData.selectedElement.data.data.subtype || 'None'}\n`;
+            } else {
+                // Full context
+                formattedContext += `Full Data:\n${JSON.stringify(contextData.selectedElement.data.data, null, 2)}\n`;
+
+                if (contextData.selectedElement.data.linkedElements && contextData.selectedElement.data.linkedElements.length > 0) {
+                    formattedContext += `Linked Elements:\n`;
+                    for (const linked of contextData.selectedElement.data.linkedElements) {
+                        formattedContext += `- ${linked.type}: ${linked.name}\n`;
+                    }
+                }
+            }
+        }
+
+        // Add category data if present
+        if (contextData.categories.length > 0) {
+            formattedContext += `\nElement Categories:\n`;
+            for (const category of contextData.categories) {
+                formattedContext += `\n${category.type} (${category.count} elements):\n`;
+                for (const element of category.elements) {
+                    formattedContext += `- ${element.name}: ${element.data.description || 'No description'}\n`;
+                }
+            }
+        }
+
+        return formattedContext;
     }
 }
 

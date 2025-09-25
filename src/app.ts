@@ -451,14 +451,11 @@ class OnlyWorldsApp {
             return;
         }
 
-        try {
-            console.log(`Navigating to route: ${elementType}/${elementId}`);
-
+        try {  
             // Try to load and select the element
             const success = await this.elementViewer.navigateToElement(elementType, elementId);
 
-            if (!success) {
-                // Element not found or navigation failed
+            if (!success) { 
                 console.warn(`Could not navigate to ${elementType} ${elementId} - element may not exist`);
                 this.showRouteError(`Element not found: ${elementType} ${elementId.slice(0, 8)}...`);
 
@@ -469,8 +466,7 @@ class OnlyWorldsApp {
         } catch (error) {
             console.error('Error navigating to route:', error);
             this.showRouteError(`Error loading element: ${elementType} ${elementId.slice(0, 8)}...`);
-
-            // Clear the invalid route
+ 
             router.navigateToRoot();
         }
     }

@@ -62,11 +62,27 @@ class Router {
 
         const [, elementType, elementId] = parts;
 
-        // Validate element type exists in API
-        const availableTypes = apiService.getElementTypes();
-        if (!availableTypes.includes(elementType)) {
-            console.warn(`Invalid element type in URL: ${elementType}. Available: ${availableTypes.join(', ')}`);
-            return null;
+        // Validate element type exists in API (only if authenticated)
+        try {
+            const availableTypes = apiService.getElementTypes();
+            if (!availableTypes.includes(elementType)) {
+                console.warn(`Invalid element type in URL: ${elementType}. Available: ${availableTypes.join(', ')}`);
+                return null;
+            }
+        } catch (error) {
+            // If not authenticated yet, skip element type validation for now
+            // The route will be validated later when authentication completes
+            if (error instanceof Error && error.message.includes('Not authenticated')) {
+                // Just do basic format validation for now
+                const basicElementTypes = ['ability', 'character', 'collective', 'construct', 'creature', 'event', 'family', 'institution', 'language', 'law', 'location', 'map', 'marker', 'narrative', 'object', 'phenomenon', 'pin', 'relation', 'species', 'title', 'trait', 'zone'];
+                if (!basicElementTypes.includes(elementType)) {
+                    console.warn(`Invalid element type in URL: ${elementType}`);
+                    return null;
+                }
+            } else {
+                console.error('Could not extract element types from SDK, using fallback:', error);
+                return null;
+            }
         }
 
         // Validate UUID format (basic check)
