@@ -49,6 +49,17 @@ npm run build && python start.py    # Manual build + python server
 
 Both options serve at http://localhost:8080
 
+## AI Chat Setup (Optional)
+
+The template includes an AI assistant powered by OpenAI's **Responses API** (released March 2025). To enable it:
+
+1. **Get an OpenAI API key** from [platform.openai.com](https://platform.openai.com/api-keys)
+2. **Click the robot icon** next to "Elements" in the sidebar
+3. **Click "Set up API key"** and paste your key
+
+The AI assistant will remember your conversations automatically using OpenAI's server-side state management.
+
+**Security**: API keys are stored in your browser's localStorage and only used for direct API calls. They're never logged or transmitted to any other servers.
 
 ## Deployment
 
@@ -71,6 +82,7 @@ The template includes a pre-configured `.github/workflows/deploy.yml` that autom
 - **All 22 Element Types** - Complete OnlyWorlds support with dynamic detection
 - **Inline Editing** - Click any field to edit, auto-saves after 2 seconds
 - **Relationship Management** - Link elements together with smart pickers and broken reference handling
+- **AI Chat Assistant** - Optional OpenAI integration for discussing your world (requires API key)
 - **Clean Interface** - Responsive, modern design
 - **TypeScript + SDK** - Full type safety using an OnlyWorlds SDK 
 
@@ -93,7 +105,11 @@ tool-template/
 │   ├── relationship-editor.ts # UUID relationship handling
 │   ├── import-export.ts # World export to JSON
 │   ├── theme.ts         # Dark/light mode management
-│   └── compatibility.ts # SDK integration & type definitions
+│   ├── compatibility.ts # SDK integration & type definitions
+│   └── llm/             # AI Chat functionality (optional)
+│       ├── responses-service.ts # OpenAI API integration
+│       ├── responses-ui.ts      # Chat interface
+│       └── responses-config.ts  # Prompts & configuration
 ├── dist/                # Compiled JavaScript modules
 │   └── *.js            # TypeScript compiled output
 ├── start.py             # Python server launcher
@@ -139,6 +155,21 @@ Foundation    → @onlyworlds/sdk, package.json
 5. **🚀 Build Something Unique** - Game engines, analytics, anything
 
 **🎯 [Template Modification Guide](TEMPLATE-MODIFICATION-GUIDE.md)** - LLM-optimized with decision matrix, exact commands, and troubleshooting
+
+### **🤖 AI Chat Features**
+
+The template includes an **optional AI assistant** powered by OpenAI's **Responses API**:
+
+- **Chat Interface**: Click the robot icon next to "Elements" to open chat in middle column
+- **Easy Setup**: Click "Set up API key" button and enter an OpenAI API key
+- **Context Aware**: Include selected element or full world data in conversations
+- **World-Building Focused**: Tuned to discuss existing elements, not suggest new content
+- **Conversation Persistence**: Automatic via OpenAI's server-side state management
+- **Secure Storage**: API keys stored in browser localStorage, never transmitted elsewhere
+- **Easy Configuration**: Modify prompts in `src/llm/responses-config.ts`
+- **Completely Optional**: Delete `src/llm/` folder to remove all AI features
+
+ 
 
 ## Unit Tests
 

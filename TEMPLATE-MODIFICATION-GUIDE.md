@@ -31,6 +31,7 @@ npm run build && npm start
 ```
 UI Layer      → src/viewer.ts, src/editor.ts, src/inline-editor.ts, index.html, css/
 API Layer     → src/api.ts, src/auth.ts, src/import-export.ts
+AI Layer      → src/llm/ (responses-service.ts, responses-ui.ts, responses-config.ts)
 Foundation    → src/compatibility.ts, @onlyworlds/sdk, package.json
 ```
 
@@ -93,7 +94,7 @@ matchApiResult(result, {
 ## **File Safety Rules**
 
 **❌ Never remove**: `src/compatibility.ts`, `src/auth.ts`, `@onlyworlds/sdk`
-**✅ Safe to remove**: `src/theme.ts`, `src/import-export.ts`, CSS files, `index.html` (if replacing UI)
+**✅ Safe to remove**: `src/theme.ts`, `src/import-export.ts`, `src/llm/` (entire folder), CSS files, `index.html` (if replacing UI)
 
 **Dependency chain**:
 ```
@@ -102,6 +103,31 @@ auth.ts ← api.ts
 ```
 
 ## **UI Customization**
+
+**⚠️ Memory Leak Warning**: Never use `innerHTML = ''` to clear containers with event listeners:
+
+```typescript
+// ❌ Bad: Creates memory leaks
+container.innerHTML = '';
+
+// ✅ Good: Proper cleanup
+while (container.firstChild) {
+  container.removeChild(container.firstChild);
+}
+```
+
+**⚠️ Middle Column Architecture Warning**: The `.element-list-container` is shared between the element viewer and AI chat. If you add new "modes" that replace this container's content, ensure proper restoration:
+
+```typescript
+// Bad: Just clearing content
+container.innerHTML = '';
+
+// Good: Restore expected DOM structure
+container.innerHTML = `
+  <div class="list-header">...</div>
+  <div id="element-list" class="element-list">...</div>
+`;
+```
 
 **Page identity**: Update `<title>` and main heading in `index.html`
 
@@ -161,6 +187,10 @@ import { Feature } from './features/feature-name.js';
 
 # 5. Handle TypeScript types:
 npm install @types/library-name  # or use 'as any'
+
+# 6. If you get "bare specifier" errors, check browser console
+# Add internal dependencies to import map as needed:
+"library-name/internal/module": "./node_modules/library-name/internal/module.js"
 ```
 
 ## **Testing**
@@ -177,6 +207,41 @@ Uses **Vitest** (zero-config TypeScript + ES modules). Basic unit tests demonstr
 npm test              # Run tests
 npm run test:watch    # Watch mode
 ```
+
+## **AI Chat Layer (Optional)**
+
+**Architecture**: OpenAI Responses API integration in `src/llm/` folder
+
+**Remove AI features**:
+```bash
+# Complete removal
+rm -rf src/llm/
+# Remove chat toggle from viewer.ts (line with 'chat-toggle-btn')
+# Remove import from app.ts (line with './llm/responses-ui.js')
+```
+
+**Customize AI behavior**:
+```bash
+# Edit prompts and settings
+nano src/llm/responses-config.ts
+# Modify SYSTEM_PROMPT, AI_CONFIG, UI_LABELS
+```
+
+**Replace with different AI provider**:
+```bash
+# Keep UI layer
+# Replace src/llm/responses-service.ts with new provider integration
+# Update src/llm/responses-config.ts for new API requirements
+```
+
+**Environment setup**:
+- No `.env` files needed - uses browser-based API key setup modal
+- Click robot icon → "Set up API key" → paste OpenAI API key
+- API keys stored securely in browser localStorage
+- Chat shows setup instructions if no key provided
+- Conversations persist via OpenAI's server-side state management
+
+---
 
 ## **Validation**
 ```bash

@@ -3,9 +3,10 @@
  * Handles displaying elements in the UI with full type safety
  */
 
-import { ONLYWORLDS } from './compatibility.js';
 import OnlyWorldsAPI from './api.js';
+import { ONLYWORLDS } from './compatibility.js';
 import InlineEditorClass from './inline-editor.js';
+import { responsesUI } from './llm/responses-ui.js';
 import { router } from './router.js';
 import { matchApiResult } from './types/api-result.js';
 import { mapApiErrorToUiState, renderErrorState, UiErrorState } from './types/ui-error.js';
@@ -46,6 +47,16 @@ export default class ElementViewer {
         this.api = apiService;
     }
 
+    /**
+     * Safely clear container contents to prevent memory leaks
+     * Use this instead of innerHTML = '' when container has event listeners
+     */
+    private clearContainerSafely(container: Element): void {
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
+    }
+
     init(): void {
         this.populateCategories();
         this.attachEventListeners();
@@ -65,7 +76,8 @@ export default class ElementViewer {
         const categoryList = document.getElementById('category-list');
         if (!categoryList) return;
 
-        categoryList.innerHTML = '';
+        // Proper cleanup to prevent memory leaks
+        this.clearContainerSafely(categoryList);
 
         ONLYWORLDS.ELEMENT_TYPES.forEach((type: ElementType) => {
             const categoryItem = document.createElement('div');
@@ -128,6 +140,7 @@ export default class ElementViewer {
     }
 
     async selectCategory(type: ElementType): Promise<void> {
+        // Set the current category first
         document.querySelectorAll('.category-item').forEach((item) => {
             (item as HTMLElement).classList.remove('active');
         });
@@ -143,6 +156,13 @@ export default class ElementViewer {
         }
 
         this.currentCategory = type;
+
+        // Close chat interface if it's open (after setting current category)
+        if (responsesUI.isChatVisible()) {
+            responsesUI.hideChatInterface();
+            // Return early - the event handler will call loadElements
+            return;
+        }
 
         const listTitle = document.getElementById('list-title');
         if (listTitle) {
@@ -243,7 +263,8 @@ export default class ElementViewer {
         const elementList = document.getElementById('element-list');
         if (!elementList || !this.currentCategory) return;
 
-        elementList.innerHTML = '';
+        // Proper cleanup: remove child nodes instead of innerHTML to prevent memory leaks
+        this.clearContainerSafely(elementList);
 
         // Use DocumentFragment for batch DOM operations
         const fragment = document.createDocumentFragment();
@@ -284,6 +305,9 @@ export default class ElementViewer {
         selectedCard?.classList.add('selected');
 
         this.selectedElement = element;
+
+        // Update responsesUI with current selection for chat context
+        responsesUI.setCurrentElement(element);
 
         // Update URL to reflect current selection
         if (this.currentCategory) {
@@ -334,11 +358,9 @@ export default class ElementViewer {
                 // Re-render the element list to include the new element
                 await this.displayElements(this.currentElements);
             }
-
-            // Select the element
+ 
             await this.selectElement(targetElement);
-
-            console.log(`Successfully navigated to ${elementType} ${elementId}`);
+ 
             return true;
 
         } catch (error) {
@@ -463,6 +485,61 @@ export default class ElementViewer {
                 this.searchElements(target.value);
             }, 300);
         });
+
+        // Chat toggle functionality
+        const chatToggleBtn = document.getElementById('chat-toggle-btn');
+        chatToggleBtn?.addEventListener('click', () => {
+            this.toggleChatMode();
+        });
+
+        // Listen for chat interface being hidden (from close button, category clicks, etc.)
+        document.addEventListener('chatInterfaceHidden', () => {
+            // Always clear the chat interface container first
+            const container = document.querySelector('.element-list-container') as HTMLElement;
+            if (container) {
+                // Restore the current category view if one was selected
+                if (this.currentCategory) {
+                    this.loadElements(this.currentCategory);
+                } else {
+                    // Restore the initial state - just make sure the empty state message is correct
+                    const elementList = document.getElementById('element-list');
+                    if (elementList) {
+                        elementList.innerHTML = '<p class="empty-state">Select a category from the sidebar to view elements</p>';
+                    }
+
+                    // Make sure the list title shows the initial message
+                    const listTitle = document.getElementById('list-title');
+                    if (listTitle) {
+                        listTitle.textContent = 'Select a Category';
+                    }
+                }
+            }
+        });
+    }
+
+    toggleChatMode(): void {
+        if (responsesUI.isChatVisible()) {
+            responsesUI.hideChatInterface();
+            // Restore the current category view if one was selected
+            if (this.currentCategory) {
+                this.loadElements(this.currentCategory);
+            }
+        } else {
+            responsesUI.showChatInterface();
+            // Update the responsesUI with current context
+            responsesUI.setCurrentElement(this.selectedElement);
+            responsesUI.setCurrentWorld(this.getAllWorldData());
+        }
+    }
+
+    private getAllWorldData(): any {
+        // TODO: This is a placeholder for world data collection
+        // Will be refined when we implement proper context handling
+        return {
+            elements: this.currentElements,
+            category: this.currentCategory,
+            selectedElement: this.selectedElement
+        };
     }
 
     private escapeHtml(text: string): string {

@@ -54,12 +54,17 @@ src/
 ├── inline-editor.ts # Click-to-edit functionality
 ├── field-renderer.ts # Field display logic
 ├── compatibility.ts # SDK integration layer (CRITICAL - never remove)
+├── llm/             # AI Chat Layer (Optional)
+│   ├── responses-service.ts # OpenAI Responses API integration
+│   ├── responses-ui.ts      # Chat interface controller
+│   └── responses-config.ts  # Prompts & AI configuration
 └── [other modules]  # Supporting functionality
 ```
 
 ### Critical Files for LLMs
 - **`src/compatibility.ts`** - Core integration, required by api.ts and viewer.ts
 - **`src/auth.ts`** - Authentication, required for all API access
+- **`src/llm/responses-config.ts`** - AI prompts & configuration (easily editable)
 - **`TEMPLATE-MODIFICATION-GUIDE.md`** - Complete modification instructions for LLMs
 
 ## LLM Guidelines for Template Modification
@@ -70,15 +75,19 @@ npm run build && npm start  # Must work before modification
 ```
 
 ### Safe Modification Rules
-- ✅ **Safe to remove**: `src/theme.ts`, `src/import-export.ts`, CSS files, `index.html` (if replacing UI)
-- ⚠️ **Modify carefully**: `src/compatibility.ts` ELEMENT_TYPES array for focused tools
+- ✅ **Safe to remove**: `src/theme.ts`, `src/import-export.ts`, `src/llm/` (entire folder), CSS files, `index.html` (if replacing UI)
+- ⚠️ **Modify carefully**: `src/compatibility.ts` ELEMENT_TYPES array for focused tools, `src/llm/responses-config.ts` for AI behavior
 - ❌ **Never remove**: `src/compatibility.ts`, `src/auth.ts`, `@onlyworlds/sdk` dependency
+- ⚠️ **Memory leak prevention**: Use `while (container.firstChild) container.removeChild(container.firstChild)` instead of `innerHTML = ''`
 
 ### Common LLM Tasks
 1. **"Make it API-only"** → Remove UI files, keep auth.ts + api.ts + compatibility.ts
 2. **"Add visualization"** → Install library, create src/features/, integrate in viewer.ts
 3. **"Focus on characters"** → Modify compatibility.ts ELEMENT_TYPES array
 4. **"Convert to React"** → Keep API layer, replace all UI files
+5. **"Remove AI features"** → Delete `src/llm/` folder, remove chat icon from viewer.ts
+6. **"Customize AI behavior"** → Edit `src/llm/responses-config.ts` prompts and settings
+7. **"Add new middle column mode"** → ⚠️ Must restore `.element-list-container` HTML structure when switching modes
 
 ### Validation After Changes
 ```bash

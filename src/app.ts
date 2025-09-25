@@ -6,6 +6,7 @@ import { apiService } from './api.js';
 import { authManager } from './auth.js';
 import ElementEditor from './editor.js';
 import { ImportExportManager } from './import-export.js';
+import { responsesUI } from './llm/responses-ui.js';
 import { RouteChangeEvent, router } from './router.js';
 import { themeManager } from './theme.js';
 import ElementViewer from './viewer.js';
@@ -22,6 +23,9 @@ class OnlyWorldsApp {
 
         this.elementViewer = new ElementViewer(apiService);
         this.elementEditor = new ElementEditor(apiService);
+
+        // Initialize AI chat functionality
+        responsesUI.init();
 
         router.init();
         router.onRouteChange(this.handleRouteChange.bind(this));
@@ -83,8 +87,13 @@ class OnlyWorldsApp {
 
     private async tryAutoAuthenticate(): Promise<void> {
         try {
-            const success = await authManager.tryAutoAuthenticate();
-            if (success) { 
+            const result = await authManager.tryAutoAuthenticate();
+            if (result.success && result.credentials) {
+                // Populate only the API key field with the loaded credentials
+                const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
+
+                if (apiKeyInput) apiKeyInput.value = result.credentials.apiKey;
+
                 this.showMainApp();
                 this.updateUIForAuthenticatedState();
             } else {
@@ -100,7 +109,7 @@ class OnlyWorldsApp {
     private updateUIForAuthenticatedState(): void {
         const validateBtn = document.getElementById('validate-btn') as HTMLButtonElement;
         if (validateBtn) {
-            validateBtn.textContent = 'connected';
+            validateBtn.textContent = 'loaded';
             validateBtn.classList.add('validated');
             validateBtn.disabled = true;
         }
@@ -236,7 +245,7 @@ class OnlyWorldsApp {
 
         if (this.isConnected) {
             validateBtn.disabled = true;
-            validateBtn.textContent = 'Connected ✓';
+            validateBtn.textContent = 'loaded';
             validateBtn.classList.add('validated');
         } else {
             // Enable only when API key is 10 digits and PIN is 4 digits

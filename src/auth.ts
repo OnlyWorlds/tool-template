@@ -183,20 +183,20 @@ export default class AuthManager {
      * Attempt to authenticate using stored credentials
      * Clears stored credentials if authentication fails
      */
-    async tryAutoAuthenticate(): Promise<boolean> {
+    async tryAutoAuthenticate(): Promise<{ success: boolean; credentials?: { apiKey: string; apiPin: string } }> {
         const storedCredentials = this.loadCredentials();
         if (!storedCredentials) {
-            return false;
+            return { success: false };
         }
 
         try {
             await this.authenticate(storedCredentials.apiKey, storedCredentials.apiPin);
             console.log('Auto-authentication successful');
-            return true;
+            return { success: true, credentials: storedCredentials };
         } catch (error) {
             console.log('Auto-authentication failed, clearing stored credentials:', error);
             this.clearStoredCredentials();
-            return false;
+            return { success: false };
         }
     }
 
