@@ -61,7 +61,7 @@ temp/
 ehthumbs.db
 Desktop.ini
 
-# Python (if you add Python scripts)
+# Python  
 __pycache__/
 *.py[cod]
 *$py.class
@@ -71,8 +71,7 @@ env/
 venv/
 .venv
 
-# Package manager files
-package-lock.json
+# Package manager files  
 yarn.lock
 composer.lock
 
@@ -107,10 +106,8 @@ debug-*.log
 # Documentation build
 docs/_build/
 docs/.doctrees/
-
-# Keep .gitkeep files
+ 
 !.gitkeep
 
 # AI Tooling
-.claude/
-CLAUDE.md
+.claude/ 
