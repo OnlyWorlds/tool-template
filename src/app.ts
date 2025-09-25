@@ -28,6 +28,9 @@ class OnlyWorldsApp {
         (window as any).elementEditor = this.elementEditor;
 
         this.attachEventListeners();
+
+        // Try to auto-authenticate with stored credentials
+        this.tryAutoAuthenticate();
     }
 
     private setupErrorHandling(): void {
@@ -51,6 +54,14 @@ class OnlyWorldsApp {
             this.showHelp();
         });
 
+        // Add keyboard shortcut for logout (Ctrl+L or Cmd+L)
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+                e.preventDefault();
+                this.logout();
+            }
+        });
+
         // Enter key on auth inputs
         ['api-key', 'api-pin'].forEach(id => {
             document.getElementById(id)?.addEventListener('keypress', (e) => {
@@ -64,6 +75,88 @@ class OnlyWorldsApp {
         this.setupCredentialInputs();
 
         this.attachImportExportListeners();
+    }
+
+    /**
+     * Attempt auto-authentication with stored credentials
+     */
+    private async tryAutoAuthenticate(): Promise<void> {
+        try {
+            const success = await authManager.tryAutoAuthenticate();
+            if (success) { 
+                this.showMainApp();
+                this.updateUIForAuthenticatedState();
+            } else {
+                // No stored credentials or auto-auth failed, show normal login form
+                console.log('No stored credentials found, showing login form');
+            }
+        } catch (error) {
+            console.log('Auto-authentication error:', error);
+            // If auto-auth fails, just continue with normal flow (show login form)
+        }
+    }
+
+    /**
+     * Update UI elements when user is authenticated (hide auth form, etc.)
+     */
+    private updateUIForAuthenticatedState(): void {
+        const validateBtn = document.getElementById('validate-btn') as HTMLButtonElement;
+        if (validateBtn) {
+            validateBtn.textContent = 'connected';
+            validateBtn.classList.add('validated');
+            validateBtn.disabled = true;
+        }
+
+        const authStatus = document.getElementById('auth-status');
+        if (authStatus) {
+            authStatus.textContent = '';
+            authStatus.className = 'auth-status';
+        }
+
+        this.isConnected = true;
+    }
+
+    /**
+     * Logout and clear stored credentials
+     */
+    private logout(): void {
+        if (this.isConnected) {
+            const confirmed = confirm('Are you sure you want to disconnect? You will need to re-enter your API credentials.');
+            if (!confirmed) return;
+
+            // Clear authentication and stored credentials
+            authManager.clearCredentials();
+
+            // Reset UI to initial state
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const mainContent = document.getElementById('main-content');
+            const worldNameElement = document.getElementById('world-name');
+
+            if (welcomeScreen) welcomeScreen.classList.remove('hidden');
+            if (mainContent) mainContent.classList.add('hidden');
+            if (worldNameElement) {
+                worldNameElement.textContent = '';
+                worldNameElement.classList.add('hidden');
+            }
+
+            // Reset auth form
+            const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
+            const apiPinInput = document.getElementById('api-pin') as HTMLInputElement;
+            const validateBtn = document.getElementById('validate-btn') as HTMLButtonElement;
+
+            if (apiKeyInput) apiKeyInput.value = '';
+            if (apiPinInput) apiPinInput.value = '';
+            if (validateBtn) {
+                validateBtn.textContent = 'load world';
+                validateBtn.classList.remove('validated');
+                validateBtn.disabled = true;
+            }
+
+            this.showAuthStatus('Disconnected successfully', 'info');
+            this.isConnected = false;
+
+            console.log('Logged out successfully');
+        }
     }
 
     private setupCredentialInputs(): void {
@@ -126,8 +219,7 @@ class OnlyWorldsApp {
             await authManager.authenticate(apiKey, apiPin);
 
             this.showMainApp();
-            validateBtn.textContent = 'validated';
-            validateBtn.classList.add('validated');
+            this.updateUIForAuthenticatedState();
             this.showAuthStatus('', 'success');
 
         } catch (error) {
@@ -189,6 +281,13 @@ class OnlyWorldsApp {
                             <li>Enter them in the top bar and click "load world"</li>
                             <li>Select a category to view and edit elements</li>
                         </ol>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>Shortcuts</h3>
+                        <ul>
+                            <li><strong>Ctrl+L / Cmd+L</strong> - Disconnect and clear stored credentials</li>
+                        </ul>
                     </div>
 
                     <div class="help-section">

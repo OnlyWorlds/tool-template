@@ -19,6 +19,7 @@ export default class AuthManager {
     private currentWorld: WorldMetadata | null = null;
     private isAuthenticated: boolean = false;
     private client: OnlyWorldsClient | null = null;
+    private readonly STORAGE_KEY = 'ow_auth_credentials';
 
     /**
      * Initialize authentication with API credentials
@@ -64,6 +65,10 @@ export default class AuthManager {
             };
 
             this.isAuthenticated = true;
+
+            // Save credentials for persistence across sessions
+            this.saveCredentials(apiKey, apiPin);
+
             return true;
 
         } catch (error) {
@@ -108,6 +113,7 @@ export default class AuthManager {
         this.currentWorld = null;
         this.isAuthenticated = false;
         this.client = null;
+        this.clearStoredCredentials();
     }
 
     /**
@@ -151,6 +157,93 @@ export default class AuthManager {
             console.error('Error switching world:', error);
             throw error;
         }
+    }
+
+    /**
+     * Save credentials to localStorage with basic encoding
+     * @param apiKey - API key to save
+     * @param apiPin - API PIN to save
+     */
+    private saveCredentials(apiKey: string, apiPin: string): void {
+        try {
+            const credentials = {
+                apiKey: btoa(apiKey), // Basic encoding (not encryption, but better than plaintext)
+                apiPin: btoa(apiPin),
+                timestamp: Date.now()
+            };
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(credentials));
+        } catch (error) {
+            console.warn('Could not save credentials to localStorage:', error);
+        }
+    }
+
+    /**
+     * Load credentials from localStorage
+     * @returns Stored credentials or null if none found
+     */
+    private loadCredentials(): { apiKey: string; apiPin: string } | null {
+        try {
+            const stored = localStorage.getItem(this.STORAGE_KEY);
+            if (!stored) return null;
+
+            const credentials = JSON.parse(stored);
+
+            // Optional: Check if credentials are too old (e.g., 30 days)
+            const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+            if (Date.now() - credentials.timestamp > thirtyDays) {
+                this.clearStoredCredentials();
+                return null;
+            }
+
+            return {
+                apiKey: atob(credentials.apiKey),
+                apiPin: atob(credentials.apiPin)
+            };
+        } catch (error) {
+            console.warn('Could not load credentials from localStorage:', error);
+            this.clearStoredCredentials();
+            return null;
+        }
+    }
+
+    /**
+     * Clear stored credentials from localStorage
+     */
+    private clearStoredCredentials(): void {
+        try {
+            localStorage.removeItem(this.STORAGE_KEY);
+        } catch (error) {
+            console.warn('Could not clear stored credentials:', error);
+        }
+    }
+
+    /**
+     * Attempt to authenticate using stored credentials
+     * @returns Success status
+     */
+    async tryAutoAuthenticate(): Promise<boolean> {
+        const storedCredentials = this.loadCredentials();
+        if (!storedCredentials) {
+            return false;
+        }
+
+        try {
+            await this.authenticate(storedCredentials.apiKey, storedCredentials.apiPin);
+            console.log('Auto-authentication successful');
+            return true;
+        } catch (error) {
+            console.log('Auto-authentication failed, clearing stored credentials:', error);
+            this.clearStoredCredentials();
+            return false;
+        }
+    }
+
+    /**
+     * Check if stored credentials exist
+     * @returns True if credentials are stored
+     */
+    hasStoredCredentials(): boolean {
+        return this.loadCredentials() !== null;
     }
 }
 

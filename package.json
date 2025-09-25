@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "dev": "ts-node src/app.ts",
+    "dev": "npm run build && npx serve -s . -l 8080",
     "start": "npm run build && npx serve -s . -l 8080",
     "start:js": "npx serve -s . -l 8080"
   },

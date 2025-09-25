@@ -10,20 +10,19 @@ Use GitHub's template feature to create your own tool:
 #### Create a new repository
 1. **Click "Use this template"** (green button, top right)
 2. **Select "Create a new repository"**
-2. **Name your repository** (e.g., `my-perfect-tool`)
+2. **Name your repository** (e.g. `my-perfect-tool`)
 3. **Set to Public** for free GitHub Pages hosting
 
-This creates a clean new repository without any connection to this template.
+This creates a clean new repository without any backward connection to this template.
 
 #### Clone the repository
 1. **Click  "<> Code"** (green button, top right)
 2. **Copy the HTTPS URL** 
 3. **Open a terminal on your computer**
-4. **Run `git clone HTTPS-URL`**
+4. **Run `git clone [HTTPS-URL]`**
 5. **Open the created folder in your IDE of choice** (VSCode, Cursor, etc.)
 
 This enables you track and control changes you make to files in that folder.
-
 
 ## Quick Start
 
@@ -32,46 +31,46 @@ You need **Node.js** installed for TypeScript compilation and package management
 - **Install Node.js**: https://nodejs.org (includes npm)
 - **Check installation**: `node --version` and `npm --version`
 
-### Option 1: Node.js with TypeScript (Recommended)
+### First Time Setup
 ```bash
-npm install    # Install dependencies (including @onlyworlds/sdk)
-npm start      # Build TypeScript + start server
+npm install    # Install dependencies (including @onlyworlds/sdk) - run once
 ```
 
-### Option 2: Python server 
+### Running Locally
 ```bash
-npm install && npm run build                       
-python start.py   (or: python3 start.py )        
-``` 
+npm run dev    # Build TypeScript + start server
+```
 
-Tool is then available at http://localhost:8080
+### Alternative 
+```bash
+npm run build && python start.py    # Manual build + python server
+```
+
+Both options serve at http://localhost:8080
 
 ## Deployment
 
-### GitHub Pages (Recommended)
-Deploy your customized tool for free - **ready out of the box**:
+### GitHub Pages (Recommended) 
 
 1. **Push your changes** to your GitHub repository
 2. **Go to Settings** → **Pages** (in your repository)
 3. **Set Source** to "GitHub Actions"
 4. **Your tool will be live** at `https://[username].github.io/[repository-name]`
 
-**That's it!** The template includes a pre-configured `.github/workflows/deploy.yml` that automatically:
+The template includes a pre-configured `.github/workflows/deploy.yml` that automatically:
 - ✅ Installs Node.js 20 with npm caching
 - ✅ Builds TypeScript to JavaScript (`npm run build`)
 - ✅ Deploys to GitHub Pages on every push to main
+ 
 
-**Why this works:** The `dist/` folder is gitignored (following Node.js best practices), so GitHub Actions builds it fresh on every deployment.
-
-## What This Template Does
+## What This Template Offers
 
 - **Full CRUD Operations** - Create, Read, Update, Delete all element types
 - **All 22 Element Types** - Complete OnlyWorlds support with dynamic detection
 - **Inline Editing** - Click any field to edit, auto-saves after 2 seconds
 - **Relationship Management** - Link elements together with smart pickers and broken reference handling
 - **Clean Interface** - Responsive, modern design
-- **TypeScript + SDK** - Modern development with full type safety and OnlyWorlds SDK
-- **Dynamic Architecture** - Automatically adapts to schema changes, no hardcoded values
+- **TypeScript + SDK** - Full type safety using an OnlyWorlds SDK 
 
 ## Project Structure
 
@@ -100,34 +99,7 @@ tool-template/
 └── tsconfig.json        # TypeScript configuration
 ```
  
-
-## Development Workflow
-
-### First Time Setup
-```bash
-git clone <your-template-repo>
-cd <your-template-name>
-npm install          # Installs @onlyworlds/sdk v1.3.0+ and TypeScript
-npm start           # Build + serve at http://localhost:8080
-```
-
-### Development Commands
-
-| Command | Description |
-|---------|-----------|
-| `npm install` | Install all dependencies (including @onlyworlds/sdk) |
-| `npm run build` | Compile TypeScript to JavaScript (dist/ folder) |
-| `npm run build:watch` | Auto-rebuild TypeScript when files change |
-| `npm start` | Build + serve (production-like) |
-| `npm run start:js` | Serve without rebuilding (development) |
-| `npm run dev` | Run TypeScript directly (experimental) |
-
-### Development Tips
-- **Edit TypeScript files** in `src/` folder
-- **Automatic compilation**: Use `npm run build:watch` during development
-- **Live reload**: Changes require browser refresh (no hot reload)
-- **Debugging**: Check browser console and Network tab for API calls
-
+ 
 ## Troubleshooting
 
 | Issue | Solution |
@@ -169,6 +141,6 @@ This template is designed to offer **modular building blocks** with a **dynamic,
 
 ## License
 
-MIT License - Free to use and modify for any OnlyWorlds tools.
+MIT License - Free to use and modify for any purpose.
 
  
