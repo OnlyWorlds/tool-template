@@ -1,21 +1,16 @@
 /**
- * API Service Module (TypeScript + @onlyworlds/sdk)
- * Handles all CRUD operations with the OnlyWorlds API using the official SDK
- *
- * Converted from manual fetch calls to SDK-based operations while maintaining
- * the same interface for UI compatibility.
+ * OnlyWorlds API service using official SDK
+ * Provides typed CRUD operations with Result pattern error handling
  */
 
 import { OnlyWorldsClient, FIELD_SCHEMA } from '@onlyworlds/sdk';
 import { authManager } from './auth.js';
 import { ApiResult, ApiSuccess, ApiError, isSuccess } from './types/api-result.js';
 
-// Dynamic element types - extracted from SDK at runtime
 let _cachedElementTypes: string[] | null = null;
 
 type ElementType = string;
 
-// Basic element interface (all elements share these fields)
 interface BaseElement {
     id: string;
     name: string;
@@ -28,7 +23,6 @@ interface BaseElement {
     updated_at: string;
 }
 
-// Generic element interface with flexible additional fields
 interface Element extends BaseElement {
     [key: string]: any;
 }
@@ -37,9 +31,6 @@ export default class OnlyWorldsAPI {
     private cache = new Map<string, Element>();
     private worldId: string | null = null;
 
-    /**
-     * Get the SDK client from auth manager
-     */
     private getClient(): OnlyWorldsClient {
         return authManager.getClient();
     }
@@ -97,9 +88,6 @@ export default class OnlyWorldsAPI {
         }
     }
 
-    /**
-     * Convert singular element type to proper plural resource name
-     */
     private getResourceName(elementType: string): string {
         // Handle irregular plurals
         const irregularPlurals: Record<string, string> = {
@@ -119,7 +107,6 @@ export default class OnlyWorldsAPI {
 
     /**
      * Generate a UUIDv7 (time-ordered UUID)
-     * @returns A UUID string
      */
     generateId(): string {
         const timestamp = Date.now();
@@ -254,12 +241,6 @@ export default class OnlyWorldsAPI {
         }
     }
 
-    /**
-     * Fetch a single element by ID
-     * @param elementType - Type of element
-     * @param elementId - ID of the element
-     * @returns The element object
-     */
     async getElement(elementType: ElementType | string, elementId: string): Promise<Element | null> {
         if (!authManager.checkAuth()) {
             throw new Error('Not authenticated');
@@ -309,12 +290,6 @@ export default class OnlyWorldsAPI {
         }
     }
 
-    /**
-     * Create a new element
-     * @param elementType - Type of element to create
-     * @param elementData - The element data
-     * @returns The created element
-     */
     async createElement(elementType: ElementType | string, elementData: Partial<Element>): Promise<Element> {
         if (!authManager.checkAuth()) {
             throw new Error('Not authenticated');
@@ -365,13 +340,6 @@ export default class OnlyWorldsAPI {
         }
     }
 
-    /**
-     * Update an existing element
-     * @param elementType - Type of element
-     * @param elementId - ID of the element to update
-     * @param updates - The fields to update
-     * @returns The updated element
-     */
     async updateElement(elementType: ElementType | string, elementId: string, updates: Partial<Element>): Promise<Element> {
         if (!authManager.checkAuth()) {
             throw new Error('Not authenticated');
@@ -423,12 +391,6 @@ export default class OnlyWorldsAPI {
         }
     }
 
-    /**
-     * Delete an element
-     * @param elementType - Type of element
-     * @param elementId - ID of the element to delete
-     * @returns Success status
-     */
     async deleteElement(elementType: ElementType | string, elementId: string): Promise<boolean> {
         if (!authManager.checkAuth()) {
             throw new Error('Not authenticated');
@@ -458,12 +420,6 @@ export default class OnlyWorldsAPI {
         }
     }
 
-    /**
-     * Search elements by name
-     * @param elementType - Type of element
-     * @param searchTerm - Search term
-     * @returns Matching elements
-     */
     async searchElements(elementType: ElementType | string, searchTerm: string): Promise<ApiResult<Element[]>> {
         if (!searchTerm || searchTerm.length < 2) {
             return ApiSuccess([]);
@@ -479,6 +435,10 @@ export default class OnlyWorldsAPI {
      * Converts object references to just IDs and handles special fields
      * @param element - Element with potential object references
      * @returns Cleaned element with ID strings instead of objects
+     */
+    /**
+     * Clean element data before sending to API
+     * Converts object references to just IDs and handles special fields
      */
     private cleanElementData(element: Partial<Element>): any {
         const cleaned: any = {};
@@ -568,9 +528,6 @@ export default class OnlyWorldsAPI {
         return false;
     }
 
-    /**
-     * Get the world ID from cache or auth manager
-     */
     async getWorldId(): Promise<string | null> {
         if (this.worldId) {
             return this.worldId;
@@ -599,9 +556,6 @@ export default class OnlyWorldsAPI {
         return null;
     }
 
-    /**
-     * Clear the cache
-     */
     clearCache(): void {
         this.cache.clear();
         this.worldId = null;
@@ -612,6 +566,10 @@ export default class OnlyWorldsAPI {
      * @param element - Element to clean
      * @param elementType - Type of the element
      * @returns Updated element with broken references removed
+     */
+    /**
+     * Clean broken references from an element's fields
+     * Auto-removes links to non-existent elements
      */
     async cleanBrokenReferences(element: Element, elementType: string): Promise<Element> {
         const cleanedElement = { ...element };
@@ -689,9 +647,6 @@ export default class OnlyWorldsAPI {
         return element;
     }
 
-    /**
-     * Get target element type from field name using FIELD_SCHEMA
-     */
     private guessTargetType(fieldName: string): string | null {
         // Use FIELD_SCHEMA to find relationship target - search across all element types
         for (const [elementType, schema] of Object.entries(FIELD_SCHEMA)) {
@@ -704,9 +659,6 @@ export default class OnlyWorldsAPI {
         return null; // No target found in schema
     }
 
-    /**
-     * Dynamically find which element type contains an ID by trying all types
-     */
     private async findElementTypeForId(id: string): Promise<string | null> {
         const elementTypes = this.getElementTypes();
 

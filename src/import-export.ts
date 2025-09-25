@@ -47,10 +47,6 @@ export class ImportExportManager {
         this.api = apiService;
     }
 
-    /**
-     * Export world to JSON file
-     * Downloads all elements in website-compatible format
-     */
     async exportWorld(): Promise<void> {
         try {
             this.showLoading(true, 'Preparing export...');
@@ -85,7 +81,7 @@ export class ImportExportManager {
 
     /**
      * Fetch all elements from API in parallel
-     * Uses Promise.all() for concurrent requests
+     * Uses Promise.all() for concurrent requests with retry logic
      */
     private async fetchAllElements(): Promise<ElementData[]> {
         this.showLoading(true, 'Fetching elements...');
@@ -113,9 +109,6 @@ export class ImportExportManager {
         return results.filter(r => r.elements.length > 0);
     }
 
-    /**
-     * Format data for export (website-compatible)
-     */
     private formatExportData(allData: ElementData[], world: any): ExportData {
         const exportData: ExportData = {
             metadata: {
@@ -144,9 +137,6 @@ export class ImportExportManager {
         return exportData;
     }
 
-    /**
-     * Download data as a file using Blob API
-     */
     private downloadAsFile(data: ExportData, filename: string): void {
         const jsonString = JSON.stringify(data, null, 2);
 
@@ -167,6 +157,7 @@ export class ImportExportManager {
 
     /**
      * Retry failed requests with exponential backoff
+     * Skips retry for 4xx client errors
      */
     private async fetchWithRetry<T>(fetchFn: () => Promise<T>, maxRetries: number = 3): Promise<T> {
         let lastError: Error | unknown;
@@ -191,16 +182,10 @@ export class ImportExportManager {
         throw lastError;
     }
 
-    /**
-     * Utility sleep function for delays
-     */
     private sleep(ms: number): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    /**
-     * Show loading indicator with message
-     */
     private showLoading(show: boolean, message: string = ''): void {
         const loading = document.getElementById('loading');
         if (loading) {
@@ -220,9 +205,6 @@ export class ImportExportManager {
         }
     }
 
-    /**
-     * Show notification message
-     */
     private showNotification(message: string, type: NotificationType = 'info'): void {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;

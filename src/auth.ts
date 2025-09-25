@@ -21,12 +21,6 @@ export default class AuthManager {
     private client: OnlyWorldsClient | null = null;
     private readonly STORAGE_KEY = 'ow_auth_credentials';
 
-    /**
-     * Initialize authentication with API credentials
-     * @param apiKey - The API key from OnlyWorlds
-     * @param apiPin - The PIN for the API key
-     * @returns Success status
-     */
     async authenticate(apiKey: string, apiPin: string): Promise<boolean> {
         if (!apiKey || !apiPin) {
             throw new Error('API Key and PIN are required');
@@ -77,10 +71,6 @@ export default class AuthManager {
         }
     }
 
-    /**
-     * Get the SDK client instance
-     * @returns OnlyWorlds SDK client
-     */
     getClient(): OnlyWorldsClient {
         if (!this.client || !this.isAuthenticated) {
             throw new Error('Not authenticated. Please connect first.');
@@ -88,10 +78,6 @@ export default class AuthManager {
         return this.client;
     }
 
-    /**
-     * Get headers for manual API requests
-     * @returns Headers object with authentication
-     */
     getHeaders(): Record<string, string> {
         if (!this.apiKey || !this.apiPin) {
             throw new Error('Not authenticated. Please connect first.');
@@ -104,9 +90,6 @@ export default class AuthManager {
         };
     }
 
-    /**
-     * Clear stored credentials and sign out
-     */
     clearCredentials(): void {
         this.apiKey = null;
         this.apiPin = null;
@@ -116,27 +99,14 @@ export default class AuthManager {
         this.clearStoredCredentials();
     }
 
-    /**
-     * Check if currently authenticated
-     * @returns Authentication status
-     */
     checkAuth(): boolean {
         return this.isAuthenticated && this.apiKey !== null && this.apiPin !== null;
     }
 
-    /**
-     * Get the current world
-     * @returns Current world object
-     */
     getCurrentWorld(): WorldMetadata | null {
         return this.currentWorld;
     }
 
-    /**
-     * Switch to a different world (using SDK)
-     * @param worldId - ID of the world to switch to
-     * @returns Success status
-     */
     async switchWorld(worldId: string): Promise<boolean> {
         if (!this.checkAuth() || !this.client) {
             throw new Error('Not authenticated');
@@ -161,8 +131,7 @@ export default class AuthManager {
 
     /**
      * Save credentials to localStorage with basic encoding
-     * @param apiKey - API key to save
-     * @param apiPin - API PIN to save
+     * Uses btoa() for basic obfuscation (not encryption)
      */
     private saveCredentials(apiKey: string, apiPin: string): void {
         try {
@@ -177,10 +146,6 @@ export default class AuthManager {
         }
     }
 
-    /**
-     * Load credentials from localStorage
-     * @returns Stored credentials or null if none found
-     */
     private loadCredentials(): { apiKey: string; apiPin: string } | null {
         try {
             const stored = localStorage.getItem(this.STORAGE_KEY);
@@ -206,9 +171,6 @@ export default class AuthManager {
         }
     }
 
-    /**
-     * Clear stored credentials from localStorage
-     */
     private clearStoredCredentials(): void {
         try {
             localStorage.removeItem(this.STORAGE_KEY);
@@ -219,7 +181,7 @@ export default class AuthManager {
 
     /**
      * Attempt to authenticate using stored credentials
-     * @returns Success status
+     * Clears stored credentials if authentication fails
      */
     async tryAutoAuthenticate(): Promise<boolean> {
         const storedCredentials = this.loadCredentials();
@@ -238,10 +200,6 @@ export default class AuthManager {
         }
     }
 
-    /**
-     * Check if stored credentials exist
-     * @returns True if credentials are stored
-     */
     hasStoredCredentials(): boolean {
         return this.loadCredentials() !== null;
     }

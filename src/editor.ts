@@ -56,17 +56,11 @@ export default class ElementEditor {
         this.api = apiService;
     }
 
-    /**
-     * Initialize the editor
-     */
     init(): void {
         this.attachEventListeners();
         this.populateElementTypes();
     }
 
-    /**
-     * Populate element type dropdown in the form
-     */
     populateElementTypes(): void {
         const typeSelect = document.getElementById('element-type') as HTMLSelectElement;
         if (!typeSelect) return;
@@ -81,9 +75,6 @@ export default class ElementEditor {
         });
     }
 
-    /**
-     * Open the modal for creating a new element
-     */
     createNewElement(): void {
         this.isEditMode = false;
         this.currentElement = null;
@@ -105,7 +96,6 @@ export default class ElementEditor {
             typeSelect.value = preselectedType;
             // Always enable the dropdown - users can change element type during creation
             typeSelect.disabled = false;
-            this.generateDynamicFields(preselectedType);
         } else if (typeSelect) {
             typeSelect.disabled = false;
         }
@@ -121,9 +111,6 @@ export default class ElementEditor {
         this.showModal();
     }
 
-    /**
-     * Populate the form with element data
-     */
     populateForm(element: OnlyWorldsElement): void {
         const typeSelect = document.getElementById('element-type') as HTMLSelectElement;
         const nameInput = document.getElementById('element-name') as HTMLInputElement;
@@ -133,26 +120,8 @@ export default class ElementEditor {
         if (nameInput) nameInput.value = element.name || '';
         if (descInput) descInput.value = element.description || '';
 
-        if (this.currentType) {
-            this.generateDynamicFields(this.currentType, element);
-        }
     }
 
-    /**
-     * Generate dynamic form fields based on element type
-     * Currently disabled - inline editor handles field editing after creation
-     */
-    generateDynamicFields(elementType: ElementType, elementData: Partial<OnlyWorldsElement> = {}): void {
-        const container = document.getElementById('dynamic-fields-container');
-        if (!container) return;
-
-        container.innerHTML = '';
-        // Dynamic field generation disabled - use inline editor after creation
-    }
-
-    /**
-     * Save the element (create or update)
-     */
     async saveElement(): Promise<boolean> {
         const formData = this.getFormData();
 
@@ -193,7 +162,6 @@ export default class ElementEditor {
 
                 // If we created an element of a different type than current category, switch to it
                 if (createdType && viewer.currentCategory !== createdType) {
-                    console.log(`Switching to ${createdType} category for newly created element`);
                     // Use the selectCategory method to switch categories
                     await (viewer as any).selectCategory(createdType);
                 }
@@ -220,9 +188,6 @@ export default class ElementEditor {
         }
     }
 
-    /**
-     * Get form data from the modal form
-     */
     private getFormData(): FormData {
         const typeSelect = document.getElementById('element-type') as HTMLSelectElement;
         const nameInput = document.getElementById('element-name') as HTMLInputElement;
@@ -290,9 +255,6 @@ export default class ElementEditor {
         return formData;
     }
 
-    /**
-     * Show the modal
-     */
     private showModal(): void {
         const modal = document.getElementById('modal');
         if (modal) {
@@ -312,9 +274,6 @@ export default class ElementEditor {
         }, 100);
     }
 
-    /**
-     * Hide the modal
-     */
     private hideModal(): void {
         const modal = document.getElementById('modal');
         if (modal) {
@@ -328,9 +287,6 @@ export default class ElementEditor {
         this.currentType = null;
     }
 
-    /**
-     * Attach event listeners
-     */
     private attachEventListeners(): void {
         // Create element button
         const createBtn = document.getElementById('create-element-btn');
@@ -382,7 +338,6 @@ export default class ElementEditor {
             if (type && !this.isEditMode) {
                 // Update the current type when user changes selection
                 this.currentType = type;
-                this.generateDynamicFields(type);
 
                 // Update modal title to reflect selected type
                 const modalTitle = document.getElementById('modal-title');

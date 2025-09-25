@@ -46,17 +46,11 @@ export default class ElementViewer {
         this.api = apiService;
     }
 
-    /**
-     * Initialize the viewer and populate categories
-     */
     init(): void {
         this.populateCategories();
         this.attachEventListeners();
     }
 
-    /**
-     * Clear all cached data and reset the viewer
-     */
     clear(): void {
         this.currentCategory = null;
         this.currentElements = [];
@@ -67,9 +61,6 @@ export default class ElementViewer {
         }
     }
 
-    /**
-     * Populate the category sidebar
-     */
     populateCategories(): void {
         const categoryList = document.getElementById('category-list');
         if (!categoryList) return;
@@ -96,9 +87,10 @@ export default class ElementViewer {
 
     /**
      * Update element counts for each category
+     * Uses parallel execution for all element types
      */
     async updateCategoryCounts(): Promise<void> {
-        // Create all promises at once to ensure true parallel execution
+        // Parallel execution for all element types
         const countPromises = ONLYWORLDS.ELEMENT_TYPES.map(async (type: ElementType) => {
             try {
                 const result = await this.api.getElements(type);
@@ -113,7 +105,6 @@ export default class ElementViewer {
                     }
                     return elements.length;
                 } else {
-                    // Handle error case
                     if (countElement) {
                         requestAnimationFrame(() => {
                             countElement.textContent = '?';
@@ -133,13 +124,9 @@ export default class ElementViewer {
             }
         });
 
-        // Wait for all to complete (they're still parallel)
         await Promise.all(countPromises);
     }
 
-    /**
-     * Select a category and load its elements
-     */
     async selectCategory(type: ElementType): Promise<void> {
         document.querySelectorAll('.category-item').forEach((item) => {
             (item as HTMLElement).classList.remove('active');
@@ -174,9 +161,6 @@ export default class ElementViewer {
         await this.loadElements(type);
     }
 
-    /**
-     * Load elements for a category
-     */
     async loadElements(type: ElementType): Promise<void> {
         const elementList = document.getElementById('element-list');
         if (!elementList) return;
@@ -255,9 +239,6 @@ export default class ElementViewer {
     }
 
 
-    /**
-     * Display a list of elements
-     */
     displayElements(elements: OnlyWorldsElement[]): void {
         const elementList = document.getElementById('element-list');
         if (!elementList || !this.currentCategory) return;
@@ -294,9 +275,6 @@ export default class ElementViewer {
         elementList.appendChild(fragment);
     }
 
-    /**
-     * Select and display an element's details
-     */
     async selectElement(element: OnlyWorldsElement): Promise<void> {
         document.querySelectorAll('.element-card').forEach((card) => {
             (card as HTMLElement).classList.remove('selected');
@@ -320,6 +298,10 @@ export default class ElementViewer {
      * @param elementType - Type of element to navigate to
      * @param elementId - ID of the element to select
      * @returns True if navigation successful, false if element not found
+     */
+    /**
+     * Navigate to a specific element by type and ID (for deep linking)
+     * Handles category switching and element fetching if not in current list
      */
     async navigateToElement(elementType: string, elementId: string): Promise<boolean> {
         try {
@@ -385,9 +367,6 @@ export default class ElementViewer {
         }
     }
 
-    /**
-     * Delete element with confirmation
-     */
     async deleteElementWithConfirm(type: ElementType, id: string): Promise<void> {
         const element = this.currentElements.find((e: OnlyWorldsElement) => e.id === id);
         const name = element?.name || 'this element';
@@ -399,9 +378,6 @@ export default class ElementViewer {
         await this.deleteElement(type, id);
     }
 
-    /**
-     * Delete an element after confirmation
-     */
     async deleteElement(type: ElementType, id: string): Promise<void> {
         if (!confirm('Are you sure you want to delete this element? This cannot be undone.')) {
             return;
@@ -458,9 +434,6 @@ export default class ElementViewer {
         }
     }
 
-    /**
-     * Search elements in the current category
-     */
     async searchElements(searchTerm: string): Promise<void> {
         if (!this.currentCategory) return;
 
@@ -479,9 +452,6 @@ export default class ElementViewer {
         this.displayElements(filtered);
     }
 
-    /**
-     * Attach event listeners
-     */
     attachEventListeners(): void {
         const searchInput = document.getElementById('search-input') as HTMLInputElement;
         let searchTimeout: ReturnType<typeof setTimeout>;
@@ -495,9 +465,6 @@ export default class ElementViewer {
         });
     }
 
-    /**
-     * Escape HTML to prevent XSS
-     */
     private escapeHtml(text: string): string {
         if (!text) return '';
         const div = document.createElement('div');
@@ -505,9 +472,6 @@ export default class ElementViewer {
         return div.innerHTML;
     }
 
-    /**
-     * Format date for display
-     */
     formatDate(dateString: string): string {
         if (!dateString) return 'Unknown';
         try {

@@ -27,9 +27,6 @@ class Router {
     private currentRoute: Route | null = null;
     private isListenerAttached: boolean = false;
 
-    /**
-     * Initialize the router and set up hash change listener
-     */
     init(): void {
         if (!this.isListenerAttached) {
             window.addEventListener('hashchange', this.handleHashChange.bind(this));
@@ -40,10 +37,6 @@ class Router {
         this.handleHashChange();
     }
 
-    /**
-     * Parse the current URL hash and extract route information
-     * @returns Route object or null if invalid
-     */
     parseCurrentRoute(): Route | null {
         const hash = window.location.hash;
         return this.parseHash(hash);
@@ -51,8 +44,7 @@ class Router {
 
     /**
      * Parse a hash string into route components
-     * @param hash - Hash string (e.g., "#/character/uuid")
-     * @returns Route object or null if invalid
+     * Validates element type exists and UUID format is correct
      */
     parseHash(hash: string): Route | null {
         // Clean and validate hash format
@@ -86,11 +78,6 @@ class Router {
         return { elementType, elementId };
     }
 
-    /**
-     * Update the URL hash to reflect current element selection
-     * @param elementType - Type of element
-     * @param elementId - ID of element
-     */
     navigateToElement(elementType: string, elementId: string): void {
         const newHash = `#/${elementType}/${elementId}`;
 
@@ -103,9 +90,6 @@ class Router {
         window.location.hash = newHash;
     }
 
-    /**
-     * Clear the URL hash (navigate to root)
-     */
     navigateToRoot(): void {
         // Clear hash without triggering hashchange if already empty
         if (window.location.hash === '' || window.location.hash === '#') {
@@ -115,32 +99,18 @@ class Router {
         window.location.hash = '';
     }
 
-    /**
-     * Get the current route
-     */
     getCurrentRoute(): Route | null {
         return this.currentRoute;
     }
 
-    /**
-     * Register a callback for route changes
-     * @param callback - Function to call when route changes
-     */
     onRouteChange(callback: RouteChangeCallback): void {
         this.callbacks.push(callback);
     }
 
-    /**
-     * Remove a route change callback
-     * @param callback - Callback to remove
-     */
     offRouteChange(callback: RouteChangeCallback): void {
         this.callbacks = this.callbacks.filter(cb => cb !== callback);
     }
 
-    /**
-     * Handle hash change events
-     */
     private handleHashChange(): void {
         const newRoute = this.parseCurrentRoute();
         const isValid = newRoute !== null;
@@ -165,9 +135,6 @@ class Router {
         }
     }
 
-    /**
-     * Compare two routes for equality
-     */
     private routesEqual(route1: Route | null, route2: Route | null): boolean {
         if (route1 === null && route2 === null) return true;
         if (route1 === null || route2 === null) return false;
@@ -175,18 +142,14 @@ class Router {
     }
 
     /**
-     * Basic UUID validation
-     * @param uuid - String to validate
-     * @returns True if valid UUID format
+     * Basic UUID validation using regex
+     * Supports UUIDv1-8 with proper variant bits
      */
     private isValidUUID(uuid: string): boolean {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return uuidRegex.test(uuid);
     }
 
-    /**
-     * Clean up router (remove event listeners)
-     */
     destroy(): void {
         if (this.isListenerAttached) {
             window.removeEventListener('hashchange', this.handleHashChange.bind(this));

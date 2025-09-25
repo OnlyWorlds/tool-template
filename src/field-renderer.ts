@@ -27,17 +27,11 @@ export class FieldRenderer {
         this.onFieldChange = onFieldChange || null;
     }
 
-    /**
-     * Set context for field rendering
-     */
     setContext(elementType: string, editingElement: Element): void {
         this.elementType = elementType;
         this.editingElement = editingElement;
     }
 
-    /**
-     * Format field name for display
-     */
     formatFieldName(fieldName: string): string {
         return fieldName
             .split('_')
@@ -45,9 +39,6 @@ export class FieldRenderer {
             .join(' ');
     }
 
-    /**
-     * Create an editable field with appropriate input type
-     */
     createEditableField(fieldName: string, value: any, fieldType?: FieldType): HTMLDivElement {
         // Use dynamic field type detection if not provided
         if (!fieldType) {
@@ -114,9 +105,6 @@ export class FieldRenderer {
         return fieldDiv;
     }
 
-    /**
-     * Create text input (now as textarea for multiline support)
-     */
     private createTextInput(fieldName: string, value: any): HTMLTextAreaElement {
         const textarea = document.createElement('textarea');
         textarea.name = fieldName;
@@ -139,9 +127,6 @@ export class FieldRenderer {
         return textarea;
     }
 
-    /**
-     * Create type input with datalist for supertype/subtype
-     */
     private createTypeInput(fieldName: string, value: any): HTMLInputElement {
         const input = document.createElement('input');
         input.type = 'text';
@@ -240,9 +225,6 @@ export class FieldRenderer {
         return input;
     }
 
-    /**
-     * Create textarea input
-     */
     private createTextareaInput(fieldName: string, value: any): HTMLTextAreaElement {
         const textarea = document.createElement('textarea');
         textarea.name = fieldName;
@@ -264,9 +246,6 @@ export class FieldRenderer {
         return textarea;
     }
 
-    /**
-     * Create date input
-     */
     private createDateInput(fieldName: string, value: any): HTMLInputElement {
         const input = document.createElement('input');
         input.type = 'date';
@@ -284,9 +263,6 @@ export class FieldRenderer {
         return input;
     }
 
-    /**
-     * Create number input
-     */
     private createNumberInput(fieldName: string, value: any): HTMLInputElement {
         const input = document.createElement('input');
         input.type = 'number';
@@ -297,9 +273,6 @@ export class FieldRenderer {
         return input;
     }
 
-    /**
-     * Create boolean checkbox
-     */
     private createBooleanInput(fieldName: string, value: any): HTMLDivElement {
         const wrapper = document.createElement('div');
         wrapper.className = 'checkbox-wrapper';
@@ -323,9 +296,6 @@ export class FieldRenderer {
         return wrapper;
     }
 
-    /**
-     * Create array input
-     */
     private createArrayInput(fieldName: string, value: any, fieldType: FieldType): HTMLInputElement {
         const input = document.createElement('input');
         input.type = 'text';
@@ -342,9 +312,6 @@ export class FieldRenderer {
         return input;
     }
 
-    /**
-     * Create UUID input
-     */
     private createUuidInput(fieldName: string, value: any): HTMLInputElement {
         const input = document.createElement('input');
         input.type = 'text';
@@ -356,9 +323,6 @@ export class FieldRenderer {
         return input;
     }
 
-    /**
-     * Create object/JSON input
-     */
     private createObjectInput(fieldName: string, value: any): HTMLTextAreaElement {
         const textarea = document.createElement('textarea');
         textarea.name = fieldName;
@@ -375,9 +339,6 @@ export class FieldRenderer {
         return textarea;
     }
 
-    /**
-     * Attach editing event listeners to input
-     */
     private attachEditingListeners(input: HTMLElement, fieldName: string, fieldType: FieldType): void {
         const actualInput = input.querySelector('input, textarea') as HTMLInputElement | HTMLTextAreaElement || input as HTMLInputElement | HTMLTextAreaElement;
 

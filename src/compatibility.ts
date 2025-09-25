@@ -5,21 +5,18 @@
 
 import { FIELD_SCHEMA, ELEMENT_LABELS, ELEMENT_MATERIAL_ICONS, getElementLabel } from '@onlyworlds/sdk';
 
-// Constants that were in constants.js
 export const ONLYWORLDS = {
     API_BASE: 'https://www.onlyworlds.com/api/worldapi',
 
-    // Dynamic element types from SDK FIELD_SCHEMA
     get ELEMENT_TYPES() {
         return Object.keys(FIELD_SCHEMA).sort();
     },
 
-    // Plural labels from SDK
     get ELEMENT_LABELS() {
         return ELEMENT_LABELS;
     },
 
-    // Singular names - generated dynamically
+    // Generates singular names dynamically (Character, Location, etc.)
     get ELEMENT_SINGULAR() {
         const singular: Record<string, string> = {};
         for (const type of Object.keys(FIELD_SCHEMA)) {
@@ -28,18 +25,14 @@ export const ONLYWORLDS = {
         return singular;
     },
 
-    // Material Icon names for each element type - from SDK
     get ELEMENT_ICONS() {
         return ELEMENT_MATERIAL_ICONS;
     }
 };
 
-// Dynamic field type analysis cache
 let _fieldTypeCache = new Map<string, { type: string; related_to?: string }>();
 
-// Field type compatibility functions with dynamic introspection
 export function getFieldType(fieldName: string, sampleValue?: any): { type: string; related_to?: string } {
-    // Check cache first
     const cacheKey = `${fieldName}_${typeof sampleValue}`;
     if (_fieldTypeCache.has(cacheKey)) {
         return _fieldTypeCache.get(cacheKey)!;
@@ -47,7 +40,7 @@ export function getFieldType(fieldName: string, sampleValue?: any): { type: stri
 
     let fieldType: { type: string; related_to?: string };
 
-    // If we have a sample value, use it for better type detection
+    // Use sample value for better type detection when available
     if (sampleValue !== undefined && sampleValue !== null) {
         fieldType = inferTypeFromValue(fieldName, sampleValue);
     } else {
@@ -59,9 +52,6 @@ export function getFieldType(fieldName: string, sampleValue?: any): { type: stri
     return fieldType;
 }
 
-/**
- * Infer field type from actual value
- */
 function inferTypeFromValue(fieldName: string, value: any): { type: string; related_to?: string } {
     // Handle arrays
     if (Array.isArray(value)) {
@@ -114,9 +104,6 @@ function inferTypeFromValue(fieldName: string, value: any): { type: string; rela
     return getStaticFieldType(fieldName);
 }
 
-/**
- * Static field type detection (fallback)
- */
 function getStaticFieldType(fieldName: string): { type: string; related_to?: string } {
     // Basic type detection for compatibility - only for actual date fields
     if (fieldName === 'created_at' || fieldName === 'updated_at') {
@@ -169,17 +156,11 @@ export function getRelationshipTarget(fieldName: string): string | null {
     return fieldInfo.related_to || null;
 }
 
-/**
- * Get field mapping for specific element type and field (more efficient when element type is known)
- */
 export function getFieldMapping(elementType: string, fieldName: string): string | null {
     const schema = (FIELD_SCHEMA as any)[elementType.toLowerCase()];
     return schema?.[fieldName]?.target || null;
 }
 
-/**
- * Get field schema information from FIELD_SCHEMA (searches all element types)
- */
 function getFieldSchema(fieldName: string): { type: string; target?: string } | null {
     // Search across all element types for this field
     for (const [elementType, schema] of Object.entries(FIELD_SCHEMA)) {
@@ -191,9 +172,6 @@ function getFieldSchema(fieldName: string): { type: string; target?: string } | 
     return null;
 }
 
-/**
- * Get field schema for specific element type and field (more efficient when element type is known)
- */
 export function getElementFieldSchema(elementType: string, fieldName: string): { type: string; target?: string } | null {
     const schema = (FIELD_SCHEMA as any)[elementType.toLowerCase()];
     return schema?.[fieldName] || null;
@@ -257,17 +235,11 @@ class TypeManagerCompat {
 
 export default new TypeManagerCompat();
 
-/**
- * Helper function to detect UUIDs
- */
 function isUUID(value: string): boolean {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     return uuidRegex.test(value);
 }
 
-/**
- * Helper function to detect date strings
- */
 function isDateString(value: string): boolean {
     // Check for ISO date format or other common date patterns
     const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
@@ -276,9 +248,6 @@ function isDateString(value: string): boolean {
     return isoDateRegex.test(value) || simpleDateRegex.test(value) || !isNaN(Date.parse(value));
 }
 
-/**
- * Get element type from field name using FIELD_SCHEMA
- */
 function guessElementTypeFromField(fieldName: string): string | null {
     // Use FIELD_SCHEMA to find relationship target
     for (const [elementType, schema] of Object.entries(FIELD_SCHEMA)) {

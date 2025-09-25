@@ -1,6 +1,5 @@
 /**
- * Main Application Module (TypeScript)
- * Coordinates all modules and handles the main application flow
+ * Main application controller
  */
 
 import { apiService } from './api.js';
@@ -24,7 +23,6 @@ class OnlyWorldsApp {
         this.elementViewer = new ElementViewer(apiService);
         this.elementEditor = new ElementEditor(apiService);
 
-        // Initialize router and set up route change handling
         router.init();
         router.onRouteChange(this.handleRouteChange.bind(this));
 
@@ -83,9 +81,6 @@ class OnlyWorldsApp {
         this.attachImportExportListeners();
     }
 
-    /**
-     * Attempt auto-authentication with stored credentials
-     */
     private async tryAutoAuthenticate(): Promise<void> {
         try {
             const success = await authManager.tryAutoAuthenticate();
@@ -102,9 +97,6 @@ class OnlyWorldsApp {
         }
     }
 
-    /**
-     * Update UI elements when user is authenticated (hide auth form, etc.)
-     */
     private updateUIForAuthenticatedState(): void {
         const validateBtn = document.getElementById('validate-btn') as HTMLButtonElement;
         if (validateBtn) {
@@ -122,9 +114,6 @@ class OnlyWorldsApp {
         this.isConnected = true;
     }
 
-    /**
-     * Logout and clear stored credentials
-     */
     private logout(): void {
         if (this.isConnected) {
             const confirmed = confirm('Are you sure you want to disconnect? You will need to re-enter your API credentials.');
@@ -433,10 +422,6 @@ class OnlyWorldsApp {
         }
     }
 
-    /**
-     * Handle route changes from URL hash
-     * @param event - Route change event containing the new route
-     */
     private async handleRouteChange(event: RouteChangeEvent): Promise<void> {
         // If route is invalid or empty, do nothing
         if (!event.isValid || !event.route) {
@@ -481,9 +466,6 @@ class OnlyWorldsApp {
         }
     }
 
-    /**
-     * Process any pending route after successful authentication
-     */
     private async processPendingRoute(): Promise<void> {
         const currentRoute = router.getCurrentRoute();
 
@@ -493,10 +475,6 @@ class OnlyWorldsApp {
         }
     }
 
-    /**
-     * Show a temporary error message for routing issues
-     * @param message - Error message to display
-     */
     private showRouteError(message: string): void {
         const statusElement = document.getElementById('auth-status');
         if (statusElement) {

@@ -43,9 +43,6 @@ class InlineEditor {
         });
     }
 
-    /**
-     * Initialize inline editing for an element
-     */
     initializeEditor(element: Element, elementType: string, container: HTMLElement): void {
         this.editingElement = element;
         this.editingType = elementType;
@@ -57,9 +54,6 @@ class InlineEditor {
         this.renderEditableFields(container);
     }
 
-    /**
-     * Render editable fields in the container
-     */
     private renderEditableFields(container: HTMLElement): void {
         container.innerHTML = '';
 
@@ -99,9 +93,6 @@ class InlineEditor {
         container.appendChild(fieldsContainer);
     }
 
-    /**
-     * Render fields in compact format
-     */
     private renderCompactFields(container: HTMLElement): void {
         const element = this.editingElement!;
 
@@ -156,9 +147,6 @@ class InlineEditor {
         }
     }
 
-    /**
-     * Create a compact field display
-     */
     private createCompactField(fieldName: string, value: any, fieldType: FieldType): HTMLElement {
         const fieldDiv = document.createElement('div');
         fieldDiv.className = 'compact-field';
@@ -261,9 +249,6 @@ class InlineEditor {
         return fieldDiv;
     }
 
-    /**
-     * Save a single field immediately (delegate to auto-save manager)
-     */
     async saveField(fieldName: string, value: any): Promise<boolean> {
         if (this.editingElement) {
             this.editingElement[fieldName] = value;
@@ -271,9 +256,6 @@ class InlineEditor {
         return await this.autoSaveManager.saveField(fieldName, value);
     }
 
-    /**
-     * Update relationship field after selection
-     */
     async updateRelationshipField(fieldName: string, value: any, fieldType: FieldType): Promise<void> {
         const success = await this.saveField(fieldName, value);
 
@@ -292,27 +274,18 @@ class InlineEditor {
         }
     }
 
-    /**
-     * Format date for display
-     */
     private formatDate(dateString: string): string {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
         return date.toLocaleString();
     }
 
-    /**
-     * Escape HTML to prevent XSS
-     */
     private escapeHtml(text: string): string {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
 
-    /**
-     * Clean up when leaving edit mode
-     */
     cleanup(): void {
         if ((this.autoSaveManager as any).dirtyFields.size > 0) {
             this.autoSaveManager.saveChanges();

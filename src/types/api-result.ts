@@ -1,9 +1,7 @@
 /**
- * TypeScript Result pattern for robust API error handling
- * Demonstrates best practices for typed error handling without exceptions
+ * Result pattern for type-safe API error handling
  */
 
-// API-specific error types for better error categorization
 export type ApiError =
   | { type: 'AUTHENTICATION_ERROR'; message: string }
   | { type: 'NETWORK_ERROR'; message: string; statusCode?: number }
@@ -12,12 +10,11 @@ export type ApiError =
   | { type: 'SDK_ERROR'; message: string; originalError?: unknown }
   | { type: 'UNKNOWN_ERROR'; message: string; originalError?: unknown };
 
-// Result type inspired by Rust and functional programming
 export type ApiResult<T> =
   | { success: true; data: T }
   | { success: false; error: ApiError };
 
-// Helper constructors for creating Results
+// Helper constructors
 export const ApiSuccess = <T>(data: T): ApiResult<T> => ({
   success: true,
   data

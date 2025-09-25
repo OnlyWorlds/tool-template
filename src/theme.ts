@@ -11,9 +11,6 @@ class ThemeManager {
     private currentTheme: Theme | null = null;
     private toggleButton: HTMLButtonElement | null = null;
 
-    /**
-     * Initialize the theme system
-     */
     init(): void {
         this.applyInitialTheme();
 
@@ -26,9 +23,6 @@ class ThemeManager {
         this.watchSystemPreference();
     }
 
-    /**
-     * Apply the initial theme based on saved preference or default
-     */
     private applyInitialTheme(): void {
         const savedTheme = localStorage.getItem(this.STORAGE_KEY) as Theme | null;
 
@@ -41,9 +35,6 @@ class ThemeManager {
         this.applyTheme(this.currentTheme);
     }
 
-    /**
-     * Apply the specified theme to the document
-     */
     private applyTheme(theme: Theme): void {
         document.documentElement.setAttribute('data-theme', theme);
         this.currentTheme = theme;
@@ -53,9 +44,6 @@ class ThemeManager {
         }
     }
 
-    /**
-     * Set up the theme toggle button
-     */
     private setupToggleButton(): void {
         const button = document.createElement('button');
         button.id = 'theme-toggle';
@@ -76,9 +64,6 @@ class ThemeManager {
         }
     }
 
-    /**
-     * Toggle between light and dark themes
-     */
     toggleTheme(): void {
         const newTheme: Theme = this.currentTheme === 'dark' ? 'light' : 'dark';
         this.applyTheme(newTheme);
@@ -88,9 +73,6 @@ class ThemeManager {
         this.updateButtonIcon();
     }
 
-    /**
-     * Update the toggle button icon and tooltip
-     */
     private updateButtonIcon(): void {
         if (!this.toggleButton) return;
 
@@ -104,9 +86,6 @@ class ThemeManager {
             : 'Switch to dark mode';
     }
 
-    /**
-     * Watch for system theme preference changes
-     */
     private watchSystemPreference(): void {
         // Only apply system preference if user hasn't set a preference
         if (localStorage.getItem(this.STORAGE_KEY)) {
@@ -122,16 +101,10 @@ class ThemeManager {
         });
     }
 
-    /**
-     * Get the current theme
-     */
     getTheme(): Theme | null {
         return this.currentTheme;
     }
 
-    /**
-     * Clear saved theme preference (resets to default)
-     */
     clearPreference(): void {
         localStorage.removeItem(this.STORAGE_KEY);
         this.applyInitialTheme();

@@ -32,9 +32,6 @@ export default class RelationshipEditor {
         this.inlineEditor = inlineEditor;
     }
 
-    /**
-     * Create relationship field UI
-     */
     async createRelationshipField(
         container: HTMLElement,
         fieldName: string,
@@ -139,9 +136,6 @@ export default class RelationshipEditor {
         container.dataset.targetType = targetType || '';
     }
 
-    /**
-     * Create element tag display
-     */
     private async createElementTag(
         elementId: string,
         targetType: string | null,
@@ -226,9 +220,6 @@ export default class RelationshipEditor {
         return tag;
     }
 
-    /**
-     * Show inline selector dropdown
-     */
     private async showSelector(
         container: HTMLElement,
         fieldName: string,
@@ -446,9 +437,6 @@ export default class RelationshipEditor {
         return true;
     }
 
-    /**
-     * View element in detail
-     */
     private async viewElement(elementId: string, targetType: string): Promise<void> {
         const elementViewer = (window as any).elementViewer;
 
@@ -480,9 +468,6 @@ export default class RelationshipEditor {
         }
     }
 
-    /**
-     * Get element type from field name using FIELD_SCHEMA
-     */
     private guessElementType(fieldName: string): string | null {
         return getRelationshipTarget(fieldName);
     }

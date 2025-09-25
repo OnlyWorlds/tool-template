@@ -35,9 +35,6 @@ export class AutoSaveManager {
         this.updateCallback = updateCallback || null;
     }
 
-    /**
-     * Set the element being edited
-     */
     setEditingContext(element: Element, type: string): void {
         this.editingElement = element;
         this.editingType = type;
@@ -46,9 +43,6 @@ export class AutoSaveManager {
         this.storeOriginalValues(element);
     }
 
-    /**
-     * Store original values for reverting
-     */
     private storeOriginalValues(element: Element): void {
         this.originalValues = {};
         for (const [key, value] of Object.entries(element)) {
@@ -62,9 +56,6 @@ export class AutoSaveManager {
         }
     }
 
-    /**
-     * Handle field change - main entry point for auto-save
-     */
     onFieldChange(fieldName: string, input: HTMLInputElement | HTMLTextAreaElement): void {
         if (!this.enabled || this.paused) {
             return;
@@ -89,9 +80,6 @@ export class AutoSaveManager {
         }, 2000);
     }
 
-    /**
-     * Cancel editing for a field
-     */
     cancelFieldEdit(fieldName: string, input: HTMLInputElement | HTMLTextAreaElement): void {
         const originalValue = this.originalValues[fieldName];
 
@@ -164,9 +152,6 @@ export class AutoSaveManager {
         }
     }
 
-    /**
-     * Save all changes
-     */
     async saveChanges(): Promise<void> {
         if (!this.enabled || this.paused || !this.editingElement || !this.editingType) return;
 
@@ -210,9 +195,6 @@ export class AutoSaveManager {
         }
     }
 
-    /**
-     * Collect values that have changed
-     */
     private collectChangedValues(): Record<string, any> {
         const updates: Record<string, any> = {};
 
@@ -259,9 +241,6 @@ export class AutoSaveManager {
         return updates;
     }
 
-    /**
-     * Update save status indicator
-     */
     private updateSaveStatus(status: SaveStatus): void {
         const statusEl = document.getElementById('save-status');
         if (!statusEl) return;
@@ -294,9 +273,6 @@ export class AutoSaveManager {
         }
     }
 
-    /**
-     * Clean up when editing is done
-     */
     cleanup(): void {
         if (this.saveTimeout) {
             clearTimeout(this.saveTimeout);
