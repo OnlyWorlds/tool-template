@@ -100,6 +100,9 @@ tool-template/
 ```
  
  
+## Mobile Support
+**Desktop-first design** - Optimized for desktop development workflows. Basic mobile responsiveness included but complex editing works best on desktop.  
+
 ## Troubleshooting
 
 | Issue | Solution |
@@ -116,7 +119,7 @@ Make sure to use the [OnlyWorlds Discord](https://discord.gg/twCjqvVBwb) to ask 
 
 ## Customization
 
-🤖 **For AI Assistants**: This template is designed for rapid transformation. **Go directly to [CUSTOMIZATION-GUIDE.md](CUSTOMIZATION-GUIDE.md)** for complete modification instructions with decision matrix, file dependency rules, and copy-paste implementation commands.
+🤖 **Using AI Assistants**: This template is optimized for AI-powered development. **If using Claude Code, it will automatically read `CLAUDE.md`**. For other AI tools (Codex, Cursor, etc.), **provide (and rename at will) the `CLAUDE.md` file** to your AI assistant for context and modification instructions.
 
 ### **Template Architecture (3 Independent Layers)**
 ```
@@ -132,7 +135,7 @@ Foundation    → @onlyworlds/sdk, package.json
 4. **♾️ Replace UI Framework** - React, Vue, Svelte, mobile apps
 5. **🚀 Build Something Unique** - Game engines, analytics, anything
 
-**🎯 [Complete Customization Guide](CUSTOMIZATION-GUIDE.md)** - LLM-optimized with decision matrix, exact commands, and troubleshooting
+**🎯 [Template Modification Guide](TEMPLATE-MODIFICATION-GUIDE.md)** - LLM-optimized with decision matrix, exact commands, and troubleshooting
 
 ## Resources
 
