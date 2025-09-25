@@ -40,6 +40,7 @@ declare global {
             currentCategory: ElementType | null;
             loadElements(category: ElementType): Promise<void>;
             selectElement(element: OnlyWorldsElement): Promise<void>;
+            selectCategory(category: ElementType): Promise<void>;
             updateCategoryCounts(): void;
         };
     }
@@ -102,15 +103,15 @@ export default class ElementEditor {
         const typeSelect = document.getElementById('element-type') as HTMLSelectElement;
         if (preselectedType && typeSelect) {
             typeSelect.value = preselectedType;
-            typeSelect.disabled = true;
+            // Always enable the dropdown - users can change element type during creation
+            typeSelect.disabled = false;
             this.generateDynamicFields(preselectedType);
         } else if (typeSelect) {
             typeSelect.disabled = false;
         }
 
-        const title = preselectedType ?
-            `Create New ${ONLYWORLDS.ELEMENT_SINGULAR[preselectedType]}` :
-            'Create New Element';
+        // Always use generic title since users can change the element type
+        const title = 'Create New Element';
 
         const modalTitle = document.getElementById('modal-title');
         if (modalTitle) {
@@ -185,16 +186,27 @@ export default class ElementEditor {
 
             this.hideModal();
 
-            // Update viewer if available
+            // Update viewer and navigate to correct category if needed
             const viewer = window.elementViewer;
-            if (viewer && viewer.currentCategory && (viewer.currentCategory === this.currentType || viewer.currentCategory === formData.type)) {
-                await viewer.loadElements(viewer.currentCategory);
+            if (viewer) {
+                const createdType = this.isEditMode ? this.currentType : formData.type;
+
+                // If we created an element of a different type than current category, switch to it
+                if (createdType && viewer.currentCategory !== createdType) {
+                    console.log(`Switching to ${createdType} category for newly created element`);
+                    // Use the selectCategory method to switch categories
+                    await (viewer as any).selectCategory(createdType);
+                }
+
+                // Ensure the category is loaded and up-to-date
+                if (createdType && viewer.currentCategory === createdType) {
+                    await viewer.loadElements(createdType);
+                }
 
                 // Auto-select the element (both for edit mode and new elements)
                 await viewer.selectElement(result);
-            }
 
-            if (viewer) {
+                // Update all category counts
                 viewer.updateCategoryCounts();
             }
 
@@ -368,7 +380,15 @@ export default class ElementEditor {
             const type = target.value as ElementType;
 
             if (type && !this.isEditMode) {
+                // Update the current type when user changes selection
+                this.currentType = type;
                 this.generateDynamicFields(type);
+
+                // Update modal title to reflect selected type
+                const modalTitle = document.getElementById('modal-title');
+                if (modalTitle) {
+                    modalTitle.textContent = `Create New ${ONLYWORLDS.ELEMENT_SINGULAR[type]}`;
+                }
             }
         });
     }
