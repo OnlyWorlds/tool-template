@@ -38,14 +38,11 @@ export const UI_LABELS = {
     INCLUDE_WORLD: 'Include full world',
     CLEAR_CHAT: 'Clear conversation',
     SEND_BUTTON: 'Send',
-    PLACEHOLDER: 'Ask about your world...',
-    SETUP_BUTTON: 'Set up API key',
-    SETUP_TITLE: 'OpenAI API Key Setup',
-    SETUP_DESCRIPTION: 'To use the AI chat feature, you need an OpenAI API key.',
-    GET_KEY_LINK: 'Get your API key from OpenAI',
-    API_KEY_PLACEHOLDER: 'sk-...',
-    SAVE_KEY: 'Save and Continue',
-    CANCEL: 'Cancel',
-    NO_API_KEY_MESSAGE: 'AI chat requires an OpenAI API key. Click "Set up API key" to get started.',
-    ERROR_MESSAGE: 'Sorry, there was an error connecting to the AI service. Please check your API key and try again.'
+    PLACEHOLDER_SETUP: 'Paste your OpenAI API key here...',
+    PLACEHOLDER_CHAT: 'Ask about your world...',
+    SETUP_COMBINED: 'Hi! I\'m an AI assistant for world building purposes. I need an OpenAI API key to operate.\n\nYou can get one from https://platform.openai.com/api-keys, and paste it in here.',
+    SETUP_SUCCESS: 'Perfect! I\'m all set up. What would you like to discuss about your world?',
+    INVALID_KEY: 'That doesn\'t look like a valid OpenAI API key. Keys should start with "sk-" and be around 50+ characters long.',
+    CONNECTION_ERROR: 'I couldn\'t connect with that API key. Please check it\'s valid and try again.',
+    ERROR_MESSAGE: 'Sorry, there was an error. Please try again or check your API key.'
 };

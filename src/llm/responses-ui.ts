@@ -66,6 +66,9 @@ export class ResponsesUI {
         const container = document.querySelector('.element-list-container') as HTMLElement;
         if (!container) return;
 
+        const isConfigured = responsesService.isConfigured();
+        const hasMessages = this.chatMessages.length > 0;
+
         container.innerHTML = `
             <div class="chat-interface">
                 <div class="chat-header">
@@ -80,52 +83,35 @@ export class ResponsesUI {
                     </div>
                 </div>
 
-                ${!responsesService.isConfigured() ? `
-                    <div class="chat-setup-notice">
-                        <span class="material-icons-outlined">info</span>
-                        <div>
-                            <p>${UI_LABELS.NO_API_KEY_MESSAGE}</p>
-                            <button id="setup-api-key-btn" class="btn-setup" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: white; color: var(--status-info); border: 1px solid white; border-radius: 4px; cursor: pointer;">
-                                ${UI_LABELS.SETUP_BUTTON}
-                            </button>
-                        </div>
-                    </div>
-                ` : ''}
-
                 <div class="chat-messages" id="chat-messages">
                     ${this.renderMessages()}
-                    ${this.chatMessages.length === 0 ? `
-                        <div class="chat-welcome">
-                            <p>👋 Hi! I'm here to help you explore and understand your world.</p>
-                            <p>Ask me questions about your world elements, their relationships, or anything else you'd like to discuss!</p>
-                        </div>
-                    ` : ''}
+                    ${this.renderInitialMessages()}
                 </div>
 
                 <div class="chat-input-area">
-                    <div class="chat-context-options">
-                        <label class="context-option">
-                            <input type="checkbox" id="include-selected" ${!this.currentElement ? 'disabled' : ''}>
-                            <span>${UI_LABELS.INCLUDE_SELECTED} ${!this.currentElement ? '(none selected)' : ''}</span>
-                        </label>
-                        <label class="context-option">
-                            <input type="checkbox" id="include-world">
-                            <span>${UI_LABELS.INCLUDE_WORLD}</span>
-                        </label>
-                    </div>
+                    ${isConfigured ? `
+                        <div class="chat-context-options">
+                            <label class="context-option">
+                                <input type="checkbox" id="include-selected" ${!this.currentElement ? 'disabled' : ''}>
+                                <span>${UI_LABELS.INCLUDE_SELECTED} ${!this.currentElement ? '(none selected)' : ''}</span>
+                            </label>
+                            <label class="context-option">
+                                <input type="checkbox" id="include-world">
+                                <span>${UI_LABELS.INCLUDE_WORLD}</span>
+                            </label>
+                        </div>
+                    ` : ''}
 
                     <div class="chat-input-container">
-                        <input
-                            type="text"
+                        <textarea
                             id="chat-input"
-                            placeholder="${UI_LABELS.PLACEHOLDER}"
-                            ${!responsesService.isConfigured() ? 'disabled' : ''}
-                        >
+                            placeholder="${isConfigured ? UI_LABELS.PLACEHOLDER_CHAT : UI_LABELS.PLACEHOLDER_SETUP}"
+                            rows="1"
+                        ></textarea>
                         <button
                             id="send-chat-btn"
                             class="btn-send"
                             title="${UI_LABELS.SEND_BUTTON}"
-                            ${!responsesService.isConfigured() ? 'disabled' : ''}
                         >
                             <span class="material-icons-outlined">send</span>
                         </button>
@@ -135,6 +121,7 @@ export class ResponsesUI {
         `;
 
         this.attachChatEventListeners();
+        this.setupAutoResizeTextarea();
     }
 
     private renderMessages(): string {
@@ -156,9 +143,10 @@ export class ResponsesUI {
             this.sendMessage();
         });
 
-        // Send message on Enter key
+        // Send message on Enter key (but allow Shift+Enter for newlines)
         document.getElementById('chat-input')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 this.sendMessage();
             }
         });
@@ -173,10 +161,7 @@ export class ResponsesUI {
             this.hideChatInterface();
         });
 
-        // Setup API key button
-        document.getElementById('setup-api-key-btn')?.addEventListener('click', () => {
-            this.showApiKeySetup();
-        });
+        // No longer need setup button - everything is conversational now
 
         // Handle context checkboxes
         const includeSelected = document.getElementById('include-selected') as HTMLInputElement;
@@ -199,13 +184,27 @@ export class ResponsesUI {
     }
 
     private async sendMessage(): Promise<void> {
-        const input = document.getElementById('chat-input') as HTMLInputElement;
+        const input = document.getElementById('chat-input') as HTMLTextAreaElement;
         const sendBtn = document.getElementById('send-chat-btn') as HTMLButtonElement;
 
         if (!input || !sendBtn) return;
 
         const message = input.value.trim();
         if (!message) return;
+
+        // Check if this looks like an API key setup
+        if (!responsesService.isConfigured() && this.isApiKey(message)) {
+            await this.handleApiKeySetup(message);
+            input.value = '';
+            return;
+        }
+
+        // Regular message handling - if not configured and not an API key, explain what's needed
+        if (!responsesService.isConfigured()) {
+            this.addMessage('assistant', UI_LABELS.INVALID_KEY);
+            input.value = '';
+            return;
+        }
 
         // Add user message to chat
         this.addMessage('user', message);
@@ -355,79 +354,84 @@ export class ResponsesUI {
         return this.isVisible;
     }
 
-    private showApiKeySetup(): void {
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>${UI_LABELS.SETUP_TITLE}</h2>
-                    <button class="modal-close">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <p>${UI_LABELS.SETUP_DESCRIPTION}</p>
-                    <p><a href="https://platform.openai.com/api-keys" target="_blank">${UI_LABELS.GET_KEY_LINK}</a></p>
-                    <br>
-                    <label for="api-key-input">OpenAI API Key:</label>
-                    <input type="password" id="api-key-input" placeholder="${UI_LABELS.API_KEY_PLACEHOLDER}" style="width: 100%; padding: 0.5rem; margin: 0.5rem 0; border: 1px solid var(--border-primary); border-radius: 4px;">
-                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
-                        <button id="cancel-api-key" class="btn" style="background: var(--bg-secondary); border: 1px solid var(--border-primary);">${UI_LABELS.CANCEL}</button>
-                        <button id="save-api-key" class="btn" style="background: var(--brand-primary); color: white; border: none;">${UI_LABELS.SAVE_KEY}</button>
+    private renderInitialMessages(): string {
+        if (this.chatMessages.length > 0) {
+            return ''; // Don't show initial messages if there's chat history
+        }
+
+        if (!responsesService.isConfigured()) {
+            // Show setup message
+            return `
+                <div class="chat-message assistant">
+                    <div class="message-content">
+                        ${UI_LABELS.SETUP_COMBINED}
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            // Show welcome message for configured chat
+            return `
+                <div class="chat-welcome">
+                    <p>Chat ready</p>
+                </div>
+            `;
+        }
+    }
 
-        document.body.appendChild(modal);
-        modal.classList.add('visible');
+    private isApiKey(input: string): boolean {
+        // Check if input looks like an OpenAI API key
+        return input.startsWith('sk-') && input.length >= 20;
+    }
 
-        const apiKeyInput = modal.querySelector('#api-key-input') as HTMLInputElement;
-        const saveBtn = modal.querySelector('#save-api-key') as HTMLButtonElement;
-        const cancelBtn = modal.querySelector('#cancel-api-key') as HTMLButtonElement;
-        const closeBtn = modal.querySelector('.modal-close') as HTMLButtonElement;
+    private async handleApiKeySetup(apiKey: string): Promise<void> {
+        // Validate API key format
+        if (!this.isApiKey(apiKey)) {
+            this.addMessage('assistant', UI_LABELS.INVALID_KEY);
+            return;
+        }
 
-        const closeModal = () => {
-            modal.classList.remove('visible');
-            setTimeout(() => modal.remove(), 300);
-        };
+        // Add user message but hide the actual key
+        this.addMessage('user', '•'.repeat(20) + ' (API key)');
 
-        const saveApiKey = () => {
-            const apiKey = apiKeyInput.value.trim();
-            if (!apiKey) {
-                apiKeyInput.style.borderColor = 'var(--status-error)';
-                return;
-            }
+        // Show processing message
+        this.showTypingIndicator();
 
-            if (!apiKey.startsWith('sk-')) {
-                alert('Please enter a valid OpenAI API key (starts with "sk-")');
-                return;
-            }
-
+        try {
+            // Set the API key
             responsesService.setApiKey(apiKey);
-            closeModal();
 
-            // Refresh the chat interface to reflect the new state
-            this.renderChatInterface();
-        };
+            // Test the connection with a simple request
+            const testResponse = await responsesService.sendMessage('Hello');
 
-        saveBtn.addEventListener('click', saveApiKey);
-        cancelBtn.addEventListener('click', closeModal);
-        closeBtn.addEventListener('click', closeModal);
+            this.hideTypingIndicator();
 
-        apiKeyInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                saveApiKey();
+            if (testResponse.error) {
+                // API key didn't work
+                responsesService.clearApiKey();
+                this.addMessage('assistant', UI_LABELS.CONNECTION_ERROR);
+            } else {
+                // Success!
+                this.addMessage('assistant', UI_LABELS.SETUP_SUCCESS);
+
+                // Clear setup messages and refresh interface
+                setTimeout(() => {
+                    this.renderChatInterface();
+                }, 1000);
             }
-        });
+        } catch (error) {
+            this.hideTypingIndicator();
+            responsesService.clearApiKey();
+            this.addMessage('assistant', UI_LABELS.CONNECTION_ERROR);
+        }
+    }
 
-        // Focus the input
-        setTimeout(() => apiKeyInput.focus(), 100);
+    private setupAutoResizeTextarea(): void {
+        const textarea = document.getElementById('chat-input') as HTMLTextAreaElement;
+        if (!textarea) return;
 
-        // Close on backdrop click
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModal();
-            }
+        textarea.addEventListener('input', () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
         });
     }
 }

@@ -199,7 +199,8 @@ body {
 }
 
 .btn-validate.validated {
-    background: var(--brand-primary);
+    background: rgba(76, 175, 80, 0.3) !important;
+    color: var(--text-primary) !important;
 }
 
 .auth-status {
@@ -1954,8 +1955,8 @@ input[type="file"]:hover {
 }
 
 .chat-message.user .message-content {
-    background: var(--brand-primary);
-    color: var(--text-inverse);
+    background: rgba(76, 175, 80, 0.3) !important;
+    color: var(--text-primary) !important;
     border-bottom-right-radius: 4px;
 }
 
@@ -2059,6 +2060,9 @@ input[type="file"]:hover {
     transition: border-color 0.2s ease;
     min-height: 20px;
     max-height: 120px;
+    font-family: inherit;
+    line-height: 1.4;
+    overflow-y: hidden;
 }
 
 #chat-input:focus {
@@ -2072,7 +2076,8 @@ input[type="file"]:hover {
 }
 
 .btn-send {
-    background: var(--brand-primary);
+    background: rgba(76, 175, 80, 0.3) !important;
+    color: var(--text-primary) !important;
     border: none;
     border-radius: 50%;
     width: 40px;
@@ -2087,7 +2092,7 @@ input[type="file"]:hover {
 }
 
 .btn-send:hover:not(:disabled) {
-    background: var(--brand-primary-hover);
+    background: rgba(76, 175, 80, 0.5) !important;
     transform: scale(1.05);
 }
 
@@ -2099,6 +2104,19 @@ input[type="file"]:hover {
     background: var(--text-tertiary);
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+/* Setup messages styling */
+.chat-message.setup-message .message-content {
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-hover));
+    color: var(--text-inverse);
+    border: none;
+    border-radius: 12px;
+}
+
+.chat-message.setup-message .message-content a {
+    color: var(--text-inverse);
+    text-decoration: underline;
 }
 
 /* Responsive adjustments for mobile */

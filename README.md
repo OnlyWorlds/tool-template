@@ -53,11 +53,12 @@ Both options serve at http://localhost:8080
 
 The template includes an AI assistant powered by OpenAI's **Responses API** (released March 2025). To enable it:
 
-1. **Get an OpenAI API key** from [platform.openai.com](https://platform.openai.com/api-keys)
-2. **Click the robot icon** next to "Elements" in the sidebar
-3. **Click "Set up API key"** and paste your key
+1. **Click the robot icon** next to "Elements" in the sidebar
+2. **The AI will introduce itself** and ask for your OpenAI API key
+3. **Get an API key** from [platform.openai.com](https://platform.openai.com/api-keys) and paste it in the chat
+4. **Start chatting** about your world!
 
-The AI assistant will remember your conversations automatically using OpenAI's server-side state management.
+The setup feels like a natural conversation - the AI guides you through the process and tests the connection automatically.
 
 **Security**: API keys are stored in your browser's localStorage and only used for direct API calls. They're never logged or transmitted to any other servers.
 
@@ -161,7 +162,7 @@ Foundation    → @onlyworlds/sdk, package.json
 The template includes an **optional AI assistant** powered by OpenAI's **Responses API**:
 
 - **Chat Interface**: Click the robot icon next to "Elements" to open chat in middle column
-- **Easy Setup**: Click "Set up API key" button and enter an OpenAI API key
+- **Conversational Setup**: The AI will ask for your OpenAI API key in a natural chat flow
 - **Context Aware**: Include selected element or full world data in conversations
 - **World-Building Focused**: Tuned to discuss existing elements, not suggest new content
 - **Conversation Persistence**: Automatic via OpenAI's server-side state management

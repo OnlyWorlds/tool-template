@@ -235,10 +235,10 @@ nano src/llm/responses-config.ts
 ```
 
 **Environment setup**:
-- No `.env` files needed - uses browser-based API key setup modal
-- Click robot icon → "Set up API key" → paste OpenAI API key
-- API keys stored securely in browser localStorage
-- Chat shows setup instructions if no key provided
+- No `.env` files needed - uses conversational API key setup
+- Click robot icon → AI asks for OpenAI API key in chat → paste key directly
+- API keys detected automatically, validated, and stored in browser localStorage
+- Chat shows friendly setup messages if no key provided
 - Conversations persist via OpenAI's server-side state management
 
 ---
