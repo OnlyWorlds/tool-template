@@ -1494,25 +1494,54 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* Responsive Design */
+/* Minimal Mobile Improvements - Desktop First, Mobile Safe */
 @media (max-width: 768px) {
+    /* Stack vertically on mobile */
     .main-content {
         flex-direction: column;
     }
-    
+
+    /* Collapsible sidebar on mobile */
     .sidebar {
         width: 100%;
+        max-height: 200px;
         border-right: none;
         border-bottom: 1px solid var(--border-primary);
     }
-    
+
+    /* Better mobile list */
     .element-list-container {
         min-width: auto;
         border-right: none;
+        flex: 1;
+        min-height: 300px;
     }
-    
+
+    /* Mobile detail view */
     .element-detail-container {
-        min-height: 400px;
+        min-height: 300px;
+    }
+
+    /* Larger touch targets on mobile */
+    .category-item, .element-card {
+        padding: 12px;
+        min-height: 48px;
+    }
+
+    /* Mobile-friendly buttons */
+    .btn-add-element {
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Better mobile modal */
+    .modal {
+        padding: 10px;
+    }
+
+    .modal-content {
+        margin: 0;
+        max-height: 85vh;
     }
 }
 
