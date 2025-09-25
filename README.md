@@ -116,21 +116,23 @@ Make sure to use the [OnlyWorlds Discord](https://discord.gg/twCjqvVBwb) to ask 
 
 ## Customization
 
-This template is designed to offer **modular building blocks** with a **dynamic, future-proof architecture**:
+🤖 **For AI Assistants**: This template is designed for rapid transformation. **Go directly to [CUSTOMIZATION-GUIDE.md](CUSTOMIZATION-GUIDE.md)** for complete modification instructions with decision matrix, file dependency rules, and copy-paste implementation commands.
 
-### **Core Features**
-- **Dynamic Element Types** - Automatically detects available element types from SDK
-- **Smart Field Detection** - Infers field types from actual data
-- **Broken Reference Handling** - Gracefully handles deleted element references
-- **TypeScript Safety** - Full compile-time checking with SDK integration
+### **Template Architecture (3 Independent Layers)**
+```
+UI Layer      → src/viewer.ts, src/editor.ts, index.html, css/
+API Layer     → src/api.ts, src/auth.ts, src/compatibility.ts
+Foundation    → @onlyworlds/sdk, package.json
+```
 
-### **Common Patterns**
-- **API-only integration** - Keep auth.ts + api.ts, remove UI files
-- **Different UI framework** - Replace UI layer with React/Vue/Svelte
-- **Specialized tools** - Focus on specific element types
-- **Enhanced features** - Add maps, timelines, AI generation
+### **5 Proven Customization Patterns**
+1. **💼 Remove Features (API-only)** - For CLIs, bots, data processing
+2. **🎯 Focus on Specific Types** - Character managers, location atlases
+3. **➕ Add New Capabilities** - Maps, graphs, AI features, visualizations
+4. **♾️ Replace UI Framework** - React, Vue, Svelte, mobile apps
+5. **🚀 Build Something Unique** - Game engines, analytics, anything
 
-→ **[Full Customization Guide](CUSTOMIZATION-GUIDE.md)** - Complete patterns and LLM-friendly documentation
+**🎯 [Complete Customization Guide](CUSTOMIZATION-GUIDE.md)** - LLM-optimized with decision matrix, exact commands, and troubleshooting
 
 ## Resources
 

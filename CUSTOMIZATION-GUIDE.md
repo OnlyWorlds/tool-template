@@ -1,346 +1,425 @@
 # OnlyWorlds Tool Template - Customization Guide
 
-**For developers and AI assistants building on this template**
+**Transform this template for any world-building purpose**
 
-This template is designed as **modular building blocks** you can mix, match, and extend. Here are the most common customization patterns.
+This guide shows you how to modify the template's three independent layers to build exactly what you need.
 
-## 🏗️ Architecture Overview
+## LLM Quick Reference
 
-The template has **three main layers**:
-
-```
-┌─── UI Layer (TypeScript) ───────────────┐
-│ • src/viewer.ts (display elements)     │
-│ • src/editor.ts (create new elements)  │
-│ • src/inline-editor.ts (edit in place) │
-│ • src/field-renderer.ts (input types)  │
-│ • src/auto-save.ts (save management)   │
-│ • src/theme.ts (dark/light mode)       │
-└─────────────────────────────────────────┘
-┌─── API Layer (TypeScript + SDK) ────────┐
-│ • src/api.ts (SDK-based operations)    │
-│ • src/auth.ts (SDK authentication)      │
-│ • src/relationship-editor.ts (UUID)     │
-│ • src/import-export.ts (JSON export)   │
-└─────────────────────────────────────────┘
-┌─── Foundation Layer (TypeScript) ───────┐
-│ • src/compatibility.ts (types, icons)   │
-│ • @onlyworlds/sdk (field definitions)   │
-│ • Compiled to dist/ for browser use    │
-└─────────────────────────────────────────┘
+**Before any modification:**
+```bash
+# Verify current state
+npm run build && npm start  # Must work before changes
 ```
 
-## 🎯 Common Customization Patterns
+**Most common request: "Add [visualization/feature] to the template"**
+```bash
+# 1. Install library (example: D3.js)
+npm install d3
 
-### Pattern 1: API-Only Integration
-**Use case**: Embed OnlyWorlds data into existing applications, build CLIs, or create backend services.
+# 2. Add to import map in index.html after line 47:
+"d3": "./node_modules/d3/dist/d3.min.js"
 
-**Keep these files**:
-```
-✅ src/auth.ts          # SDK authentication
-✅ src/api.ts           # SDK-based operations
-✅ src/compatibility.ts # Element types & constants
-✅ package.json         # SDK dependency
-```
+# 3. Create feature file
+# src/features/data-visualization.ts
 
-**Remove these files**:
-```
-❌ All UI files (src/viewer.ts, src/editor.ts, src/inline-editor.ts, etc.)
-❌ src/theme.ts
-❌ src/app.ts (main UI controller)
-❌ index.html, css/
+# 4. Import in src/viewer.ts after line 12:
+import { DataVisualization } from './features/data-visualization.js';
+
+# 5. Validate
+npm run build && npm start
 ```
 
-**Example usage**:
+---
+
+## Architecture
+
+```
+UI Layer      → src/viewer.ts, src/editor.ts, src/inline-editor.ts, index.html, css/
+API Layer     → src/api.ts, src/auth.ts, src/import-export.ts
+Foundation    → src/compatibility.ts, @onlyworlds/sdk, package.json
+```
+
+**Key principle**: Each layer can be modified independently without breaking the others.
+
+---
+
+## Common Customization Approaches
+
+### **Remove Features (API-Only Tools)**
+For CLIs, bots, data processing scripts:
+
+**Keep**: `src/auth.ts`, `src/api.ts`, `src/compatibility.ts`, `package.json`, `tsconfig.json`
+**Remove**: All UI files (`index.html`, `css/`, remaining `src/` files)
+
 ```typescript
+// Example: World backup script
 import { authManager } from './dist/auth.js';
 import { apiService } from './dist/api.js';
 
 await authManager.authenticate(apiKey, pin);
-const characters = await apiService.getElements('character');
+const data = await apiService.getElements('character');
+// Process data...
 ```
 
-### Pattern 2: Different UI Framework
-**Use case**: Replace the vanilla JS UI with React, Vue, Svelte, or any modern framework.
+### **Focus on Specific Element Types**
+For character managers, location atlases, timeline tools:
 
-**Keep these files**:
-```
-✅ src/auth.ts, src/api.ts, src/compatibility.ts
-✅ src/relationship-editor.ts (for UUID handling)
-✅ src/auto-save.ts (adapt the logic)
-✅ @onlyworlds/sdk (provides full type definitions)
-```
-
-**Replace these files**:
-```
-🔄 src/viewer.ts → YourFrameworkViewer.tsx/vue/svelte
-🔄 src/editor.ts → YourFrameworkEditor.tsx/vue/svelte
-🔄 src/inline-editor.ts → YourFrameworkInlineEditor.tsx/vue/svelte
-🔄 src/app.ts → YourFrameworkApp.tsx/vue/svelte
-```
-
-**Pro tip**: The @onlyworlds/sdk provides full TypeScript definitions for all 22 element types, eliminating the need for manual field definitions.
-
-**Bonus**: The template is already TypeScript-based, so you get full type safety and IntelliSense for all OnlyWorlds operations.
-
-### Pattern 3: Specialized Tool (Single Element Type)
-**Use case**: Build a character manager, location explorer, or timeline viewer.
-
-#### **Step-by-Step Implementation: Character Manager Example**
-
-**Step 1: Analyze Current Structure**
-First, understand what you're modifying:
-```bash
-# See which files use ELEMENT_TYPES
-grep -r "ELEMENT_TYPES" src/
-```
-
-**Step 2: Modify Element Type Filter**
-In `src/compatibility.ts`, find this section:
+**Modify**: `src/compatibility.ts`
 ```typescript
-// BEFORE (lines 12-16):
-    // Dynamic element types from SDK FIELD_SCHEMA
-    get ELEMENT_TYPES() {
-        return Object.keys(FIELD_SCHEMA).sort();
-    },
-```
-
-Replace with:
-```typescript
-// AFTER:
-    // Dynamic element types from SDK FIELD_SCHEMA - CHARACTER-ONLY TOOL
-    get ELEMENT_TYPES() {
-        // Original: return Object.keys(FIELD_SCHEMA).sort();
-        // Character-only customization:
-        return ['character'];
-    },
-```
-
-**Step 3: Build and Test**
-```bash
-npm run build    # Compile TypeScript
-npm start       # Start development server
-```
-
-**Step 4: Verify Success** ✅
-Open http://localhost:8080 and confirm:
-- [ ] Only "Character" category appears in left sidebar
-- [ ] No other element types (locations, objects, etc.) are shown
-- [ ] Create button only allows character creation
-- [ ] All functionality still works
-
-**Step 5: Optional UI Simplification**
-For a cleaner single-type interface, also modify:
-
-In `src/viewer.ts` (around line 79), remove category selection:
-```typescript
-// BEFORE: Loop through all categories
-ONLYWORLDS.ELEMENT_TYPES.forEach((type: ElementType) => {
-    // ... category list building
-});
-
-// AFTER: Direct character display (no category selection)
-this.showCategory('character');
-```
-
-**Rollback Instructions** 🔄
-If something breaks, revert `src/compatibility.ts`:
-```typescript
-// Restore original:
+// Character-focused tool
 get ELEMENT_TYPES() {
-    return Object.keys(FIELD_SCHEMA).sort();
-},
-```
-Then run `npm run build` again.
+    return ['character', 'family', 'species'];
+}
 
-### Pattern 4: Enhanced Features
-**Use case**: Add maps, timelines, advanced search, AI generation, or custom visualizations.
+// Geography tool
+get ELEMENT_TYPES() {
+    return ['location', 'zone', 'map', 'pin'];
+}
 
-**Extend these areas**:
-```
-📁 src/visualizations/     # New folder for maps, charts, timelines
-📁 src/ai-features/        # New folder for AI-powered tools
-📁 src/advanced-search/    # New folder for complex queries
-🔄 src/viewer.ts           # Add visualization modes
-🔄 src/compatibility.ts    # Add new field types or metadata
+// Timeline tool
+get ELEMENT_TYPES() {
+    return ['event', 'narrative'];
+}
 ```
 
-**The API layer stays the same** - just add new UI capabilities on top.
-
-### Pattern 5: Embedded Widget
-**Use case**: Add OnlyWorlds element picker to your existing app.
-
-**Create a minimal version**:
-```
-✅ src/auth.ts, src/api.ts, src/compatibility.ts
-✅ src/relationship-editor.ts (for the picker UI)
-❌ Full viewer/editor interfaces
-🔄 Create ElementPicker.ts with just the selection UI
+**Optional UI cleanup**:
+```css
+/* Hide sidebar for single-type tools */
+.sidebar { display: none; }
+.element-list-container { margin-left: 0; }
 ```
 
-## 🤖 LLM Development Guidelines
+### **Add New Capabilities**
+For maps, graphs, AI features, real-time collaboration:
 
-### For AI Assistants Working on This Project
+**Extend**: Create new files in `src/features/` or `src/visualizations/`
+**Integrate**: Import and use in `src/viewer.ts` or `src/app.ts`
+**Dependencies**: Add to `package.json`, update import map in `index.html`
 
-**When asked to modify this template:**
+```typescript
+// Example: Add map visualization
+// src/features/world-map.ts
+import L from 'leaflet';
+export class WorldMap {
+    async init(container: HTMLElement) {
+        const map = L.map(container);
+        const locations = await apiService.getElements('location');
+        // Plot locations...
+    }
+}
 
-#### **🎯 Step 1: Identify the Pattern**
-Match user request to one of the 5 patterns above.
+// Integrate in src/viewer.ts
+import { WorldMap } from './features/world-map.js';
+```
 
-#### **🔍 Step 2: Analyze Before Modifying**
-**ALWAYS do this first:**
+### **Replace UI Framework**
+For React, Vue, Svelte, mobile apps:
+
+**Keep**: `src/auth.ts`, `src/api.ts`, `src/compatibility.ts` (API layer intact)
+**Replace**: All UI files with your framework's components
+**Access data**: Import API services into your components
+
+```typescript
+// React example
+import { apiService } from './api';
+export function CharacterList() {
+    const [characters, setCharacters] = useState([]);
+    useEffect(() => {
+        apiService.getElements('character').then(setCharacters);
+    }, []);
+    // Render...
+}
+```
+
+### **Build Something Unique**
+For game engines, analytics dashboards, text adventures:
+
+**Approach**: Treat OnlyWorlds as your data backend, build custom frontend
+**Strategy**: Keep authentication and API access, replace everything else
+**Benefit**: Full creative freedom while maintaining data compatibility
+
+---
+
+## Implementation Steps
+
+### 1. Analyze Current Structure
 ```bash
-# Examine current file structure
-ls -la src/
-
-# Find dependencies of files you plan to modify
-grep -r "import.*compatibility" src/
+# See what files use what
 grep -r "ELEMENT_TYPES" src/
+grep -r "import.*compatibility" src/
 
-# Check build status before making changes
+# Verify current build
 npm run build
 ```
 
-#### **⚠️ Step 3: Critical Dependencies**
-**NEVER remove these without replacement:**
-- `src/compatibility.ts` ← Used by src/api.ts, src/viewer.ts, src/editor.ts
-- `src/auth.ts` ← Required for any OnlyWorlds API access
-- `@onlyworlds/sdk` ← Provides all type definitions and API methods
+### 2. Make Changes
+- Modify files as needed
+- Keep original code in comments for rollback
+- Add new dependencies to `package.json` if needed
 
-**Safe to modify/remove:**
-- `src/theme.ts` (standalone)
-- `src/import-export.ts` (standalone)
-- Any individual UI file (if replacing with different framework)
-
-#### **🧪 Step 4: Always Test Changes**
-After modifications:
+### 3. Test Changes
 ```bash
-npm run build     # Must compile without errors
-npm start        # Must serve without issues
+npm run build       # Must compile without errors
+npm start          # Must serve without errors
+# Test in browser - check console (F12) for errors
 ```
 
-#### **🆘 Step 5: Rollback if Needed**
-Keep original code in comments:
+### 4. Verify Functionality
+- Authentication still works
+- Element operations (create, read, update, delete) still work
+- New features integrate properly
+- Performance remains good (< 2 second load)
+
+---
+
+## Critical Dependencies
+
+**Never remove without replacement**:
+- `src/compatibility.ts` - Used by api.ts, viewer.ts, editor.ts
+- `src/auth.ts` - Required for OnlyWorlds API access
+- `@onlyworlds/sdk` - Provides type definitions and API methods
+
+**Safe to remove**: `src/theme.ts`, `src/import-export.ts`
+
+**File dependency chain**:
+```
+compatibility.ts ← api.ts ← viewer.ts, editor.ts ← app.ts
+auth.ts ← api.ts
+```
+
+---
+
+## Adding External Libraries
+
+### 1. Install dependency
+```bash
+npm install leaflet vis-network d3 # etc.
+```
+
+### 2. Add to import map (index.html)
+```json
+{
+    "imports": {
+        "@onlyworlds/sdk": "./node_modules/@onlyworlds/sdk/dist/index.mjs",
+        "leaflet": "./node_modules/leaflet/dist/leaflet-src.esm.js"
+    }
+}
+```
+
+### 3. Import in TypeScript
 ```typescript
-// Original: return Object.keys(FIELD_SCHEMA).sort();
-// Modified for character-only:
-return ['character'];
+import L from 'leaflet';
 ```
 
-**Common requests and responses:**
-
-| User Request | Pattern | Key Files to Modify |
-|-------------|---------|-------------------|
-| "Remove the UI, just keep API access" | Pattern 1 | Keep: auth.ts, api.ts, compatibility.ts |
-| "Convert to React/Vue" | Pattern 2 | Replace: viewer.ts, editor.ts, app.ts |
-| "Make a character-only tool" | Pattern 3 | Modify: compatibility.ts (ELEMENT_TYPES) |
-| "Add a map view" | Pattern 4 | Extend: Add new visualization modules |
-| "Element picker widget" | Pattern 5 | Create: Minimal picker component |
-
-### File Dependencies Map
-**Before removing any file, check these dependencies:**
-
-```
-src/compatibility.ts ← (used by) src/api.ts, src/viewer.ts, src/editor.ts
-@onlyworlds/sdk ← (used by) src/api.ts, src/auth.ts
-src/auth.ts ← (used by) src/api.ts, src/app.ts
-src/api.ts ← (used by) src/viewer.ts, src/editor.ts, src/auto-save.ts, src/app.ts
-```
-
-**Safe to remove independently**: src/theme.ts, src/import-export.ts
-
-**Remove carefully**: Any file imported by others
-
-## 🎨 Styling and Themes
-
-**CSS is modular too**:
-```
-css/styles.css contains:
-• CSS variables for easy theming
-• Component-based styles (.element-list, .modal, etc.)
-• Responsive design patterns
-```
-
-**To customize appearance**:
-1. **Simple**: Modify CSS variables at the top of styles.css
-2. **Advanced**: Replace entire sections (keep .element-list structure)
-3. **Complete**: Replace with your own CSS framework
-
-## 🔧 Common Extensions
-
-### Adding New Field Types
-1. Field types are automatically provided by @onlyworlds/sdk
-2. Add custom rendering logic to `src/field-renderer.ts`
-3. Update `src/compatibility.ts` for custom field mappings if needed
-
-### Adding New Element Types
-1. OnlyWorlds supports custom element types beyond the standard 22
-2. The SDK automatically detects available types
-3. Add to `ELEMENT_TYPES` in `src/compatibility.ts` for UI display
-
-### Adding Authentication Methods
-1. Extend `src/auth.ts` with new authentication patterns
-2. Keep SDK client interface for API compatibility
-3. Update `src/app.ts` authentication flow
-
----
-
-## 🆘 **Troubleshooting Common Issues**
-
-### **Build Errors**
-
-**Problem**: `npm run build` fails with TypeScript errors
-```
-error TS2345: Argument of type 'string' is not assignable...
-```
-**Solution**:
-1. Check if you modified type definitions incorrectly
-2. Ensure all imports still resolve
-3. Run `npm install` to refresh dependencies
-
-**Problem**: Module not found errors
-```
-Cannot resolve module './compatibility.js'
-```
-**Solution**:
-- TypeScript imports need `.js` extension for compiled output
-- Check file was properly renamed/moved
-- Verify `tsconfig.json` hasn't been modified
-
-### **Runtime Errors**
-
-**Problem**: Blank page or "Element type undefined" errors
-**Solution**:
-1. Check browser console for JavaScript errors
-2. Verify @onlyworlds/sdk is properly installed (`npm install`)
-3. Confirm OnlyWorlds API credentials are working
-4. Check that `FIELD_SCHEMA` from SDK is accessible
-
-**Problem**: "Cannot read property of undefined" in relationships
-**Solution**:
-- Custom element types may break relationship detection
-- Check `src/compatibility.ts` field mappings are correct
-
-### **Server Issues**
-
-**Problem**: `npm start` fails or server won't start
-**Solution**:
+### 4. Handle TypeScript types
 ```bash
-# Kill any existing server on port 8080
-lsof -ti:8080 | xargs kill -9
+# For libraries without built-in types
+npm install @types/leaflet @types/d3
 
-# Try alternative port
-npm run start -- -l 8081
+# Most modern libraries include types
+# For complex type issues, use temporary workaround:
+const options = {
+    edges: { smooth: { enabled: true } }
+} as any;
 ```
 
-### **Validation Checklist**
+---
 
-After any customization, verify these work:
-- [ ] `npm run build` completes without errors
-- [ ] Server starts with `npm start`
-- [ ] Page loads at http://localhost:8080
-- [ ] Authentication works with valid credentials
-- [ ] Element creation/editing functions properly
-- [ ] No console errors in browser developer tools
+## Performance & Error Handling
+
+### Large Datasets (1000+ elements)
+- Use `requestAnimationFrame` for DOM updates
+- Implement pagination for visualizations
+- Cache API responses: `const cache = new Map()`
+- Limit concurrent calls: `Promise.all(chunks)`
+
+### Error Handling Pattern
+```typescript
+// Graceful degradation
+try {
+    const data = await apiService.getElements(type);
+    return data.success ? data.data : [];
+} catch (error) {
+    console.warn(`Failed to load ${type}:`, error);
+    return []; // Don't crash, return empty
+}
+
+// UI error boundaries
+if (container && this.feature) {
+    try {
+        await this.feature.init();
+    } catch (error) {
+        container.innerHTML = '<div class="error">Feature failed to load</div>';
+    }
+}
+```
+
+### Mobile Optimization
+```css
+/* Touch-friendly controls */
+.controls button {
+    min-height: 44px; /* Apple's touch target */
+    padding: 12px;
+}
+
+/* Prevent zoom on double-tap */
+.network-graph {
+    touch-action: pan-x pan-y;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+    .graph-view-container { flex-direction: column; }
+    .info-panel { width: 100%; }
+}
+```
 
 ---
+
+## Testing Your Modifications
+
+**Build validation**:
+```bash
+npm run validate    # TypeScript check
+npm run build      # Compilation
+npm start         # Server start
+```
+
+**Functionality validation**:
+- All buttons/features work
+- No console errors (F12)
+- API operations successful
+- Performance acceptable
+
+**Rollback if needed**:
+```bash
+# Restore from comments or git
+git checkout -- src/compatibility.ts
+npm run build
+```
+
+---
+
+## Common Issues
+
+**Build fails**: Check TypeScript imports use `.js` extensions
+**Blank page**: Check browser console, verify API credentials, ensure ELEMENT_TYPES returns array
+**Changes not visible**: Edit `src/` not `dist/`, run `npm run build` after changes
+
+### **Quick Fix Reference** - For Common Issues
+
+**❌ Build Fails**
+- Missing `.js` extension in imports → Add `.js` to all relative imports
+- Module not found → Check import map in index.html, run `npm install`
+- TypeScript errors → Use `as any` for complex third-party types
+
+**❌ Runtime Fails**
+- Blank page → Check console (F12), verify `ONLYWORLDS.ELEMENT_TYPES` is array
+- API errors → Verify auth credentials, check network tab for 403/401
+- Elements not loading → Ensure ELEMENT_TYPES includes target type
+
+**❌ Performance Issues**
+- Slow with 1000+ elements → Use `requestAnimationFrame`, implement pagination
+- Memory leaks → Clean up event listeners, use WeakMap for references
+
+---
+
+## Recommended Libraries
+
+**Maps**: Leaflet, Mapbox GL JS, OpenLayers
+**Graphs**: vis-network, D3.js, Cytoscape.js
+**Charts**: Chart.js, Recharts, Observable Plot
+**UI Frameworks**: React, Vue, Svelte, Angular
+**Utilities**: date-fns, lodash-es, uuid
+**Real-time**: Socket.io, Pusher, Ably
+
+---
+
+## For AI Assistants
+
+### **Decision Matrix** - Choose Pattern by User Request
+
+| User Request Type | Pattern | Files to Modify | Files to Keep | Validation |
+|---|---|---|---|---|
+| "CLI tool", "data script", "API only" | **Remove UI** | Delete: index.html, css/, src/viewer.ts, src/editor.ts | Keep: src/auth.ts, src/api.ts, src/compatibility.ts, package.json | `npm run build` compiles without UI |
+| "Character manager", "location atlas" | **Focus Types** | Modify: src/compatibility.ts ELEMENT_TYPES | Keep: All other files | UI shows only specified types |
+| "Add visualization", "integrate X" | **Enhance** | Add: src/features/, Modify: package.json imports | Keep: All existing functionality | Original CRUD + new features work |
+| "React app", "Vue conversion" | **Replace UI** | Replace: All UI files | Keep: src/auth.ts, src/api.ts, src/compatibility.ts | API calls work in new framework |
+| "Game engine", "mobile app" | **Custom Build** | Use: API layer only | Keep: Authentication and data access | API integration successful |
+
+### **File Dependency Rules** - Critical for Safe Modifications
+
+**❌ NEVER remove without replacement:**
+- `src/compatibility.ts` - Required by api.ts, viewer.ts, editor.ts
+- `src/auth.ts` - Required for all OnlyWorlds API access
+- `@onlyworlds/sdk` in package.json - Provides types and API methods
+
+**✅ Safe to remove/modify:**
+- `src/theme.ts`, `src/import-export.ts` (optional features)
+- All CSS files (visual only)
+- `index.html` (if replacing UI framework)
+
+**Dependency chain (do not break):**
+```
+compatibility.ts ← api.ts ← viewer.ts, editor.ts ← app.ts
+auth.ts ← api.ts
+```
+
+### **Common Implementation Patterns**
+
+**Pattern: Remove UI → API-only tool**
+```bash
+# Files to keep
+keep: src/auth.ts src/api.ts src/compatibility.ts package.json tsconfig.json
+# Files to remove
+remove: index.html css/ src/viewer.ts src/editor.ts src/inline-editor.ts src/app.ts
+# Validation
+npm run build && node -e "import('./dist/api.js').then(api => console.log('API ready'))"
+```
+
+**Pattern: Focus on specific element types**
+```typescript
+// Modify src/compatibility.ts
+get ELEMENT_TYPES() {
+    return ['character', 'family'];  // Instead of Object.keys(FIELD_SCHEMA).sort()
+}
+```
+
+**Pattern: Add external library**
+```bash
+# 1. Install
+npm install library-name
+# 2. Add to import map in index.html
+"library-name": "./node_modules/library-name/dist/index.js"
+# 3. Create feature module
+src/features/new-feature.ts
+# 4. Import in src/viewer.ts
+import { NewFeature } from './features/new-feature.js';
+```
+
+### **Validation Checklist** - Ensure Success
+
+**Build validation:**
+```bash
+npm run validate  # TypeScript check - must pass
+npm run build    # Compilation - must succeed
+npm start       # Server start - must serve without errors
+```
+
+**Functionality validation:**
+- ✅ Authentication works (can connect to OnlyWorlds API)
+- ✅ Element operations work (create, read, update, delete)
+- ✅ New features integrate without breaking existing functionality
+- ✅ No console errors in browser (F12 developer tools)
+- ✅ Performance acceptable (< 2 second initial load)
+
+**Common failure points to check:**
+- Import statements use `.js` extensions (TypeScript requirement)
+- Import map in index.html includes all new libraries
+- ELEMENT_TYPES returns an array (not undefined/null)
+- API credentials are valid and world exists
+
+---
+
+*The template is designed to be transformed. Use the OnlyWorlds API as your stable foundation and build anything on top.*
