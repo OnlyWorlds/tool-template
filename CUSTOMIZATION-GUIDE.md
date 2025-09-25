@@ -9,24 +9,24 @@ This template is designed as **modular building blocks** you can mix, match, and
 The template has **three main layers**:
 
 ```
-┌─── UI Layer ────────────────────────────┐
-│ • viewer.js (display elements)         │
-│ • editor.js (create new elements)      │
-│ • inline-editor.js (edit in place)     │
-│ • field-renderer.js (input types)      │
-│ • auto-save.js (save management)       │
-│ • theme.js (dark/light mode)           │
+┌─── UI Layer (TypeScript) ───────────────┐
+│ • src/viewer.ts (display elements)     │
+│ • src/editor.ts (create new elements)  │
+│ • src/inline-editor.ts (edit in place) │
+│ • src/field-renderer.ts (input types)  │
+│ • src/auto-save.ts (save management)   │
+│ • src/theme.ts (dark/light mode)       │
 └─────────────────────────────────────────┘
-┌─── API Layer ───────────────────────────┐
-│ • api.js (CRUD operations)             │
-│ • auth.js (authentication)             │
-│ • relationship-editor.js (UUID links)  │
-│ • import-export.js (JSON export)       │
+┌─── API Layer (TypeScript + SDK) ────────┐
+│ • src/api.ts (SDK-based operations)    │
+│ • src/auth.ts (SDK authentication)      │
+│ • src/relationship-editor.ts (UUID)     │
+│ • src/import-export.ts (JSON export)   │
 └─────────────────────────────────────────┘
-┌─── Foundation Layer ────────────────────┐
-│ • constants.js (element types, icons)  │
-│ • field-types.js (field definitions)   │
-│ • type-manager.js (supertype/subtype)  │
+┌─── Foundation Layer (TypeScript) ───────┐
+│ • src/compatibility.ts (types, icons)   │
+│ • @onlyworlds/sdk (field definitions)   │
+│ • Compiled to dist/ for browser use    │
 └─────────────────────────────────────────┘
 ```
 
@@ -37,28 +37,27 @@ The template has **three main layers**:
 
 **Keep these files**:
 ```
-✅ auth.js          # Authentication
-✅ api.js           # CRUD operations
-✅ constants.js     # Element types
-✅ field-types.js   # Field definitions
+✅ src/auth.ts          # SDK authentication
+✅ src/api.ts           # SDK-based operations
+✅ src/compatibility.ts # Element types & constants
+✅ package.json         # SDK dependency
 ```
 
 **Remove these files**:
 ```
-❌ All UI files (viewer.js, editor.js, inline-editor.js, etc.)
-❌ theme.js
-❌ app.js (main UI controller)
+❌ All UI files (src/viewer.ts, src/editor.ts, src/inline-editor.ts, etc.)
+❌ src/theme.ts
+❌ src/app.ts (main UI controller)
 ❌ index.html, css/
 ```
 
 **Example usage**:
-```javascript
-import { authManager } from './js/auth.js';
-import OnlyWorldsAPI from './js/api.js';
+```typescript
+import { authManager } from './dist/auth.js';
+import { apiService } from './dist/api.js';
 
-const api = new OnlyWorldsAPI(authManager);
 await authManager.authenticate(apiKey, pin);
-const characters = await api.getElements('character');
+const characters = await apiService.getElements('character');
 ```
 
 ### Pattern 2: Different UI Framework
@@ -66,50 +65,104 @@ const characters = await api.getElements('character');
 
 **Keep these files**:
 ```
-✅ auth.js, api.js, constants.js, field-types.js
-✅ relationship-editor.js (for UUID handling)
-✅ auto-save.js (adapt the logic)
+✅ src/auth.ts, src/api.ts, src/compatibility.ts
+✅ src/relationship-editor.ts (for UUID handling)
+✅ src/auto-save.ts (adapt the logic)
+✅ @onlyworlds/sdk (provides full type definitions)
 ```
 
 **Replace these files**:
 ```
-🔄 viewer.js → YourFrameworkViewer.jsx/vue/svelte
-🔄 editor.js → YourFrameworkEditor.jsx/vue/svelte
-🔄 inline-editor.js → YourFrameworkInlineEditor.jsx/vue/svelte
-🔄 app.js → YourFrameworkApp.jsx/vue/svelte
+🔄 src/viewer.ts → YourFrameworkViewer.tsx/vue/svelte
+🔄 src/editor.ts → YourFrameworkEditor.tsx/vue/svelte
+🔄 src/inline-editor.ts → YourFrameworkInlineEditor.tsx/vue/svelte
+🔄 src/app.ts → YourFrameworkApp.tsx/vue/svelte
 ```
 
-**Pro tip**: The field-types.js and constants.js contain all the OnlyWorlds schema knowledge your new UI will need.
+**Pro tip**: The @onlyworlds/sdk provides full TypeScript definitions for all 22 element types, eliminating the need for manual field definitions.
 
-**For TypeScript users**: Consider migrating to [@onlyworlds/sdk](https://www.npmjs.com/package/@onlyworlds/sdk) which provides full type safety and TypeScript definitions for all OnlyWorlds elements.
+**Bonus**: The template is already TypeScript-based, so you get full type safety and IntelliSense for all OnlyWorlds operations.
 
 ### Pattern 3: Specialized Tool (Single Element Type)
 **Use case**: Build a character manager, location explorer, or timeline viewer.
 
-**Modify these files**:
-```
-🔄 constants.js → Filter to your element types
-🔄 viewer.js → Remove category switching
-🔄 editor.js → Simplify for single type
+#### **Step-by-Step Implementation: Character Manager Example**
+
+**Step 1: Analyze Current Structure**
+First, understand what you're modifying:
+```bash
+# See which files use ELEMENT_TYPES
+grep -r "ELEMENT_TYPES" src/
 ```
 
-**Example**: Character-only tool
-```javascript
-// In constants.js
-export const ALLOWED_TYPES = ['character'];
-export const ELEMENT_TYPES = ['character']; // Remove other 21 types
+**Step 2: Modify Element Type Filter**
+In `src/compatibility.ts`, find this section:
+```typescript
+// BEFORE (lines 12-16):
+    // Dynamic element types from SDK FIELD_SCHEMA
+    get ELEMENT_TYPES() {
+        return Object.keys(FIELD_SCHEMA).sort();
+    },
 ```
+
+Replace with:
+```typescript
+// AFTER:
+    // Dynamic element types from SDK FIELD_SCHEMA - CHARACTER-ONLY TOOL
+    get ELEMENT_TYPES() {
+        // Original: return Object.keys(FIELD_SCHEMA).sort();
+        // Character-only customization:
+        return ['character'];
+    },
+```
+
+**Step 3: Build and Test**
+```bash
+npm run build    # Compile TypeScript
+npm start       # Start development server
+```
+
+**Step 4: Verify Success** ✅
+Open http://localhost:8080 and confirm:
+- [ ] Only "Character" category appears in left sidebar
+- [ ] No other element types (locations, objects, etc.) are shown
+- [ ] Create button only allows character creation
+- [ ] All functionality still works
+
+**Step 5: Optional UI Simplification**
+For a cleaner single-type interface, also modify:
+
+In `src/viewer.ts` (around line 79), remove category selection:
+```typescript
+// BEFORE: Loop through all categories
+ONLYWORLDS.ELEMENT_TYPES.forEach((type: ElementType) => {
+    // ... category list building
+});
+
+// AFTER: Direct character display (no category selection)
+this.showCategory('character');
+```
+
+**Rollback Instructions** 🔄
+If something breaks, revert `src/compatibility.ts`:
+```typescript
+// Restore original:
+get ELEMENT_TYPES() {
+    return Object.keys(FIELD_SCHEMA).sort();
+},
+```
+Then run `npm run build` again.
 
 ### Pattern 4: Enhanced Features
 **Use case**: Add maps, timelines, advanced search, AI generation, or custom visualizations.
 
 **Extend these areas**:
 ```
-📁 js/visualizations/     # New folder for maps, charts, timelines
-📁 js/ai-features/        # New folder for AI-powered tools
-📁 js/advanced-search/    # New folder for complex queries
-🔄 viewer.js              # Add visualization modes
-🔄 constants.js           # Add new field types or metadata
+📁 src/visualizations/     # New folder for maps, charts, timelines
+📁 src/ai-features/        # New folder for AI-powered tools
+📁 src/advanced-search/    # New folder for complex queries
+🔄 src/viewer.ts           # Add visualization modes
+🔄 src/compatibility.ts    # Add new field types or metadata
 ```
 
 **The API layer stays the same** - just add new UI capabilities on top.
@@ -119,10 +172,10 @@ export const ELEMENT_TYPES = ['character']; // Remove other 21 types
 
 **Create a minimal version**:
 ```
-✅ auth.js, api.js, constants.js
-✅ relationship-editor.js (for the picker UI)
+✅ src/auth.ts, src/api.ts, src/compatibility.ts
+✅ src/relationship-editor.ts (for the picker UI)
 ❌ Full viewer/editor interfaces
-🔄 Create ElementPicker.js with just the selection UI
+🔄 Create ElementPicker.ts with just the selection UI
 ```
 
 ## 🤖 LLM Development Guidelines
@@ -131,35 +184,70 @@ export const ELEMENT_TYPES = ['character']; // Remove other 21 types
 
 **When asked to modify this template:**
 
-1. **Identify the user's pattern** from the 5 patterns above
-2. **Preserve the API layer** unless specifically asked to change it
-3. **Respect module boundaries** - each .js file has a clear purpose
-4. **Check dependencies** before removing files:
-   - `constants.js` is needed by almost everything
-   - `field-types.js` is needed for form handling
-   - `auth.js` is needed for any API access
+#### **🎯 Step 1: Identify the Pattern**
+Match user request to one of the 5 patterns above.
+
+#### **🔍 Step 2: Analyze Before Modifying**
+**ALWAYS do this first:**
+```bash
+# Examine current file structure
+ls -la src/
+
+# Find dependencies of files you plan to modify
+grep -r "import.*compatibility" src/
+grep -r "ELEMENT_TYPES" src/
+
+# Check build status before making changes
+npm run build
+```
+
+#### **⚠️ Step 3: Critical Dependencies**
+**NEVER remove these without replacement:**
+- `src/compatibility.ts` ← Used by src/api.ts, src/viewer.ts, src/editor.ts
+- `src/auth.ts` ← Required for any OnlyWorlds API access
+- `@onlyworlds/sdk` ← Provides all type definitions and API methods
+
+**Safe to modify/remove:**
+- `src/theme.ts` (standalone)
+- `src/import-export.ts` (standalone)
+- Any individual UI file (if replacing with different framework)
+
+#### **🧪 Step 4: Always Test Changes**
+After modifications:
+```bash
+npm run build     # Must compile without errors
+npm start        # Must serve without issues
+```
+
+#### **🆘 Step 5: Rollback if Needed**
+Keep original code in comments:
+```typescript
+// Original: return Object.keys(FIELD_SCHEMA).sort();
+// Modified for character-only:
+return ['character'];
+```
 
 **Common requests and responses:**
 
-| User Request | Recommended Approach |
-|-------------|---------------------|
-| "Remove the UI, just keep API access" | Use Pattern 1: API-Only |
-| "Convert to React/Vue" | Use Pattern 2: Different UI Framework |
-| "Make a character-only tool" | Use Pattern 3: Specialized Tool |
-| "Add a map view" | Use Pattern 4: Enhanced Features |
-| "I want an element picker for my app" | Use Pattern 5: Embedded Widget |
+| User Request | Pattern | Key Files to Modify |
+|-------------|---------|-------------------|
+| "Remove the UI, just keep API access" | Pattern 1 | Keep: auth.ts, api.ts, compatibility.ts |
+| "Convert to React/Vue" | Pattern 2 | Replace: viewer.ts, editor.ts, app.ts |
+| "Make a character-only tool" | Pattern 3 | Modify: compatibility.ts (ELEMENT_TYPES) |
+| "Add a map view" | Pattern 4 | Extend: Add new visualization modules |
+| "Element picker widget" | Pattern 5 | Create: Minimal picker component |
 
 ### File Dependencies Map
 **Before removing any file, check these dependencies:**
 
 ```
-constants.js ← (used by) api.js, viewer.js, editor.js, field-types.js
-field-types.js ← (used by) inline-editor.js, field-renderer.js, api.js
-auth.js ← (used by) api.js, app.js
-api.js ← (used by) viewer.js, editor.js, auto-save.js, app.js
+src/compatibility.ts ← (used by) src/api.ts, src/viewer.ts, src/editor.ts
+@onlyworlds/sdk ← (used by) src/api.ts, src/auth.ts
+src/auth.ts ← (used by) src/api.ts, src/app.ts
+src/api.ts ← (used by) src/viewer.ts, src/editor.ts, src/auto-save.ts, src/app.ts
 ```
 
-**Safe to remove independently**: theme.js, import-export.js, type-manager.js
+**Safe to remove independently**: src/theme.ts, src/import-export.ts
 
 **Remove carefully**: Any file imported by others
 
@@ -181,18 +269,78 @@ css/styles.css contains:
 ## 🔧 Common Extensions
 
 ### Adding New Field Types
-1. Update `field-types.js` with new type definition
-2. Add rendering logic to `field-renderer.js`
-3. Update `constants.js` if needed for element-specific fields
+1. Field types are automatically provided by @onlyworlds/sdk
+2. Add custom rendering logic to `src/field-renderer.ts`
+3. Update `src/compatibility.ts` for custom field mappings if needed
 
 ### Adding New Element Types
 1. OnlyWorlds supports custom element types beyond the standard 22
-2. Add to `ELEMENT_TYPES` in `constants.js`
-3. API will handle it automatically
+2. The SDK automatically detects available types
+3. Add to `ELEMENT_TYPES` in `src/compatibility.ts` for UI display
 
 ### Adding Authentication Methods
-1. Extend `auth.js` with new authentication patterns
-2. Keep the `getHeaders()` interface for API compatibility
-3. Update `app.js` authentication flow
- 
- 
+1. Extend `src/auth.ts` with new authentication patterns
+2. Keep SDK client interface for API compatibility
+3. Update `src/app.ts` authentication flow
+
+---
+
+## 🆘 **Troubleshooting Common Issues**
+
+### **Build Errors**
+
+**Problem**: `npm run build` fails with TypeScript errors
+```
+error TS2345: Argument of type 'string' is not assignable...
+```
+**Solution**:
+1. Check if you modified type definitions incorrectly
+2. Ensure all imports still resolve
+3. Run `npm install` to refresh dependencies
+
+**Problem**: Module not found errors
+```
+Cannot resolve module './compatibility.js'
+```
+**Solution**:
+- TypeScript imports need `.js` extension for compiled output
+- Check file was properly renamed/moved
+- Verify `tsconfig.json` hasn't been modified
+
+### **Runtime Errors**
+
+**Problem**: Blank page or "Element type undefined" errors
+**Solution**:
+1. Check browser console for JavaScript errors
+2. Verify @onlyworlds/sdk is properly installed (`npm install`)
+3. Confirm OnlyWorlds API credentials are working
+4. Check that `FIELD_SCHEMA` from SDK is accessible
+
+**Problem**: "Cannot read property of undefined" in relationships
+**Solution**:
+- Custom element types may break relationship detection
+- Check `src/compatibility.ts` field mappings are correct
+
+### **Server Issues**
+
+**Problem**: `npm start` fails or server won't start
+**Solution**:
+```bash
+# Kill any existing server on port 8080
+lsof -ti:8080 | xargs kill -9
+
+# Try alternative port
+npm run start -- -l 8081
+```
+
+### **Validation Checklist**
+
+After any customization, verify these work:
+- [ ] `npm run build` completes without errors
+- [ ] Server starts with `npm start`
+- [ ] Page loads at http://localhost:8080
+- [ ] Authentication works with valid credentials
+- [ ] Element creation/editing functions properly
+- [ ] No console errors in browser developer tools
+
+---

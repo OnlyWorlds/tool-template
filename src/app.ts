@@ -7,7 +7,7 @@ import { apiService } from './api.js';
 import { authManager } from './auth.js';
 import ElementEditor from './editor.js';
 import { ImportExportManager } from './import-export.js';
-import { router, RouteChangeEvent } from './router.js';
+import { RouteChangeEvent, router } from './router.js';
 import { themeManager } from './theme.js';
 import ElementViewer from './viewer.js';
 
@@ -408,14 +408,29 @@ class OnlyWorldsApp {
         if (loadingElement) {
             if (show) {
                 loadingElement.classList.remove('hidden');
+                loadingElement.setAttribute('aria-hidden', 'false');
             } else {
                 loadingElement.classList.add('hidden');
+                loadingElement.setAttribute('aria-hidden', 'true');
             }
         }
     }
 
-    private showError(message: string): void {
-        alert(message);
+    private showError(message: string): void { 
+        const authStatus = document.getElementById('auth-status');
+        if (authStatus) {
+            authStatus.textContent = message;
+            authStatus.className = 'auth-status error';
+
+            // Auto-clear after 5 seconds
+            setTimeout(() => {
+                authStatus.textContent = '';
+                authStatus.className = 'auth-status';
+            }, 5000);
+        } else {
+            // Fallback to alert only if status element not available
+            alert(message);
+        }
     }
 
     /**

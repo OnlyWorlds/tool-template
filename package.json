@@ -6,9 +6,12 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
+    "build:check": "tsc --noEmit",
     "dev": "npm run build && npx serve -s . -l 8080",
     "start": "npm run build && npx serve -s . -l 8080",
-    "start:js": "npx serve -s . -l 8080"
+    "start:js": "npx serve -s . -l 8080",
+    "clean": "rm -rf dist/ && npm run build",
+    "validate": "npm run build:check && echo 'TypeScript validation passed!'"
   },
   "keywords": [
     "onlyworlds",
