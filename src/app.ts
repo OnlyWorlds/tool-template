@@ -7,6 +7,7 @@ import { apiService } from './api.js';
 import { authManager } from './auth.js';
 import ElementEditor from './editor.js';
 import { ImportExportManager } from './import-export.js';
+import { router, RouteChangeEvent } from './router.js';
 import { themeManager } from './theme.js';
 import ElementViewer from './viewer.js';
 
@@ -23,9 +24,14 @@ class OnlyWorldsApp {
         this.elementViewer = new ElementViewer(apiService);
         this.elementEditor = new ElementEditor(apiService);
 
+        // Initialize router and set up route change handling
+        router.init();
+        router.onRouteChange(this.handleRouteChange.bind(this));
+
         // Make globally accessible for debugging
         (window as any).elementViewer = this.elementViewer;
         (window as any).elementEditor = this.elementEditor;
+        (window as any).router = router;
 
         this.attachEventListeners();
 
@@ -353,6 +359,11 @@ class OnlyWorldsApp {
         }, 100);
 
         this.isConnected = true;
+
+        // Process any pending routes after authentication
+        setTimeout(() => {
+            this.processPendingRoute();
+        }, 200);
     }
 
     private clearMainUI(): void {
@@ -405,6 +416,90 @@ class OnlyWorldsApp {
 
     private showError(message: string): void {
         alert(message);
+    }
+
+    /**
+     * Handle route changes from URL hash
+     * @param event - Route change event containing the new route
+     */
+    private async handleRouteChange(event: RouteChangeEvent): Promise<void> {
+        // If route is invalid or empty, do nothing
+        if (!event.isValid || !event.route) {
+            return;
+        }
+
+        const { elementType, elementId } = event.route;
+
+        // Can't navigate to elements if not authenticated
+        if (!this.isConnected) {
+            console.log(`Deferred route navigation: ${elementType}/${elementId} (not authenticated yet)`);
+            return;
+        }
+
+        // Ensure main app is visible
+        if (!this.elementViewer) {
+            console.warn('Element viewer not initialized, cannot navigate to route');
+            return;
+        }
+
+        try {
+            console.log(`Navigating to route: ${elementType}/${elementId}`);
+
+            // Try to load and select the element
+            const success = await this.elementViewer.navigateToElement(elementType, elementId);
+
+            if (!success) {
+                // Element not found or navigation failed
+                console.warn(`Could not navigate to ${elementType} ${elementId} - element may not exist`);
+                this.showRouteError(`Element not found: ${elementType} ${elementId.slice(0, 8)}...`);
+
+                // Clear the invalid route
+                router.navigateToRoot();
+            }
+
+        } catch (error) {
+            console.error('Error navigating to route:', error);
+            this.showRouteError(`Error loading element: ${elementType} ${elementId.slice(0, 8)}...`);
+
+            // Clear the invalid route
+            router.navigateToRoot();
+        }
+    }
+
+    /**
+     * Process any pending route after successful authentication
+     */
+    private async processPendingRoute(): Promise<void> {
+        const currentRoute = router.getCurrentRoute();
+
+        if (currentRoute) {
+            console.log('Processing pending route after authentication:', currentRoute);
+            await this.handleRouteChange({ route: currentRoute, isValid: true });
+        }
+    }
+
+    /**
+     * Show a temporary error message for routing issues
+     * @param message - Error message to display
+     */
+    private showRouteError(message: string): void {
+        const statusElement = document.getElementById('auth-status');
+        if (statusElement) {
+            const originalContent = statusElement.textContent;
+            const originalClass = statusElement.className;
+
+            statusElement.textContent = message;
+            statusElement.className = 'auth-status error';
+
+            // Clear after 3 seconds
+            setTimeout(() => {
+                statusElement.textContent = originalContent || '';
+                statusElement.className = originalClass || 'auth-status';
+            }, 3000);
+        } else {
+            // Fallback to console if status element not available
+            console.warn('Route Error:', message);
+        }
     }
 }
 

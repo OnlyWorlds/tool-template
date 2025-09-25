@@ -6,6 +6,7 @@
 import { ONLYWORLDS } from './compatibility.js';
 import OnlyWorldsAPI from './api.js';
 import InlineEditorClass from './inline-editor.js';
+import { router } from './router.js';
 import { matchApiResult } from './types/api-result.js';
 import { mapApiErrorToUiState, renderErrorState, UiErrorState } from './types/ui-error.js';
 
@@ -146,6 +147,13 @@ export default class ElementViewer {
 
         const categoryElement = document.querySelector(`[data-type="${type}"]`);
         categoryElement?.classList.add('active');
+
+        // Clear selected element and URL when switching categories
+        // (unless we're already on this category, which happens during navigation)
+        if (this.currentCategory !== type) {
+            this.selectedElement = null;
+            router.navigateToRoot();
+        }
 
         this.currentCategory = type;
 
@@ -299,7 +307,62 @@ export default class ElementViewer {
 
         this.selectedElement = element;
 
+        // Update URL to reflect current selection
+        if (this.currentCategory) {
+            router.navigateToElement(this.currentCategory, element.id);
+        }
+
         await this.displayElementDetails(element);
+    }
+
+    /**
+     * Navigate to a specific element by type and ID (for deep linking)
+     * @param elementType - Type of element to navigate to
+     * @param elementId - ID of the element to select
+     * @returns True if navigation successful, false if element not found
+     */
+    async navigateToElement(elementType: string, elementId: string): Promise<boolean> {
+        try {
+            // First, ensure we're on the correct category
+            if (this.currentCategory !== elementType) {
+                await this.selectCategory(elementType as ElementType);
+            }
+
+            // Wait a moment for category loading to complete
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Look for the element in current loaded elements
+            let targetElement = this.currentElements.find(el => el.id === elementId);
+
+            // If not found in current list, try to fetch it directly
+            if (!targetElement) {
+                console.log(`Element ${elementId} not found in current list, fetching directly...`);
+                const fetchedElement = await this.api.getElement(elementType, elementId);
+
+                if (!fetchedElement) {
+                    console.warn(`Element ${elementType} ${elementId} not found`);
+                    return false;
+                }
+
+                targetElement = fetchedElement as OnlyWorldsElement;
+
+                // Add it to current elements if we fetched it
+                this.currentElements.push(targetElement);
+
+                // Re-render the element list to include the new element
+                await this.displayElements(this.currentElements);
+            }
+
+            // Select the element
+            await this.selectElement(targetElement);
+
+            console.log(`Successfully navigated to ${elementType} ${elementId}`);
+            return true;
+
+        } catch (error) {
+            console.error(`Error navigating to ${elementType} ${elementId}:`, error);
+            return false;
+        }
     }
 
     /**
@@ -346,6 +409,12 @@ export default class ElementViewer {
 
         try {
             await this.api.deleteElement(type, id);
+
+            // Clear selected element and URL if we just deleted the current selection
+            if (this.selectedElement && this.selectedElement.id === id) {
+                this.selectedElement = null;
+                router.navigateToRoot();
+            }
 
             // Immediately update the UI to reflect the deletion
             await this.loadElements(type);

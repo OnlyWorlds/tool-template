@@ -190,9 +190,8 @@ export default class ElementEditor {
             if (viewer && viewer.currentCategory && (viewer.currentCategory === this.currentType || viewer.currentCategory === formData.type)) {
                 await viewer.loadElements(viewer.currentCategory);
 
-                if (this.isEditMode) {
-                    await viewer.selectElement(result);
-                }
+                // Auto-select the element (both for edit mode and new elements)
+                await viewer.selectElement(result);
             }
 
             if (viewer) {
