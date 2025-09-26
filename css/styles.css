@@ -2539,6 +2539,463 @@ input[type="file"]:hover {
     border-color: var(--brand-primary);
 }
 
+/* Context number in header button */
+.context-number {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-left: 0.2rem;
+}
+
+.context-number.warning {
+    color: var(--status-warning);
+}
+
+.context-number.danger {
+    color: var(--status-error);
+}
+
+/* Context content in messages area */
+.context-content {
+    height: 100%;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.context-content .context-title-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-secondary);
+}
+
+.context-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.config-help {
+    display: flex;
+    align-items: center;
+    cursor: help;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.config-help:hover {
+    opacity: 1;
+    color: var(--text-primary);
+}
+
+.config-help .material-icons-outlined {
+    font-size: 18px;
+}
+
+.max-tokens-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.max-tokens-control label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.max-tokens-control input {
+    width: 90px;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+}
+
+.context-content h3 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.context-content .context-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Widget-based Context UI */
+
+.context-widgets {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.context-widget {
+    flex: 1;
+    min-width: 120px;
+    max-width: 150px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-primary);
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    opacity: 1;
+}
+
+.context-widget:hover {
+    border-color: var(--brand-primary);
+    transform: translateY(2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    margin-top: 2px;
+}
+
+.context-widget.enabled {
+    border-color: var(--brand-primary);
+    background: var(--brand-primary-light);
+}
+
+.context-widget.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.context-widget.disabled:hover {
+    transform: none;
+    border-color: var(--border-primary);
+}
+
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.widget-toggle {
+    display: flex;
+    align-items: center;
+}
+
+.widget-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.widget-toggle input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+}
+
+.widget-required {
+    color: var(--status-success);
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.widget-icon {
+    color: var(--text-secondary);
+}
+
+.widget-icon .material-icons-outlined {
+    font-size: 24px;
+}
+
+.widget-content {
+    text-align: left;
+}
+
+.widget-title {
+    margin: 0 0 0.4rem 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.1;
+}
+
+.widget-description {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    line-height: 1.2;
+    min-height: 2rem;
+}
+
+.widget-expand {
+    display: flex;
+    justify-content: center;
+    padding: 0.25rem;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.widget-expand:hover {
+    background: var(--brand-primary);
+    color: var(--text-inverse);
+}
+
+.widget-expand .material-icons-outlined {
+    font-size: 18px;
+}
+
+.widget-expand.expanded {
+    background: var(--brand-primary);
+    color: var(--text-inverse);
+}
+
+/* Widget Status Icons */
+.widget-status {
+    display: flex;
+    align-items: center;
+}
+
+.widget-status.enabled .material-icons-outlined {
+    color: var(--status-success);
+}
+
+.widget-status.disabled .material-icons-outlined {
+    color: var(--text-muted);
+}
+
+/* All widgets (except world-minimal) are clickable */
+.context-widget:not([data-widget-id="world-minimal"]) {
+    cursor: pointer;
+}
+
+.widget-expand {
+    cursor: pointer;
+}
+
+/* Widget Details */
+.widget-details {
+    min-height: 0;
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.widget-details[data-expanded] {
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.widget-detail-content h4 {
+    margin: 0 0 1rem 0;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-secondary);
+    padding-bottom: 0.5rem;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.detail-header h4 {
+    margin: 0;
+    border-bottom: 1px solid var(--border-secondary);
+    padding-bottom: 0.5rem;
+    flex: 1;
+}
+
+.header-token-estimate {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-left: 1rem;
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.category-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.category-checkbox:hover {
+    background: var(--bg-hover);
+}
+
+.category-checkbox input[type="checkbox"] {
+    margin: 0;
+}
+
+.category-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.category-count {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.category-tokens {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+.btn-category-toggle {
+    padding: 0.5rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 0.5rem;
+}
+
+.btn-category-toggle:hover {
+    background: var(--brand-primary);
+    color: var(--text-inverse);
+    border-color: var(--brand-primary);
+}
+
+.no-element {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.token-estimate {
+    font-family: monospace;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+
+/* Includes List */
+.includes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.include-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.include-item .material-icons-outlined {
+    font-size: 18px;
+    color: var(--text-secondary);
+    width: 20px;
+    flex-shrink: 0;
+}
+
+.include-item.category-item {
+    padding-left: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Compact Category Grid */
+.category-compact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.category-compact-checkbox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    text-align: center;
+}
+
+.category-compact-checkbox:hover {
+    background: var(--bg-hover);
+}
+
+.category-compact-checkbox input[type="checkbox"] {
+    margin: 0;
+    width: 14px;
+    height: 14px;
+}
+
+.category-compact-checkbox .material-icons-outlined {
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+.category-compact-checkbox .category-count {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.category-compact-checkbox .category-tokens {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    font-family: monospace;
+    margin-top: 0.1rem;
+}
+
+/* Compact category icons for world minimal */
+.category-icons-compact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.category-icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 40px;
+}
+
+.category-icon-item .material-icons-outlined {
+    font-size: 16px;
+    color: var(--text-secondary);
+}
+
+.category-icon-count {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 0.2rem;
+}
+
 .token-indicator {
     font-family: 'Monaco', 'Menlo', monospace;
     font-size: 0.8rem;

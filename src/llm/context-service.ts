@@ -11,6 +11,9 @@ export interface ContextPreferences {
     enabledCategories: Record<string, boolean>;
     maxTokens: number;
     autoSelect: boolean;
+    // New widget-based preferences
+    worldComplete: boolean;
+    worldFull: boolean;
 }
 
 export interface ElementData {
@@ -44,7 +47,9 @@ export class ContextService {
         selectedElementLevel: 'minimal',
         enabledCategories: {},
         maxTokens: 50000,
-        autoSelect: true
+        autoSelect: true,
+        worldComplete: false,
+        worldFull: false
     };
 
     private tokenCache = new Map<string, { tokens: number; timestamp: number }>();

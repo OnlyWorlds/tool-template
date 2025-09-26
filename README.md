@@ -163,7 +163,8 @@ The template includes an **optional AI assistant** powered by OpenAI's **Respons
 
 - **Chat Interface**: Click the robot icon next to "Elements" to open chat in middle column
 - **Conversational Setup**: The AI will ask for your OpenAI API key in a natural chat flow
-- **Context Aware**: Include selected element or full world data in conversations
+- **Smart Context Configuration**: Widget-based interface to choose exactly what world information to include
+- **Context Control**: Include world data, selected elements, or specific categories with token estimates
 - **World-Building Focused**: Tuned to discuss existing elements, not suggest new content
 - **Conversation Persistence**: Automatic via OpenAI's server-side state management
 - **Secure Storage**: API keys stored in browser localStorage, never transmitted elsewhere
