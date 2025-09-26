@@ -53,7 +53,8 @@ export default class OnlyWorldsAPI {
                 return value && typeof value === 'object' &&
                        typeof value.list === 'function' &&
                        typeof value.get === 'function' &&
-                       typeof value.create === 'function';
+                       typeof value.create === 'function' &&
+                       key !== 'worlds'; // Exclude 'worlds' - it's not an element type
             });
 
             // Convert plural resource names back to singular element types

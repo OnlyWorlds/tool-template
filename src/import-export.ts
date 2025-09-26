@@ -18,24 +18,19 @@ interface ElementData {
     elements: any[];
 }
 
-interface WorldMetadata {
-    id: string | null;
-    name: string;
-    description?: string;
-    created_at?: string | null;
-    updated_at?: string | null;
-}
-
-interface ExportData {
-    metadata: {
+interface OnlyWorldsExportData {
+    World: {
+        api_key: string;
+        name: string;
+        description: string;
         version: string;
-        exportDate: string;
-        worldId: string | null;
-        worldName: string;
-        elementCount: number;
+        image_url?: string;
+        total_elements: number;
+        created_at: string;
+        updated_at: string;
+        id?: string; // Optional - may not be available in local mode
     };
-    world: WorldMetadata;
-    [key: string]: any; // Dynamic element type properties
+    [key: string]: any; // Dynamic element type properties (Character, Location, etc.)
 }
 
 type NotificationType = 'info' | 'success' | 'error';
@@ -109,27 +104,24 @@ export class ImportExportManager {
         return results.filter(r => r.elements.length > 0);
     }
 
-    private formatExportData(allData: ElementData[], world: any): ExportData {
-        const exportData: ExportData = {
-            metadata: {
-                version: ONLYWORLDS_VERSION,
-                exportDate: new Date().toISOString(),
-                worldId: world?.id || null,
-                worldName: world?.name || 'Unknown World',
-                elementCount: allData.reduce((sum, item) =>
-                    sum + item.elements.length, 0)
-            },
+    private formatExportData(allData: ElementData[], world: any): OnlyWorldsExportData {
+        const totalElements = allData.reduce((sum, item) => sum + item.elements.length, 0);
 
-            world: {
-                id: world?.id || null,
-                name: world?.name || '',
+        const exportData: OnlyWorldsExportData = {
+            World: {
+                api_key: world?.api_key || world?.id || '0000000000', // Use world ID as fallback for API key
+                name: world?.name || 'Unnamed World',
                 description: world?.description || '',
-                created_at: world?.created_at || null,
-                updated_at: world?.updated_at || null
+                version: ONLYWORLDS_VERSION,
+                image_url: world?.image_url || undefined,
+                total_elements: totalElements,
+                created_at: world?.created_at || new Date().toISOString(),
+                updated_at: world?.updated_at || new Date().toISOString(),
+                id: world?.id || undefined
             }
         };
 
-        // Add each element type's data
+        // Add each element type's data directly to root level
         for (const { type, elements } of allData) {
             exportData[type] = elements;
         }
@@ -137,7 +129,7 @@ export class ImportExportManager {
         return exportData;
     }
 
-    private downloadAsFile(data: ExportData, filename: string): void {
+    private downloadAsFile(data: OnlyWorldsExportData, filename: string): void {
         const jsonString = JSON.stringify(data, null, 2);
 
         const blob = new Blob([jsonString], { type: 'application/json' });
