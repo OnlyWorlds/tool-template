@@ -49,6 +49,26 @@ npm run build && python start.py    # Manual build + python server
 
 Both options serve at http://localhost:8080
 
+## Dual-Mode System
+
+The template supports two distinct modes:
+
+### 🌐 **Online Mode**
+- **Connect**: Enter API key + PIN from [onlyworlds.com](https://www.onlyworlds.com)
+- **Features**: Full API integration, real-time sync, collaboration
+- **Use case**: Working with shared worlds, live data, team projects
+
+### 💾 **Local Mode**
+- **Connect**: Click "Switch to Local" to work with JSON files
+- **Import**: File upload, clipboard paste, and drag & drop with validation
+- **Features**: Offline operation, localStorage persistence, privacy
+- **Use case**: Working offline, trying the tool, private local worlds
+
+### Mode Switching
+- **Button states**: "online"/"local" (main button) + "switch to local"/"import json" (mode button)
+- **Safe switching**: Clears UI between modes, maintains data separation
+- **Persistent preference**: Remembers your preferred mode
+
 ## AI Chat Setup (Optional)
 
 The template includes an AI assistant powered by OpenAI's **Responses API** (released March 2025). To enable it:
@@ -79,12 +99,14 @@ The template includes a pre-configured `.github/workflows/deploy.yml` that autom
 
 ## What This Template Offers
 
-- **Full CRUD Operations** - Create, Read, Update, Delete all element types
+- **Dual-Mode Operation** - Work online (OnlyWorlds.com API) or offline (local JSON files)
+- **Full CRUD Operations** - Create, Read, Update, Delete all element types in both modes
 - **All 22 Element Types** - Complete OnlyWorlds support with dynamic detection
 - **Inline Editing** - Click any field to edit, auto-saves after 2 seconds
 - **Relationship Management** - Link elements together with smart pickers and broken reference handling
+- **JSON Import/Export** - File upload, clipboard paste, and drag & drop support
 - **AI Chat Assistant** - Optional OpenAI integration for discussing your world (requires API key)
-- **Clean Interface** - Responsive, modern design
+- **Clean Interface** - Responsive, modern design with clear mode indicators
 - **TypeScript + SDK** - Full type safety using an OnlyWorlds SDK 
 
 ## Project Structure
@@ -93,10 +115,10 @@ The template includes a pre-configured `.github/workflows/deploy.yml` that autom
 tool-template/
 ├── index.html           # Main application (loads compiled modules)
 ├── css/
-│   └── styles.css       # Styling
+│   └── styles.css       # Styling with dual-mode UI
 ├── src/                 # TypeScript source code (SDK-based)
-│   ├── app.ts           # Main entry point & application controller
-│   ├── auth.ts          # Authentication management via SDK
+│   ├── app.ts           # Main entry point with dual-mode support
+│   ├── auth.ts          # Online authentication management via SDK
 │   ├── api.ts           # OnlyWorlds SDK integration
 │   ├── viewer.ts        # Element display and listing
 │   ├── editor.ts        # Create new elements modal
@@ -104,9 +126,16 @@ tool-template/
 │   ├── field-renderer.ts # Field rendering logic
 │   ├── auto-save.ts     # Auto-save management
 │   ├── relationship-editor.ts # UUID relationship handling
-│   ├── import-export.ts # World export to JSON
+│   ├── import-export.ts # World export to JSON (OnlyWorlds format)
 │   ├── theme.ts         # Dark/light mode management
 │   ├── compatibility.ts # SDK integration & type definitions
+│   ├── modes/           # Dual-Mode System
+│   │   ├── mode-router.ts    # Routes API calls between online/local
+│   │   ├── local-storage.ts  # localStorage-based CRUD engine
+│   │   └── local-auth.ts     # Local mode authentication
+│   ├── ui/              # UI Components
+│   │   ├── import-dialog.ts  # JSON import UI (file/paste/drag-drop)
+│   │   └── mode-indicator.ts # Mode switching interface
 │   └── llm/             # AI Chat functionality (optional)
 │       ├── responses-service.ts # OpenAI API integration
 │       ├── responses-ui.ts      # Chat interface
@@ -133,6 +162,7 @@ tool-template/
 | CORS errors | Use the server, don't open index.html directly |
 | `@onlyworlds/sdk not found` | Run `npm install` to install dependencies |
 | Broken references show errors | The template handles this gracefully - check console for details |
+| Rare API errors on page refresh | Expected during initialization - template waits for auth readiness |
 | Can't find "Use this template" button | Make sure you're logged into GitHub and viewing the main repository page | 
 
 Make sure to use the [OnlyWorlds Discord](https://discord.gg/twCjqvVBwb) to ask any technical or creative questions.
@@ -140,6 +170,29 @@ Make sure to use the [OnlyWorlds Discord](https://discord.gg/twCjqvVBwb) to ask 
 ## Customization
 
 🤖 **Using AI Assistants**: This template is optimized for AI-powered development. **If using Claude Code, it will automatically read `CLAUDE.md`**. For other AI tools (Codex, Cursor, etc.), **provide (and rename at will) the `CLAUDE.md` file** to your AI assistant for context and modification instructions.
+
+## Styling System
+
+The template uses a **comprehensive CSS variable system** for consistent theming:
+
+### Color Palette
+- **Primary**: `--brand-primary` (#2E7D32) - Dark green for primary actions
+- **Status Colors**: `--status-success`, `--status-error`, `--status-warning`, `--status-info`
+- **Background Variants**: All status colors have `-bg` variants for light backgrounds
+- **Theme Support**: Automatic light/dark mode via CSS variables
+
+### Button Classes
+- **`.btn-primary`** - Primary action buttons (dark green)
+- **`.btn-validate`** - Validation buttons with special states
+- **`.btn-secondary`** - Secondary actions
+- **`.btn-small`** - Smaller variant for compact spaces
+
+### Best Practices
+- **Never hardcode colors** - Always use CSS variables
+- **Consistent button usage** - Use semantic class names
+- **Theme-aware styling** - Colors automatically adapt to light/dark mode
+- **Avoid CSS conflicts** - Don't duplicate class definitions; later ones override earlier ones
+- **Check hover colors** - Dark mode hover colors can appear unexpectedly bright
 
 ### **Template Architecture (3 Independent Layers)**
 ```

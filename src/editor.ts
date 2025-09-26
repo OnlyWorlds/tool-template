@@ -6,6 +6,7 @@
 
 import { ONLYWORLDS, getFieldType } from './compatibility.js';
 import OnlyWorldsAPI from './api.js';
+import { modeRouter } from './modes/mode-router.js';
 
 // Type definitions
 type ElementType = typeof ONLYWORLDS.ELEMENT_TYPES[number];
@@ -142,7 +143,7 @@ export default class ElementEditor {
                 const updates = { ...formData };
                 delete updates.type;
 
-                result = await this.api.updateElement(this.currentType, this.currentElement.id, updates);
+                result = await modeRouter.updateElement(this.currentType, this.currentElement.id, updates) as OnlyWorldsElement;
                 alert('Element updated successfully');
 
             } else {
@@ -150,7 +151,7 @@ export default class ElementEditor {
                 const elementType = elementData.type as ElementType;
                 delete elementData.type;
 
-                result = await this.api.createElement(elementType, elementData);
+                result = await modeRouter.createElement(elementType, elementData) as OnlyWorldsElement;
             }
 
             this.hideModal();

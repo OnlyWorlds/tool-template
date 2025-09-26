@@ -11,6 +11,7 @@ import { responsesUI } from './llm/responses-ui.js';
 import { router } from './router.js';
 import { matchApiResult } from './types/api-result.js';
 import { mapApiErrorToUiState, renderErrorState, UiErrorState } from './types/ui-error.js';
+import { modeRouter } from './modes/mode-router.js';
 
 // Type definitions
 type ElementType = typeof ONLYWORLDS.ELEMENT_TYPES[number];
@@ -106,7 +107,7 @@ export default class ElementViewer {
         // Parallel execution for all element types
         const countPromises = ONLYWORLDS.ELEMENT_TYPES.map(async (type: ElementType) => {
             try {
-                const result = await this.api.getElements(type);
+                const result = await modeRouter.getElements(type);
                 const countElement = document.getElementById(`count-${type}`);
 
                 if (result.success) {
@@ -199,31 +200,21 @@ export default class ElementViewer {
         };
 
         // Use the Result-based API with pattern matching for error handling
-        const result = await this.api.getElements(type);
+        const result = await modeRouter.getElements(type);
 
         matchApiResult(result, {
             success: (elements) => {
-                this.currentElements = elements;
+                this.currentElements = elements as OnlyWorldsElement[];
 
                 if (elements.length === 0) {
                     const emptyState: UiErrorState = {
                         type: 'empty',
-                        message: `No ${(ONLYWORLDS.ELEMENT_LABELS as any)[type].toLowerCase()} found in this world.`,
-                        action: {
-                            label: `Create ${ONLYWORLDS.ELEMENT_SINGULAR[type]}`,
-                            handler: () => {
-                                const createBtn = document.getElementById('create-element-btn') as HTMLButtonElement;
-                                if (createBtn) {
-                                    createBtn.dataset.elementType = type;
-                                    createBtn.click();
-                                }
-                            }
-                        }
+                        message: `No ${(ONLYWORLDS.ELEMENT_LABELS as any)[type].toLowerCase()}`
                     };
                     renderErrorState(emptyState, elementList);
                 } else {
                     // Success: display the elements
-                    this.displayElements(elements);
+                    this.displayElements(elements as OnlyWorldsElement[]);
                 }
             },
             authError: (message) => {
@@ -344,7 +335,7 @@ export default class ElementViewer {
             // If not found in current list, try to fetch it directly
             if (!targetElement) {
                 console.log(`Element ${elementId} not found in current list, fetching directly...`);
-                const fetchedElement = await this.api.getElement(elementType, elementId);
+                const fetchedElement = await modeRouter.getElement(elementType, elementId);
 
                 if (!fetchedElement) {
                     console.warn(`Element ${elementType} ${elementId} not found`);
@@ -378,7 +369,8 @@ export default class ElementViewer {
         if (!detailContainer || !this.currentCategory) return;
 
         if (!this.inlineEditor) {
-            this.inlineEditor = new InlineEditorClass(this.api);
+            // Use mode router for dual-mode support instead of direct API
+            this.inlineEditor = new InlineEditorClass(modeRouter as any);
         }
 
         if (typeof this.inlineEditor.cleanup === 'function') {
@@ -407,7 +399,7 @@ export default class ElementViewer {
         }
 
         try {
-            await this.api.deleteElement(type, id);
+            await modeRouter.deleteElement(type, id);
 
             // Clear selected element and URL if we just deleted the current selection
             if (this.selectedElement && this.selectedElement.id === id) {

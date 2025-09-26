@@ -12,9 +12,11 @@
 
 ## Project Context
 
-This is a **TypeScript-based OnlyWorlds tool template** designed for transformation. Users download this to build custom world-building tools. Your job: help them modify it efficiently and safely using the TEMPLATE-MODIFICATION-GUIDE.md.
+This is a **TypeScript-based OnlyWorlds tool template** with **dual-mode functionality** designed for transformation. Users download this to build custom world-building tools. Your job: help them modify it efficiently and safely using the TEMPLATE-MODIFICATION-GUIDE.md.
 
 **Template is designed for rapid transformation** - Users want to modify it for specific purposes (quest managers, character tools, map builders, etc.) rather than use it as-is.
+
+**Dual-Mode System**: The template supports both **Online Mode** (connects to OnlyWorlds.com API) and **Local Mode** (works offline with JSON files).
 
 ## OnlyWorlds API Quick Reference
 
@@ -42,28 +44,14 @@ This is a **TypeScript-based OnlyWorlds tool template** designed for transformat
 - Manual UUIDv7 generation with comments
 - Debouncing and state management examples
 - Clear separation of concerns
-
-### Actual File Structure (TypeScript)
-```
-src/
-├── app.ts           # Main entry point
-├── api.ts           # OnlyWorlds SDK integration
-├── auth.ts          # Authentication via SDK
-├── viewer.ts        # Element display system
-├── editor.ts        # Create element modal
-├── inline-editor.ts # Click-to-edit functionality
-├── field-renderer.ts # Field display logic
-├── compatibility.ts # SDK integration layer (CRITICAL - never remove)
-├── llm/             # AI Chat Layer (Optional)
-│   ├── responses-service.ts # OpenAI Responses API integration
-│   ├── responses-ui.ts      # Chat interface controller
-│   └── responses-config.ts  # Prompts & AI configuration
-└── [other modules]  # Supporting functionality
-```
+ 
 
 ### Critical Files for LLMs
 - **`src/compatibility.ts`** - Core integration, required by api.ts and viewer.ts
-- **`src/auth.ts`** - Authentication, required for all API access
+- **`src/auth.ts`** - Online authentication, required for API access
+- **`src/modes/mode-router.ts`** - Central routing between online/local modes (clean, no defensive code)
+- **`src/modes/local-storage.ts`** - Local storage engine (localStorage CRUD)
+- **`src/app.ts`** - Main app with `waitForAuthReady()` authentication flow
 - **`src/llm/responses-config.ts`** - AI prompts & configuration (easily editable)
 - **`TEMPLATE-MODIFICATION-GUIDE.md`** - Complete modification instructions for LLMs
 
@@ -75,10 +63,15 @@ npm run build && npm start  # Must work before modification
 ```
 
 ### Safe Modification Rules
-- ✅ **Safe to remove**: `src/theme.ts`, `src/import-export.ts`, `src/llm/` (entire folder), CSS files, `index.html` (if replacing UI)
-- ⚠️ **Modify carefully**: `src/compatibility.ts` ELEMENT_TYPES array for focused tools, `src/llm/responses-config.ts` for AI behavior
+- ✅ **Safe to remove**: `src/theme.ts`, `src/import-export.ts`, `src/llm/` (entire folder), `src/modes/` (entire folder), `src/ui/` (entire folder), CSS files, `index.html` (if replacing UI)
+- ⚠️ **Modify carefully**: `src/compatibility.ts` ELEMENT_TYPES array for focused tools, `src/llm/responses-config.ts` for AI behavior, `src/modes/` for offline functionality
 - ❌ **Never remove**: `src/compatibility.ts`, `src/auth.ts`, `@onlyworlds/sdk` dependency
 - ⚠️ **Memory leak prevention**: Use `while (container.firstChild) container.removeChild(container.firstChild)` instead of `innerHTML = ''`
+
+### Styling Rules
+- **Never hardcode colors** - Always use CSS variables from `:root`
+- **Button classes**: `.btn-primary`, `.btn-validate`, `.btn-secondary` - don't mix or misuse
+- **See README.md** for complete styling system documentation
 
 ### Common LLM Tasks
 1. **"Make it API-only"** → Remove UI files, keep auth.ts + api.ts + compatibility.ts
@@ -87,7 +80,9 @@ npm run build && npm start  # Must work before modification
 4. **"Convert to React"** → Keep API layer, replace all UI files
 5. **"Remove AI features"** → Delete `src/llm/` folder, remove chat icon from viewer.ts
 6. **"Customize AI behavior"** → Edit `src/llm/responses-config.ts` prompts and settings
-7. **"Add new middle column mode"** → ⚠️ Must restore `.element-list-container` HTML structure when switching modes
+7. **"Remove offline mode"** → Delete `src/modes/` and `src/ui/` folders, simplify app.ts
+8. **"Offline-only tool"** → Keep `src/modes/local-storage.ts`, remove online auth
+9. **"Add new middle column mode"** → ⚠️ Must restore `.element-list-container` HTML structure when switching modes
 
 ### Validation After Changes
 ```bash

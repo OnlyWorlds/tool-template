@@ -160,10 +160,13 @@ export default class AuthManager {
                 return null;
             }
 
-            return {
-                apiKey: atob(credentials.apiKey),
-                apiPin: atob(credentials.apiPin)
-            };
+            if (credentials.apiKey && credentials.apiPin) {
+                return {
+                    apiKey: atob(credentials.apiKey),
+                    apiPin: atob(credentials.apiPin)
+                };
+            }
+            return null;
         } catch (error) {
             console.warn('Could not load credentials from localStorage:', error);
             this.clearStoredCredentials();

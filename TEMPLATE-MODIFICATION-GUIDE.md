@@ -30,12 +30,16 @@ npm run build && npm start
 
 ```
 UI Layer      → src/viewer.ts, src/editor.ts, src/inline-editor.ts, index.html, css/
+Mode Layer    → src/modes/ (mode-router.ts, local-storage.ts, local-auth.ts)
+UI Components → src/ui/ (import-dialog.ts, mode-indicator.ts)
 API Layer     → src/api.ts, src/auth.ts, src/import-export.ts
 AI Layer      → src/llm/ (responses-service.ts, responses-ui.ts, responses-config.ts)
 Foundation    → src/compatibility.ts, @onlyworlds/sdk, package.json
 ```
 
 **Key principle**: Each layer can be modified independently without breaking the others.
+
+**Dual-Mode System**: The template supports both online (OnlyWorlds.com API) and offline (localStorage) modes through the Mode Layer.
 
 --- 
  
@@ -78,6 +82,7 @@ matchApiResult(result, {
 **❌ Build fails**: Add `.js` to imports, check import map, use `as any` for library types
 **❌ Blank page**: Check console (F12), verify ELEMENT_TYPES is array
 **❌ API errors**: Check auth credentials, ensure world access
+**❌ Initialization race**: Template now waits for auth readiness before showing UI - very rare auth errors during startup are expected and harmless
 
 ---
 
@@ -95,6 +100,7 @@ matchApiResult(result, {
 
 **❌ Never remove**: `src/compatibility.ts`, `src/auth.ts`, `@onlyworlds/sdk`
 **✅ Safe to remove**: `src/theme.ts`, `src/import-export.ts`, `src/llm/` (entire folder), CSS files, `index.html` (if replacing UI)
+**⚠️ Remove carefully**: `src/modes/` (entire folder), `src/ui/` (entire folder) - only if you don't want dual-mode functionality
 
 **Dependency chain**:
 ```

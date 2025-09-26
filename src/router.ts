@@ -9,6 +9,7 @@
  */
 
 import { apiService } from './api.js';
+import { modeRouter } from './modes/mode-router.js';
 
 export interface Route {
     elementType: string;
@@ -64,7 +65,7 @@ class Router {
 
         // Validate element type exists in API (only if authenticated)
         try {
-            const availableTypes = apiService.getElementTypes();
+            const availableTypes = modeRouter.getElementTypes();
             if (!availableTypes.includes(elementType)) {
                 console.warn(`Invalid element type in URL: ${elementType}. Available: ${availableTypes.join(', ')}`);
                 return null;
@@ -113,6 +114,11 @@ class Router {
         }
 
         window.location.hash = '';
+    }
+
+    clearRoute(): void {
+        // Clear internal route state without destroying the router
+        this.currentRoute = null;
     }
 
     getCurrentRoute(): Route | null {

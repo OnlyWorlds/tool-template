@@ -32,21 +32,25 @@
         <!-- Auth Bar (Top Bar) -->
         <div class="auth-bar">
             <div class="auth-bar-content">
-                <div class="auth-inputs">
-                    <input type="text" id="api-key" placeholder="api key" class="auth-input" maxlength="10" />
-                    <input type="password" id="api-pin" placeholder="PIN" class="auth-input auth-input-pin" maxlength="4" />
-                    <button id="validate-btn" class="btn-validate">load world</button>
-                    <span id="auth-status" class="auth-status"></span>
-                    <span id="world-name" class="world-name hidden"></span>
-                    
-                    <!-- Export Control -->
-                    <div class="import-export-controls hidden" id="import-export-controls">
-                        <button id="export-btn" class="btn-icon" title="Export World">
-                            <span class="material-icons-outlined">download</span>
-                        </button>
+                <!-- Left Side: Main Auth Controls -->
+                <div class="auth-inputs-left">
+                    <div class="main-auth-group">
+                        <input type="text" id="api-key" placeholder="api key" class="auth-input" maxlength="10" />
+                        <input type="password" id="api-pin" placeholder="PIN" class="auth-input auth-input-pin" maxlength="4" />
+                        <button id="validate-btn" class="btn-validate">load world</button>
+                        <button id="mode-switch-btn" class="btn-primary">switch to local</button>
+                        <button id="export-json-btn" class="btn-primary hidden">export json</button>
                     </div>
+                    <span id="auth-status" class="auth-status"></span>
                 </div>
-                <div class="auth-bar-actions">
+
+                <!-- Right Side: World Info & Actions -->
+                <div class="auth-inputs-right">
+                    <div class="world-info">
+                        <span id="world-name" class="world-name hidden"></span>
+                        <span id="world-api-key" class="world-api-key hidden"></span>
+                    </div>
+
                     <button id="help-btn" class="btn-icon" title="Help">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
@@ -60,8 +64,19 @@
         <div id="welcome-screen" class="welcome-screen">
             <div class="welcome-content">
                 <h2>OnlyWorlds Tool Template</h2>
-                <p>Enter your API key and PIN above to connect to your world.</p>
-                <p class="welcome-link">Get credentials at <a href="https://www.onlyworlds.com" target="_blank">onlyworlds.com</a></p>
+                <div class="welcome-options">
+                    <div class="welcome-option">
+                        <h3>🌐 Connect Online</h3>
+                        <p>Enter your API key and PIN above to connect to your OnlyWorlds account.</p>
+                        <p class="welcome-link">Get credentials at <a href="https://www.onlyworlds.com" target="_blank">onlyworlds.com</a></p>
+                    </div>
+                    <div class="welcome-divider">or</div>
+                    <div class="welcome-option">
+                        <h3>💾 Work Offline</h3>
+                        <p>Click "Switch to Local" above to work with local JSON files from your computer.</p>
+                        <p class="welcome-help">Perfect for working without an internet connection or trying the tool.</p>
+                    </div>
+                </div>
             </div>
         </div>
         

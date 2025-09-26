@@ -99,9 +99,7 @@ export const renderErrorState = (errorState: UiErrorState, container: HTMLElemen
 
     case 'empty':
       errorDiv.innerHTML = `
-        <div class="empty-icon">📭</div>
         <p class="empty-text">${errorState.message}</p>
-        ${errorState.action ? `<button class="btn-primary action-btn">${errorState.action.label}</button>` : ''}
       `;
 
       if (errorState.action) {
