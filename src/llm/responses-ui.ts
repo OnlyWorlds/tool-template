@@ -3,10 +3,10 @@
  * Manages the chat interface that replaces the middle column
  */
 
-import { responsesService, OnlyWorldsContext } from './responses-service.js';
-import { UI_LABELS } from './responses-config.js';
-import { contextService, ContextPreferences, ContextData } from './context-service.js';
 import { ONLYWORLDS } from '../compatibility.js';
+import { ContextPreferences, contextService } from './context-service.js';
+import { UI_LABELS } from './responses-config.js';
+import { OnlyWorldsContext, responsesService } from './responses-service.js';
 
 interface ChatMessage {
     role: 'user' | 'assistant';
@@ -921,8 +921,7 @@ export class ResponsesUI {
         if (this.isLoadingCounts) return; // Prevent duplicate loading
 
         try {
-            this.isLoadingCounts = true;
-            console.log('Loading element counts...');
+            this.isLoadingCounts = true; 
 
 
             // Use progressive loading with callback
@@ -931,8 +930,7 @@ export class ResponsesUI {
                 this.elementCounts[elementType] = count;
 
             });
-
-            console.log('Element counts loaded:', this.elementCounts);
+ 
 
             await this.updateTokenEstimates();
 

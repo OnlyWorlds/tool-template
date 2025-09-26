@@ -20,8 +20,8 @@
     --border-primary: #dddddd;
     --border-secondary: #eeeeee;
     --border-hover: #aaaaaa;
-    
-    --brand-primary: #4CAF50;
+
+    --brand-primary: #2E7D32;
     --brand-primary-hover: #45a049;
     --brand-secondary: #2c3e50;
     --brand-tertiary: #34495e;
@@ -57,7 +57,7 @@
     --border-hover: #606060;
     
     /* Brand colors stay mostly the same */
-    --brand-primary: #4CAF50;
+    --brand-primary: #2E7D32;
     --brand-primary-hover: #5cbf60;
     --brand-secondary: #1a2332;
     --brand-tertiary: #252e3a;
@@ -199,7 +199,7 @@ body {
 }
 
 .btn-validate.validated {
-    background: rgba(76, 175, 80, 0.3) !important;
+    background: rgba(46, 125, 50, 0.3) !important;
     color: var(--text-primary) !important;
 }
 
@@ -410,7 +410,7 @@ body {
 }
 
 .category-item.active {
-    background: rgba(76, 175, 80, 0.1);
+    background: rgba(46, 125, 50, 0.1);
     color: var(--brand-primary);
 }
 
@@ -542,7 +542,7 @@ body {
 
 .element-card.selected {
     border-color: var(--brand-primary);
-    background: rgba(76, 175, 80, 0.05);
+    background: rgba(46, 125, 50, 0.05);
 }
 
 .element-header {
@@ -920,7 +920,7 @@ body {
 }
 
 .save-status.saved {
-    background: rgba(76, 175, 80, 0.2);
+    background: rgba(46, 125, 50, 0.2);
 }
 
 .save-status.saved::before {
@@ -973,7 +973,7 @@ body {
 }
 
 .compact-field.editing {
-    background: rgba(76, 175, 80, 0.05);
+    background: rgba(46, 125, 50, 0.05);
     border-color: var(--brand-primary);
 }
 
@@ -1201,11 +1201,11 @@ body {
 }
 
 .selector-item.selected {
-    background: rgba(76, 175, 80, 0.1);
+    background: rgba(46, 125, 50, 0.1);
 }
 
 .selector-item.selected:hover {
-    background: rgba(76, 175, 80, 0.2);
+    background: rgba(46, 125, 50, 0.2);
 }
 
 .selector-icon {
@@ -1347,9 +1347,9 @@ body {
 }
 
 .editable-field.editing {
-    background: rgba(76, 175, 80, 0.05);
+    background: rgba(46, 125, 50, 0.05);
     border-color: var(--brand-primary);
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
 }
 
 .editable-field.dirty {
@@ -1389,7 +1389,7 @@ body {
 .inline-textarea:focus {
     outline: none;
     border-color: var(--brand-primary);
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
 }
 
 .inline-textarea {
@@ -1722,7 +1722,7 @@ input[type="file"]:hover {
 #import-mode:focus {
     outline: none;
     border-color: var(--brand-primary);
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
 }
 
 /* Help Modal Styles */
@@ -1955,7 +1955,7 @@ input[type="file"]:hover {
 }
 
 .chat-message.user .message-content {
-    background: rgba(76, 175, 80, 0.3) !important;
+    background: rgba(46, 125, 50, 0.3) !important;
     color: var(--text-primary) !important;
     border-bottom-right-radius: 4px;
 }
@@ -2076,7 +2076,7 @@ input[type="file"]:hover {
 }
 
 .btn-send {
-    background: rgba(76, 175, 80, 0.3) !important;
+    background: rgba(46, 125, 50, 0.3) !important;
     color: var(--text-primary) !important;
     border: none;
     border-radius: 50%;
@@ -2092,7 +2092,7 @@ input[type="file"]:hover {
 }
 
 .btn-send:hover:not(:disabled) {
-    background: rgba(76, 175, 80, 0.5) !important;
+    background: rgba(46, 125, 50, 0.5) !important;
     transform: scale(1.05);
 }
 

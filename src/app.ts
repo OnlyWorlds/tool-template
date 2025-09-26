@@ -474,8 +474,7 @@ class OnlyWorldsApp {
     private async processPendingRoute(): Promise<void> {
         const currentRoute = router.getCurrentRoute();
 
-        if (currentRoute) {
-            console.log('Processing pending route after authentication:', currentRoute);
+        if (currentRoute) { 
             await this.handleRouteChange({ route: currentRoute, isValid: true });
         }
     }
