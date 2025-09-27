@@ -5,7 +5,7 @@
 
 /* CSS Variables for Theme Support */
 :root {
-    /* Light mode colors (default) */
+    /* Light mode colors */
     --bg-primary: #ffffff;
     --bg-secondary: #fafafa;
     --bg-tertiary: #f5f5f5;
@@ -59,7 +59,6 @@
     --border-secondary: #333333;
     --border-hover: #606060;
     
-    /* Brand colors stay mostly the same */
     --brand-primary: rgba(46, 125, 50, 0.3);
     --brand-primary-hover: rgba(46, 125, 50, 0.5);
     --brand-secondary: #1a2332;
@@ -140,7 +139,7 @@ body {
     color: var(--text-inverse);
     padding: 12px 20px;
     box-shadow: var(--shadow-sm);
-    min-height: 48px; /* Fixed minimum height to prevent expanding */
+    min-height: 48px;
 }
 
 .auth-bar-content {
@@ -151,7 +150,6 @@ body {
     margin: 0 auto;
 }
 
-/* Auth inputs split into left and right sections */
 .auth-inputs-left {
     display: flex;
     align-items: center;
@@ -194,7 +192,6 @@ body {
     width: 60px;
 }
 
-/* Primary button style - dark green base */
 .btn-primary {
     padding: 6px 16px;
     font-size: 12px;
@@ -216,7 +213,6 @@ body {
     cursor: not-allowed;
 }
 
-/* Validate button - same base as primary with special validated state */
 .btn-validate {
     padding: 6px 16px;
     font-size: 12px;
@@ -397,16 +393,6 @@ body {
 }
 
 /* Removed old welcome features and footer styles */
-
-.welcome-footer a {
-    color: var(--brand-primary);
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.welcome-footer a:hover {
-    text-decoration: underline;
-}
 
 /* Main Content Layout */
 .main-content {
@@ -1377,7 +1363,6 @@ body {
     border-top: 1px solid var(--border-secondary);
 }
 
-/* Keep old styles for backward compatibility */
 .editable-field {
     margin-bottom: 15px;
     padding: 10px;
@@ -1542,12 +1527,10 @@ body {
 
 /* Minimal Mobile Improvements - Desktop First, Mobile Safe */
 @media (max-width: 768px) {
-    /* Stack vertically on mobile */
     .main-content {
         flex-direction: column;
     }
 
-    /* Collapsible sidebar on mobile */
     .sidebar {
         width: 100%;
         max-height: 200px;
@@ -1555,7 +1538,6 @@ body {
         border-bottom: 1px solid var(--border-primary);
     }
 
-    /* Better mobile list */
     .element-list-container {
         min-width: auto;
         border-right: none;
@@ -1568,19 +1550,16 @@ body {
         min-height: 300px;
     }
 
-    /* Larger touch targets on mobile */
     .category-item, .element-card {
         padding: 12px;
         min-height: 48px;
     }
 
-    /* Mobile-friendly buttons */
     .btn-add-element {
         width: 36px;
         height: 36px;
     }
 
-    /* Better mobile modal */
     .modal {
         padding: 10px;
     }
