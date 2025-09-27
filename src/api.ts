@@ -3,9 +3,9 @@
  * Provides typed CRUD operations with Result pattern error handling
  */
 
-import { OnlyWorldsClient, FIELD_SCHEMA } from '@onlyworlds/sdk';
+import { FIELD_SCHEMA, OnlyWorldsClient } from '@onlyworlds/sdk';
 import { authManager } from './auth.js';
-import { ApiResult, ApiSuccess, ApiError, isSuccess } from './types/api-result.js';
+import { ApiError, ApiResult, ApiSuccess } from './types/api-result.js';
 
 let _cachedElementTypes: string[] | null = null;
 
@@ -207,18 +207,7 @@ export default class OnlyWorldsAPI {
 
             return ApiSuccess(processedElements);
 
-        } catch (error) {
-            // Structured logging for better debugging
-            console.error(`OnlyWorlds API Error [getElements]:`, {
-                elementType,
-                filters,
-                error: error instanceof Error ? {
-                    name: error.name,
-                    message: error.message,
-                    stack: error.stack
-                } : error,
-                timestamp: new Date().toISOString()
-            });
+        } catch (error) { 
 
             // Categorize the error for better handling
             if (error instanceof Error) {

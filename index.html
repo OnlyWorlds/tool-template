@@ -73,24 +73,39 @@
             </div>
         </div>
 
-        <!-- Welcome Screen (shown when not authenticated) -->
-        <div id="welcome-screen" class="welcome-screen">
-            <div class="welcome-content">
-                <h2>OnlyWorlds Tool Template</h2>
-                <div class="welcome-options">
-                    <div class="welcome-option">
-                        <h3>🌐 Connect Online</h3>
-                        <p>Enter your API key and PIN above to connect to your OnlyWorlds account.</p>
-                        <p class="welcome-link">Get credentials at <a href="https://www.onlyworlds.com" target="_blank">onlyworlds.com</a></p>
-                    </div>
-                    <div class="welcome-divider">or</div>
-                    <div class="welcome-option">
-                        <h3>💾 Work Offline</h3>
-                        <p>Click "Switch to Local" above to work with local JSON files from your computer.</p>
-                        <p class="welcome-help">Perfect for working without an internet connection or trying the tool.</p>
+        <!-- Welcome State: Show normal UI structure but empty -->
+        <div id="welcome-screen" class="main-content">
+            <!-- Sidebar for Element Categories -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2>&nbsp;</h2>
+                </div>
+                <div class="category-sidebar">
+                    <div class="empty-state">
+                        Enter credentials above to load online world<br>
+                        or switch to local mode to import JSON files
                     </div>
                 </div>
-            </div>
+            </aside>
+
+            <!-- Middle Column: Element List and Chat -->
+            <main class="element-list-container">
+                <div class="list-header">
+                    <h3>&nbsp;</h3>
+                </div>
+                <div id="welcome-element-list" class="element-list">
+                    <div class="empty-state">
+                        Load a world from onlyworlds.com or from local data to start
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Column: Element Details -->
+            <aside class="element-detail" id="welcome-element-detail">
+                <div class="empty-state">
+                    &nbsp;
+                </div>
+            </aside>
         </div>
         
         <!-- Main Content Area -->

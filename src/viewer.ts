@@ -119,9 +119,10 @@ export default class ElementViewer {
                     }
                     return elements.length;
                 } else {
+                    // Show 0 for failed requests (e.g., no local world loaded)
                     if (countElement) {
                         requestAnimationFrame(() => {
-                            countElement.textContent = '?';
+                            countElement.textContent = '0';
                         });
                     }
                     return 0;
@@ -162,8 +163,6 @@ export default class ElementViewer {
         // Close chat interface if it's open (after setting current category)
         if (responsesUI.isChatVisible()) {
             responsesUI.hideChatInterface();
-            // Return early - the event handler will call loadElements
-            return;
         }
 
         const listTitle = document.getElementById('list-title');
@@ -185,7 +184,10 @@ export default class ElementViewer {
 
     async loadElements(type: ElementType): Promise<void> {
         const elementList = document.getElementById('element-list');
-        if (!elementList) return;
+        if (!elementList) {
+            console.error('❌ element-list not found');
+            return;
+        }
 
         // Show loading state
         const loadingState: UiErrorState = {
@@ -200,7 +202,18 @@ export default class ElementViewer {
         };
 
         // Use the Result-based API with pattern matching for error handling
-        const result = await modeRouter.getElements(type);
+        let result;
+        try {
+            result = await modeRouter.getElements(type);
+        } catch (error) {
+            console.error('❌ Error calling modeRouter.getElements:', error);
+            const errorState: UiErrorState = {
+                type: 'fatal_error',
+                message: 'Failed to load elements. Please try again.'
+            };
+            renderErrorState(errorState, elementList);
+            return;
+        }
 
         matchApiResult(result, {
             success: (elements) => {
@@ -213,7 +226,6 @@ export default class ElementViewer {
                     };
                     renderErrorState(emptyState, elementList);
                 } else {
-                    // Success: display the elements
                     this.displayElements(elements as OnlyWorldsElement[]);
                 }
             },
@@ -235,7 +247,11 @@ export default class ElementViewer {
             notFound: (resourceType, resourceId) => {
                 const errorState = mapApiErrorToUiState({ type: 'RESOURCE_NOT_FOUND', resourceType, resourceId }, retryHandler);
                 renderErrorState(errorState, elementList);
-                console.error(`OnlyWorlds API Error [RESOURCE_NOT_FOUND]:`, { resourceType, resourceId });
+
+                // Only log error if it's not the expected "No local world loaded" case
+                if (resourceType !== "No local world loaded") {
+                    console.error(`OnlyWorlds API Error [RESOURCE_NOT_FOUND]:`, { resourceType, resourceId });
+                }
             },
             sdkError: (message, originalError) => {
                 const errorState = mapApiErrorToUiState({ type: 'SDK_ERROR', message, originalError }, retryHandler);
@@ -253,7 +269,14 @@ export default class ElementViewer {
 
     displayElements(elements: OnlyWorldsElement[]): void {
         const elementList = document.getElementById('element-list');
-        if (!elementList || !this.currentCategory) return;
+        if (!elementList) {
+            console.error('❌ element-list not found in displayElements');
+            return;
+        }
+        if (!this.currentCategory) {
+            console.error('❌ no currentCategory set');
+            return;
+        }
 
         // Proper cleanup: remove child nodes instead of innerHTML to prevent memory leaks
         this.clearContainerSafely(elementList);
@@ -266,6 +289,7 @@ export default class ElementViewer {
             const elementCard = document.createElement('div');
             elementCard.className = 'element-card';
             elementCard.dataset.id = element.id;
+
 
             const supertype = element.supertype ? `<span class="element-supertype">${element.supertype}</span>` : '';
             const displayName = element.name || element.title || `Unnamed ${this.currentCategory}`;
@@ -286,6 +310,7 @@ export default class ElementViewer {
         });
 
         elementList.appendChild(fragment);
+
     }
 
     async selectElement(element: OnlyWorldsElement): Promise<void> {
@@ -366,7 +391,15 @@ export default class ElementViewer {
      */
     async displayElementDetails(element: OnlyWorldsElement): Promise<void> {
         const detailContainer = document.getElementById('element-detail');
-        if (!detailContainer || !this.currentCategory) return;
+        if (!detailContainer) {
+            console.error('❌ element-detail container not found!');
+            return;
+        }
+
+        if (!this.currentCategory) {
+            console.error('❌ no currentCategory set');
+            return;
+        }
 
         if (!this.inlineEditor) {
             // Use mode router for dual-mode support instead of direct API
@@ -379,6 +412,8 @@ export default class ElementViewer {
 
         if (typeof this.inlineEditor.initializeEditor === 'function') {
             this.inlineEditor.initializeEditor(element, this.currentCategory, detailContainer);
+        } else {
+            console.error('❌ inlineEditor.initializeEditor is not a function');
         }
     }
 

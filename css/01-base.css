@@ -118,6 +118,40 @@ body {
     padding: 20px;
 }
 
+/* App State Management - CSS-First Visibility */
+/* Note: Main content containers (#welcome-screen, #main-content) are controlled by JavaScript show/hide logic */
+/* Only control specific UI elements that need to be hidden/shown within those containers */
+
+/* Default: Hide UI elements when no data */
+body.no-data .category-sidebar,
+body.no-data #chat-toggle-btn,
+body.no-data #world-info,
+body.no-data #export-json-btn {
+    display: none !important;
+}
+
+/* Show UI elements when app has world data */
+body.has-data.mode-online .category-sidebar,
+body.has-data.mode-local .category-sidebar,
+body.has-data.mode-online #chat-toggle-btn,
+body.has-data.mode-local #chat-toggle-btn,
+body.has-data.mode-online #world-info,
+body.has-data.mode-local #world-info {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Note: .element-list-container visibility is controlled by parent container show/hide, not CSS classes */
+
+/* Mode-specific controls */
+body.mode-local #export-json-btn {
+    display: inline-block !important;
+}
+
+body.mode-online #export-json-btn {
+    display: none !important;
+}
+
 .error-text {
     color: var(--status-error);
     text-align: center;

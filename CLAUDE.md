@@ -51,7 +51,8 @@ This is a **TypeScript-based OnlyWorlds tool template** with **dual-mode functio
 - **`src/auth.ts`** - Online authentication, required for API access
 - **`src/modes/mode-router.ts`** - Central routing between online/local modes (clean, no defensive code)
 - **`src/modes/local-storage.ts`** - Local storage engine (localStorage CRUD)
-- **`src/app.ts`** - Main app with `waitForAuthReady()` authentication flow
+- **`src/app.ts`** - Main app with state management (CSS-driven visibility)
+- **`css/01-base.css`** - Contains app state management CSS rules for element visibility
 - **`src/llm/responses-config.ts`** - AI prompts & configuration (easily editable)
 - **`TEMPLATE-MODIFICATION-GUIDE.md`** - Complete modification instructions for LLMs
 

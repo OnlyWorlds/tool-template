@@ -15,24 +15,139 @@ import { ImportDialog } from './ui/import-dialog.js';
 import { ExportModal } from './ui/export-modal.js';
 
 class OnlyWorldsApp {
-    private isConnected: boolean = false;
     private elementViewer!: ElementViewer;
     private elementEditor!: ElementEditor;
     private importExportManager: ImportExportManager | null = null;
     private importDialog!: ImportDialog;
     private exportModal!: ExportModal;
 
+    // Core state getters - single source of truth
+    private hasWorldData(): boolean {
+        return modeRouter.getCurrentWorld() !== null;
+    }
+
+    private getCurrentMode(): 'online' | 'local' | null {
+        return modeRouter.getCurrentMode();
+    }
+
+    private canAuthenticate(): boolean {
+        const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
+        const apiPinInput = document.getElementById('api-pin') as HTMLInputElement;
+        const apiKey = apiKeyInput?.value?.trim() || '';
+        const apiPin = apiPinInput?.value?.trim() || '';
+        return apiKey.length === 10 && apiPin.length === 4;
+    }
+
+    // Single UI update method - handles all state changes
+    private updateUI(): void {
+        const hasData = this.hasWorldData();
+        const mode = this.getCurrentMode();
+
+        // Update body classes for CSS-driven visibility
+        const bodyClasses = [
+            hasData ? 'has-data' : 'no-data',
+            mode ? `mode-${mode}` : 'no-mode'
+        ].join(' ');
+
+        document.body.className = bodyClasses;
+
+        // Update controls
+        this.updateControls(mode, hasData);
+
+        // Update world info if we have data
+        if (hasData) {
+            this.updateWorldInfo();
+        }
+    }
+
+    private updateControls(mode: 'online' | 'local' | null, hasData: boolean): void {
+        const validateBtn = document.getElementById('validate-btn') as HTMLButtonElement;
+        const modeSwitchBtn = document.getElementById('mode-switch-btn') as HTMLButtonElement;
+
+        if (!validateBtn || !modeSwitchBtn) {
+            console.error('❌ validateBtn or modeSwitchBtn not found');
+            return;
+        }
+
+        // Always check canAuthenticate - needed for all modes now
+        const canAuth = this.canAuthenticate();
+
+        if (mode === 'online') {
+            // In online mode, enable button if user has complete credentials to allow world switching
+            if (canAuth) {
+                validateBtn.textContent = 'load world';
+                validateBtn.classList.remove('validated');
+                validateBtn.disabled = false;
+            } else {
+                validateBtn.textContent = 'online';
+                validateBtn.classList.add('validated');
+                validateBtn.disabled = true;
+            }
+            modeSwitchBtn.textContent = 'switch to local';
+            modeSwitchBtn.style.display = '';
+        } else if (mode === 'local') {
+            // In local mode, if user has complete credentials, allow switching to online
+            if (canAuth) {
+                validateBtn.textContent = 'load world';
+                validateBtn.classList.remove('validated');
+                validateBtn.disabled = false;
+            } else {
+                validateBtn.textContent = 'local';
+                validateBtn.classList.add('validated');
+                validateBtn.disabled = true;
+            }
+            modeSwitchBtn.textContent = 'import json';
+            modeSwitchBtn.style.display = '';
+        } else {
+            // No mode selected - user can authenticate if credentials are complete
+            validateBtn.textContent = 'load world';
+            validateBtn.classList.remove('validated');
+            validateBtn.disabled = !canAuth;
+            modeSwitchBtn.textContent = 'switch to local';
+            modeSwitchBtn.style.display = '';
+        }
+    }
+
+    private updateWorldInfo(): void {
+        const world = modeRouter.getCurrentWorld();
+        if (!world) return;
+
+        const worldNameElement = document.getElementById('world-name');
+        const worldApiKeyElement = document.getElementById('world-api-key');
+
+        if (worldNameElement) {
+            const worldName = world.name || 'Unnamed World';
+            worldNameElement.textContent = worldName;
+            worldNameElement.classList.remove('hidden');
+        }
+
+        if (worldApiKeyElement) {
+            // Always show API key, prefer stored credentials for online mode
+            let apiKey = world.api_key || '';
+
+            // For online mode, get API key from storage if not in world data
+            if (this.getCurrentMode() === 'online' && !apiKey) {
+                apiKey = localStorage.getItem('ow_api_key') || '';
+            }
+
+            // Fallback to world ID only if no API key available
+            if (!apiKey) {
+                apiKey = world.id || '';
+            }
+
+            worldApiKeyElement.textContent = apiKey;
+            worldApiKeyElement.classList.remove('hidden');
+        }
+    }
+
     init(): void {
         themeManager.init();
         this.setupErrorHandling();
 
-        // Initialize dual-mode components
+        // Initialize components
         this.importDialog = new ImportDialog();
-
         this.elementViewer = new ElementViewer(apiService);
         this.elementEditor = new ElementEditor(apiService);
-
-        // Initialize AI chat functionality
         responsesUI.init();
 
         router.init();
@@ -43,11 +158,11 @@ class OnlyWorldsApp {
         (window as any).elementEditor = this.elementEditor;
         (window as any).router = router;
         (window as any).modeRouter = modeRouter;
-        (window as any).apiService = apiService; // Make available to mode router
+        (window as any).apiService = apiService;
 
         this.attachEventListeners();
 
-        // Initialize mode system
+        // Initialize mode system and UI
         this.initializeModeSystem();
     }
 
@@ -57,9 +172,8 @@ class OnlyWorldsApp {
 
         if (restoredMode === 'local') {
             // Successfully restored local mode (with or without world data)
-            this.isConnected = true;
             this.showMainApp();
-            this.updateUIForAuthenticatedState();
+            this.updateUI();
 
             // Refresh the viewer to show local data if available
             if (this.elementViewer) {
@@ -69,6 +183,7 @@ class OnlyWorldsApp {
             // No previous mode or online mode preferred
             // Show welcome screen first, then try auto-authentication
             this.showWelcomeScreen();
+            this.updateUI();
 
             // Try to auto-authenticate online (but don't force it)
             await this.tryAutoAuthenticate();
@@ -84,9 +199,8 @@ class OnlyWorldsApp {
 
         // Switch to local mode and show main app
         modeRouter.setMode('local');
-        this.isConnected = true;
         this.showMainApp();
-        this.updateUIForAuthenticatedState();
+        this.updateUI();
 
         // Refresh the viewer to show imported local data
         if (this.elementViewer) {
@@ -99,8 +213,8 @@ class OnlyWorldsApp {
             }
         }
 
-        // Ensure detail view remains clear after data loads
-        setTimeout(() => this.clearDetailView(), 100);
+        // Clear detail view after data loads
+        this.clearDetailView();
     }
 
     private handleModeChanged(): void {
@@ -110,69 +224,44 @@ class OnlyWorldsApp {
 
         // Clear UI when switching modes
         this.clearMainUI();
-
-        // Extra step: Ensure detail view is completely cleared
         this.clearDetailView();
 
         if (currentMode === 'local') {
-            // Check if we have local data to work with
-            const hasLocalWorld = localStorage.getItem('ow_local_world_data');
-            if (hasLocalWorld) {
-                this.isConnected = true;
-                this.showMainApp();
-                this.updateUIForAuthenticatedState();
+            this.showMainApp();
+            this.updateUI();
 
-                // Refresh the viewer to show local data
-                if (this.elementViewer) {
-                    this.elementViewer.updateCategoryCounts();
+            // Refresh the viewer to show local data if available
+            if (this.elementViewer) {
+                this.elementViewer.updateCategoryCounts();
 
-                    // If there's a current category selected, reload its elements with local data
-                    const currentCategory = this.elementViewer.getCurrentCategory();
-                    if (currentCategory) {
-                        this.elementViewer.loadElements(currentCategory);
-                    }
+                // If there's a current category selected, reload its elements with local data
+                const currentCategory = this.elementViewer.getCurrentCategory();
+                if (currentCategory) {
+                    this.elementViewer.loadElements(currentCategory);
                 }
-
-                // Ensure detail view remains clear after data loads
-                setTimeout(() => this.clearDetailView(), 100);
-            } else {
-                // No local data, but still update UI to reflect local mode
-                this.isConnected = true; // Local mode is "connected" even without world
-                this.showMainApp();
-                this.updateUIForAuthenticatedState();
             }
         } else if (currentMode === 'online') {
             // Only try auto-auth if we're not already authenticated
-            if (!this.isConnected || !authManager.checkAuth()) {
-                this.tryAutoAuthenticate().then(() => {
-                    // Ensure detail view remains clear after online auth
-                    setTimeout(() => this.clearDetailView(), 100);
-                });
+            if (!authManager.checkAuth()) {
+                this.tryAutoAuthenticate();
             } else {
                 // Already authenticated online, just update UI
                 this.showMainApp();
-                this.updateUIForAuthenticatedState();
+                this.updateUI();
             }
         } else {
             // No mode selected
-            this.isConnected = false;
             this.showWelcomeScreen();
+            this.updateUI();
         }
     }
 
     private showWelcomeScreen(): void {
         const welcomeScreen = document.getElementById('welcome-screen');
         const mainContent = document.getElementById('main-content');
-        const modeSwitchBtn = document.getElementById('mode-switch-btn') as HTMLButtonElement;
 
         if (welcomeScreen) welcomeScreen.classList.remove('hidden');
         if (mainContent) mainContent.classList.add('hidden');
-
-        // Show mode switch button and set default text
-        if (modeSwitchBtn) {
-            modeSwitchBtn.textContent = 'switch to local';
-            modeSwitchBtn.style.display = '';
-        }
     }
 
     private setupErrorHandling(): void {
@@ -273,11 +362,8 @@ class OnlyWorldsApp {
     private async handleWorldReplaced(): Promise<void> {
         console.log('World replaced, refreshing application state');
 
-        // Wait for authentication to stabilize
-        await this.waitForAuthReady();
-
         // Update UI for new online mode
-        this.updateUIForAuthenticatedState();
+        this.updateUI();
 
         // Refresh main app display
         this.showMainApp();
@@ -299,127 +385,44 @@ class OnlyWorldsApp {
 
                 // Set to online mode when auto-authenticating (but don't trigger events during startup)
                 modeRouter.setMode('online');
-                this.isConnected = true;
 
-                // Skip waitForAuthReady during auto-auth - auth is already validated
-                // Wait for auth was causing slow startup and is redundant here
                 this.showMainApp();
-                this.updateUIForAuthenticatedState();
+                this.updateUI();
             } else {
                 // No stored credentials or auto-auth failed, show normal login form
                 console.log('No stored credentials found, showing login form');
-                // Show welcome screen
                 this.showWelcomeScreen();
+                this.updateUI();
             }
         } catch (error) {
             console.log('Auto-authentication error:', error);
             // If auto-auth fails, just continue with normal flow (show login form)
             this.showWelcomeScreen();
+            this.updateUI();
         }
     }
 
-    private async waitForAuthReady(): Promise<void> {
-        // Test if auth is actually ready by making a simple API call
-        for (let i = 0; i < 20; i++) { // Try for up to 1 second
-            try {
-                const testResult = await apiService.getElements('character', {});
-                if (testResult.success || (testResult as any).error?.type !== 'AUTHENTICATION_ERROR') {
-                    // Either succeeded or failed for non-auth reasons (which means auth is working)
-                    console.log('Authentication ready');
-                    return;
-                }
-            } catch (error) {
-                // Ignore errors, just continue polling
-            }
-
-            await new Promise(resolve => setTimeout(resolve, 50));
-        }
-
-        console.log('Auth readiness timeout, proceeding anyway');
-    }
-
-    private updateUIForAuthenticatedState(): void {
-        const currentMode = modeRouter.getCurrentMode();
-        const validateBtn = document.getElementById('validate-btn') as HTMLButtonElement;
-        const modeSwitchBtn = document.getElementById('mode-switch-btn') as HTMLButtonElement;
-        const exportJsonBtn = document.getElementById('export-json-btn') as HTMLButtonElement;
-
-        if (validateBtn && modeSwitchBtn) {
-            if (currentMode === 'online') {
-                validateBtn.textContent = 'online';
-                validateBtn.classList.add('validated');
-                validateBtn.disabled = true;
-                modeSwitchBtn.textContent = 'switch to local';
-                modeSwitchBtn.style.display = '';
-
-                // Hide export button in online mode
-                if (exportJsonBtn) {
-                    exportJsonBtn.classList.add('hidden');
-                }
-            } else if (currentMode === 'local') {
-                validateBtn.textContent = 'local';
-                validateBtn.classList.add('validated');
-                validateBtn.disabled = true;
-                modeSwitchBtn.textContent = 'import json';
-                modeSwitchBtn.style.display = '';
-
-                // Show export button in local mode
-                if (exportJsonBtn) {
-                    exportJsonBtn.classList.remove('hidden');
-                }
-            }
-        }
-
-        const authStatus = document.getElementById('auth-status');
-        if (authStatus) {
-            authStatus.textContent = '';
-            authStatus.className = 'auth-status';
-        }
-
-        this.isConnected = true;
-    }
 
     private logout(): void {
-        if (this.isConnected) {
+        if (this.hasWorldData()) {
             const confirmed = confirm('Are you sure you want to disconnect? You will need to re-enter your API credentials.');
             if (!confirmed) return;
 
             // Clear authentication and stored credentials
             authManager.clearCredentials();
 
-            // Reset UI to initial state
-            const welcomeScreen = document.getElementById('welcome-screen');
-            const mainContent = document.getElementById('main-content');
-            const worldNameElement = document.getElementById('world-name');
-
-            if (welcomeScreen) welcomeScreen.classList.remove('hidden');
-            if (mainContent) mainContent.classList.add('hidden');
-            if (worldNameElement) {
-                worldNameElement.textContent = '';
-                worldNameElement.classList.add('hidden');
-            }
-
-            // Reset auth form
+            // Clear form inputs
             const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
             const apiPinInput = document.getElementById('api-pin') as HTMLInputElement;
-            const validateBtn = document.getElementById('validate-btn') as HTMLButtonElement;
-            const modeSwitchBtn = document.getElementById('mode-switch-btn') as HTMLButtonElement;
 
             if (apiKeyInput) apiKeyInput.value = '';
             if (apiPinInput) apiPinInput.value = '';
-            if (validateBtn) {
-                validateBtn.textContent = 'load world';
-                validateBtn.classList.remove('validated');
-                validateBtn.disabled = true;
-            }
-            if (modeSwitchBtn) {
-                modeSwitchBtn.textContent = 'switch to local';
-                modeSwitchBtn.style.display = '';
-            }
+
+            // Show welcome screen and update UI
+            this.showWelcomeScreen();
+            this.updateUI();
 
             this.showAuthStatus('Disconnected successfully', 'info');
-            this.isConnected = false;
-
             console.log('Logged out successfully');
         }
     }
@@ -428,19 +431,16 @@ class OnlyWorldsApp {
         const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
         const apiPinInput = document.getElementById('api-pin') as HTMLInputElement;
 
+
         const handleCredentialChange = (input: HTMLInputElement | null, maxLength: number): void => {
             input?.addEventListener('input', (e) => {
                 const target = e.target as HTMLInputElement;
+
                 // Only allow digits and limit length
                 target.value = target.value.replace(/\D/g, '').slice(0, maxLength);
 
-                // Reset connection status if credentials change (only for online mode)
-                if (this.isConnected && modeRouter.getCurrentMode() === 'online') {
-                    this.isConnected = false;
-                    this.showAuthStatus('Credentials changed. Please validate again.', 'info');
-                }
-
-                this.updateValidateButton();
+                // Update UI immediately for responsive button enabling
+                this.updateUI();
             });
         };
 
@@ -496,12 +496,10 @@ class OnlyWorldsApp {
 
             // Set to online mode
             modeRouter.setMode('online');
-            this.isConnected = true;
 
-            // Wait for auth to be ready, then show main app
-            await this.waitForAuthReady();
+            // Show main app and update UI
             this.showMainApp();
-            this.updateUIForAuthenticatedState();
+            this.updateUI();
             this.showAuthStatus('', 'success');
 
         } catch (error) {
@@ -513,46 +511,6 @@ class OnlyWorldsApp {
         }
     }
 
-    private updateValidateButton(): void {
-        const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
-        const apiPinInput = document.getElementById('api-pin') as HTMLInputElement;
-        const validateBtn = document.getElementById('validate-btn') as HTMLButtonElement;
-
-        const apiKey = apiKeyInput.value.trim();
-        const apiPin = apiPinInput.value.trim();
-        const currentMode = modeRouter.getCurrentMode();
-
-
-        const hasCompleteCredentials = apiKey.length === 10 && apiPin.length === 4;
-
-        // If connected and not trying to enter new credentials, show current mode
-        if (this.isConnected && !hasCompleteCredentials) {
-            validateBtn.disabled = true;
-            validateBtn.textContent = currentMode === 'online' ? 'online' : 'local';
-            validateBtn.classList.add('validated');
-        } else if (this.isConnected && hasCompleteCredentials && currentMode === 'local') {
-            // In local mode with complete credentials - allow switching to online
-            validateBtn.disabled = false;
-            validateBtn.textContent = 'load world';
-            validateBtn.classList.remove('validated');
-        } else if (this.isConnected && currentMode === 'online') {
-            // Already connected online
-            validateBtn.disabled = true;
-            validateBtn.textContent = 'online';
-            validateBtn.classList.add('validated');
-        } else {
-            // Not connected - normal credential validation
-            if (currentMode === 'local' && !hasCompleteCredentials) {
-                validateBtn.disabled = true;
-                validateBtn.textContent = 'local';
-                validateBtn.classList.add('validated');
-            } else {
-                validateBtn.disabled = !hasCompleteCredentials;
-                validateBtn.textContent = 'load world';
-                validateBtn.classList.remove('validated');
-            }
-        }
-    }
 
     private showHelp(): void {
         const existingModal = document.getElementById('help-modal');
@@ -676,12 +634,8 @@ class OnlyWorldsApp {
             }
         }, 100);
 
-        this.isConnected = true;
-
         // Process any pending routes after authentication
-        setTimeout(() => {
-            this.processPendingRoute();
-        }, 200);
+        this.processPendingRoute();
     }
 
     private clearMainUI(): void {
@@ -707,6 +661,23 @@ class OnlyWorldsApp {
             categoryCounts.forEach(count => {
                 count.textContent = '-';
             });
+
+            // Clear middle section state
+            const listTitle = document.getElementById('list-title');
+            if (listTitle) {
+                listTitle.textContent = 'Select a Category';
+            }
+
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.classList.add('hidden');
+                (searchInput as HTMLInputElement).value = '';
+            }
+
+            const createBtn = document.getElementById('create-element-btn');
+            if (createBtn) {
+                createBtn.classList.add('hidden');
+            }
         }
 
         // Clear world name and API key display
@@ -788,9 +759,9 @@ class OnlyWorldsApp {
 
         const { elementType, elementId } = event.route;
 
-        // Can't navigate to elements if not authenticated
-        if (!this.isConnected) {
-            console.log(`Deferred route navigation: ${elementType}/${elementId} (not authenticated yet)`);
+        // Can't navigate to elements if no world data
+        if (!this.hasWorldData()) {
+            console.log(`Deferred route navigation: ${elementType}/${elementId} (no world data yet)`);
             return;
         }
 

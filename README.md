@@ -106,7 +106,7 @@ The template includes a pre-configured `.github/workflows/deploy.yml` that autom
 - **Relationship Management** - Link elements together with smart pickers and broken reference handling
 - **JSON Import/Export** - File upload, clipboard paste, and drag & drop support
 - **AI Chat Assistant** - Optional OpenAI integration for discussing your world (requires API key)
-- **Clean Interface** - Responsive, modern design with clear mode indicators
+- **Clean Interface** - Responsive, modern design with CSS-driven state management
 - **TypeScript + SDK** - Full type safety using an OnlyWorlds SDK 
 
 ## Project Structure
