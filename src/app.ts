@@ -56,21 +56,21 @@ class OnlyWorldsApp {
         const restoredMode = await modeRouter.initializeMode();
 
         if (restoredMode === 'local') {
-            // Successfully restored local mode
+            // Successfully restored local mode (with or without world data)
             this.isConnected = true;
             this.showMainApp();
             this.updateUIForAuthenticatedState();
 
-            // Refresh the viewer to show local data
+            // Refresh the viewer to show local data if available
             if (this.elementViewer) {
                 this.elementViewer.updateCategoryCounts();
             }
         } else {
-            // No previous mode or couldn't restore, start fresh
-            modeRouter.setMode(null);
+            // No previous mode or online mode preferred
+            // Show welcome screen first, then try auto-authentication
             this.showWelcomeScreen();
 
-            // Try to auto-authenticate online
+            // Try to auto-authenticate online (but don't force it)
             await this.tryAutoAuthenticate();
         }
     }
@@ -137,14 +137,22 @@ class OnlyWorldsApp {
                 setTimeout(() => this.clearDetailView(), 100);
             } else {
                 // No local data, but still update UI to reflect local mode
+                this.isConnected = true; // Local mode is "connected" even without world
+                this.showMainApp();
                 this.updateUIForAuthenticatedState();
             }
         } else if (currentMode === 'online') {
-            // Try to authenticate online
-            this.tryAutoAuthenticate().then(() => {
-                // Ensure detail view remains clear after online auth
-                setTimeout(() => this.clearDetailView(), 100);
-            });
+            // Only try auto-auth if we're not already authenticated
+            if (!this.isConnected || !authManager.checkAuth()) {
+                this.tryAutoAuthenticate().then(() => {
+                    // Ensure detail view remains clear after online auth
+                    setTimeout(() => this.clearDetailView(), 100);
+                });
+            } else {
+                // Already authenticated online, just update UI
+                this.showMainApp();
+                this.updateUIForAuthenticatedState();
+            }
         } else {
             // No mode selected
             this.isConnected = false;
@@ -289,12 +297,12 @@ class OnlyWorldsApp {
 
                 if (apiKeyInput) apiKeyInput.value = result.credentials.apiKey;
 
-                // Set to online mode when auto-authenticating
+                // Set to online mode when auto-authenticating (but don't trigger events during startup)
                 modeRouter.setMode('online');
                 this.isConnected = true;
 
-                // Wait for auth to be actually ready before showing main app
-                await this.waitForAuthReady();
+                // Skip waitForAuthReady during auto-auth - auth is already validated
+                // Wait for auth was causing slow startup and is redundant here
                 this.showMainApp();
                 this.updateUIForAuthenticatedState();
             } else {

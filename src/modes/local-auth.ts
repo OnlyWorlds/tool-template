@@ -159,10 +159,17 @@ export class LocalAuthManager {
         // Check if we have a preferred mode and can restore it
         const preferredMode = this.getPreferredMode();
 
-        if (preferredMode === 'local' && this.hasLocalWorld()) {
-            // Restore local mode if we have local data
+        if (preferredMode === 'local') {
+            // Restore local mode regardless of whether world is loaded
+            // User preference should be respected
             this.setMode('local');
             return 'local';
+        }
+
+        if (preferredMode === 'online') {
+            // Don't auto-set online mode here - let tryAutoAuthenticate handle it
+            // This prevents premature mode setting
+            return null;
         }
 
         // Default to no mode selected (user must choose)
