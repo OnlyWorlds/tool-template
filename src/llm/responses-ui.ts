@@ -32,6 +32,22 @@ export class ResponsesUI {
         // Don't load element counts here - wait until authentication is complete
     }
 
+    private getActiveElementListContainer(): HTMLElement | null {
+        // Select the correct element-list-container based on which screen is visible
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const mainContent = document.getElementById('main-content');
+
+        if (mainContent && !mainContent.classList.contains('hidden')) {
+            // Main content is visible, use its container
+            return mainContent.querySelector('.element-list-container') as HTMLElement;
+        } else if (welcomeScreen && !welcomeScreen.classList.contains('hidden')) {
+            // Welcome screen is visible, use its container
+            return welcomeScreen.querySelector('.element-list-container') as HTMLElement;
+        }
+
+        return null;
+    }
+
     showChatInterface(): void {
         const wasInContextView = this.isContextView;
 
@@ -70,7 +86,7 @@ export class ResponsesUI {
         this.isContextView = false;
 
         // Restore the original element list structure
-        const container = document.querySelector('.element-list-container') as HTMLElement;
+        const container = this.getActiveElementListContainer();
         if (container) {
             container.innerHTML = `
                 <div class="list-header">
@@ -109,7 +125,7 @@ export class ResponsesUI {
     }
 
     private renderChatInterface(): void {
-        const container = document.querySelector('.element-list-container') as HTMLElement;
+        const container = this.getActiveElementListContainer();
         if (!container) return;
 
         const isConfigured = responsesService.isConfigured();

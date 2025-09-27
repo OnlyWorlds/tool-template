@@ -523,7 +523,7 @@ export default class ElementViewer {
         // Listen for chat interface being hidden (from close button, category clicks, etc.)
         document.addEventListener('chatInterfaceHidden', () => {
             // Always clear the chat interface container first
-            const container = document.querySelector('.element-list-container') as HTMLElement;
+            const container = this.getActiveElementListContainer();
             if (container) {
                 // Restore the current category view if one was selected
                 if (this.currentCategory) {
@@ -543,6 +543,22 @@ export default class ElementViewer {
                 }
             }
         });
+    }
+
+    private getActiveElementListContainer(): HTMLElement | null {
+        // Select the correct element-list-container based on which screen is visible
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const mainContent = document.getElementById('main-content');
+
+        if (mainContent && !mainContent.classList.contains('hidden')) {
+            // Main content is visible, use its container
+            return mainContent.querySelector('.element-list-container') as HTMLElement;
+        } else if (welcomeScreen && !welcomeScreen.classList.contains('hidden')) {
+            // Welcome screen is visible, use its container
+            return welcomeScreen.querySelector('.element-list-container') as HTMLElement;
+        }
+
+        return null;
     }
 
     toggleChatMode(): void {
