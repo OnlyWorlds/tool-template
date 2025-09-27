@@ -1,0 +1,134 @@
+/**
+ * OnlyWorlds Tool Template - Base Styles
+ * CSS Variables, Reset, and Utility Classes
+ */
+
+/* CSS Variables for Theme Support */
+:root {
+    /* Light mode colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #fafafa;
+    --bg-tertiary: #f5f5f5;
+    --bg-hover: #f0f0f0;
+    --bg-input: #f8f9fa;
+
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-tertiary: #999999;
+    --text-inverse: #ffffff;
+
+    --border-primary: #dddddd;
+    --border-secondary: #eeeeee;
+    --border-hover: #aaaaaa;
+
+    --brand-primary: rgba(46, 125, 50, 0.3);
+    --brand-primary-hover: rgba(46, 125, 50, 0.5);
+    --brand-secondary: #2c3e50;
+    --brand-tertiary: #34495e;
+
+    --status-error: #d32f2f;
+    --status-error-bg: #ffebee;
+    --status-success: #51cf66;
+    --status-success-bg: rgba(81, 207, 102, 0.1);
+    --status-warning: #ffc107;
+    --status-warning-bg: rgba(255, 193, 7, 0.1);
+    --status-info: #007bff;
+    --status-info-bg: rgba(0, 123, 255, 0.1);
+
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+    --welcome-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Dark mode colors */
+[data-theme="dark"] {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #242424;
+    --bg-tertiary: #2a2a2a;
+    --bg-hover: #333333;
+    --bg-input: #2d2d2d;
+
+    --text-primary: #f0f0f0;
+    --text-secondary: #c8c8c8;
+    --text-tertiary: #999999;
+    --text-inverse: #ffffff;
+
+    --border-primary: #404040;
+    --border-secondary: #333333;
+    --border-hover: #606060;
+
+    --brand-primary: rgba(46, 125, 50, 0.3);
+    --brand-primary-hover: rgba(46, 125, 50, 0.5);
+    --brand-secondary: #1a2332;
+    --brand-tertiary: #252e3a;
+
+    --status-error: #f44336;
+    --status-error-bg: #3d1f1f;
+    --status-success: #66bb6a;
+    --status-success-bg: rgba(102, 187, 106, 0.1);
+    --status-warning: #ffb300;
+    --status-warning-bg: rgba(255, 179, 0, 0.1);
+    --status-info: #29b6f6;
+    --status-info-bg: rgba(41, 182, 246, 0.1);
+
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+
+    --welcome-gradient: linear-gradient(135deg, #4a5699 0%, #5c3a6e 100%);
+}
+
+/* Smooth transitions for theme changes */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+.empty-state {
+    color: var(--text-tertiary);
+    text-align: center;
+    padding: 40px 20px;
+    font-style: italic;
+}
+
+.loading-text {
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 20px;
+}
+
+.error-text {
+    color: var(--status-error);
+    text-align: center;
+    padding: 20px;
+}
+
+.error-message {
+    color: var(--status-error);
+    padding: 10px;
+    margin-top: 10px;
+    background: var(--status-error-bg);
+    border-radius: 4px;
+    font-size: 13px;
+}

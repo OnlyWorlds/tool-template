@@ -1,0 +1,49 @@
+/**
+ * OnlyWorlds Tool Template - Mobile Responsive
+ * Minimal mobile improvements - desktop first, mobile safe
+ */
+
+/* Minimal Mobile Improvements - Desktop First, Mobile Safe */
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        max-height: 200px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-primary);
+    }
+
+    .element-list-container {
+        min-width: auto;
+        border-right: none;
+        flex: 1;
+        min-height: 300px;
+    }
+
+    /* Mobile detail view */
+    .element-detail-container {
+        min-height: 300px;
+    }
+
+    .category-item, .element-card {
+        padding: 12px;
+        min-height: 48px;
+    }
+
+    .btn-add-element {
+        width: 36px;
+        height: 36px;
+    }
+
+    .modal {
+        padding: 10px;
+    }
+
+    .modal-content {
+        margin: 0;
+        max-height: 85vh;
+    }
+}

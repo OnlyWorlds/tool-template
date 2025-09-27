@@ -1,0 +1,176 @@
+/**
+ * OnlyWorlds Tool Template - Layout & Structure
+ * App container, welcome screen, main content layout, sidebar
+ */
+
+/* Buttons */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.btn-secondary {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background: var(--border-primary);
+}
+
+.btn-danger {
+    background: var(--status-error);
+    color: var(--text-inverse);
+}
+
+.btn-danger:hover {
+    background: var(--status-error);
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+/* Main Application Container */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Welcome Screen */
+.welcome-screen {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background: var(--welcome-gradient);
+}
+
+.welcome-content {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    padding: 30px 40px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: var(--shadow-md);
+    text-align: center;
+}
+
+.welcome-content h2 {
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+.welcome-content p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.welcome-link {
+    margin-top: 15px;
+}
+
+.welcome-link a {
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.welcome-link a:hover {
+    text-decoration: underline;
+}
+
+/* Main Content Layout */
+.main-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background: var(--bg-primary);
+    border-right: 1px solid var(--border-primary);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.sidebar h2 {
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Category List */
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.category-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.category-item.active {
+    background: rgba(46, 125, 50, 0.1);
+    color: var(--brand-primary);
+}
+
+.category-icon {
+    width: 24px;
+    font-size: 18px;
+    margin-right: 10px;
+    font-family: 'Material Icons Outlined';
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+}
+
+.category-name {
+    flex: 1;
+    font-size: 14px;
+}
+
+.category-count {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    background: var(--bg-hover);
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+}

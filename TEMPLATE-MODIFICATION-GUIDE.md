@@ -137,7 +137,25 @@ container.innerHTML = `
 
 **Page identity**: Update `<title>` and main heading in `index.html`
 
-**Theme styling**: Modify CSS custom properties in `css/styles.css`
+**CSS Architecture**: The template uses 12 modular CSS files for granular customization:
+
+*Foundation Files* (required):
+- `css/01-base.css` - CSS variables, reset, utilities
+- `css/02-auth.css` - Authentication bar and mode switching
+- `css/03-layout.css` - Core layout, buttons, app structure
+- `css/04-components.css` - Modals, forms, loading indicators
+- `css/05-elements.css` - Element lists, cards, detail views
+- `css/06-editor.css` - Complex inline editing system (644+ lines)
+
+*Optional Files* (individually removable):
+- `css/07-mobile.css` - Responsive styles (desktop-first approach)
+- `css/08-import-export.css` - Import/Export functionality and JSON validation
+- `css/09-chat.css` - AI Chat interface with message bubbles
+- `css/10-context.css` - Context configuration panel with widgets
+- `css/11-dual-mode.css` - Online/Local mode switching UI
+- `css/12-export-modal.css` - Local mode export functionality
+
+**Theme styling**: Modify CSS custom properties in `css/01-base.css`
 ```css
 :root {
     --brand-primary: #your-color;
@@ -145,6 +163,8 @@ container.innerHTML = `
     --status-error: #your-error-color;
 }
 ```
+
+**Granular feature removal**: Delete individual CSS files to remove specific features (e.g., `css/09-chat.css` removes AI chat, `css/08-import-export.css` removes import/export)
 
 **Element display**: Add domain-specific logic in `src/viewer.ts` displayElements()
 ```typescript
@@ -222,8 +242,10 @@ npm run test:watch    # Watch mode
 ```bash
 # Complete removal
 rm -rf src/llm/
+rm css/09-chat.css css/10-context.css
 # Remove chat toggle from viewer.ts (line with 'chat-toggle-btn')
 # Remove import from app.ts (line with './llm/responses-ui.js')
+# Remove CSS links from index.html
 ```
 
 **Customize AI behavior**:

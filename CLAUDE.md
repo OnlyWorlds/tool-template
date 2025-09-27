@@ -63,15 +63,15 @@ npm run build && npm start  # Must work before modification
 ```
 
 ### Safe Modification Rules
-- ✅ **Safe to remove**: `src/theme.ts`, `src/import-export.ts`, `src/llm/` (entire folder), `src/modes/` (entire folder), `src/ui/` (entire folder), CSS files, `index.html` (if replacing UI)
+- ✅ **Safe to remove**: `src/theme.ts`, `src/import-export.ts`, `src/llm/` (entire folder), `src/modes/` (entire folder), `src/ui/` (entire folder), individual CSS files `css/08-import-export.css` through `css/12-export-modal.css`, `index.html` (if replacing UI)
 - ⚠️ **Modify carefully**: `src/compatibility.ts` ELEMENT_TYPES array for focused tools, `src/llm/responses-config.ts` for AI behavior, `src/modes/` for offline functionality
-- ❌ **Never remove**: `src/compatibility.ts`, `src/auth.ts`, `@onlyworlds/sdk` dependency
+- ❌ **Never remove**: `src/compatibility.ts`, `src/auth.ts`, `@onlyworlds/sdk` dependency, `css/01-base.css` through `css/07-mobile.css`
 - ⚠️ **Memory leak prevention**: Use `while (container.firstChild) container.removeChild(container.firstChild)` instead of `innerHTML = ''`
 
 ### Styling Rules
-- **Never hardcode colors** - Always use CSS variables from `:root`
+- **Granular CSS**: 12 files from `css/01-base.css` to `css/12-export-modal.css` - each optional feature removable independently
+- **Never hardcode colors** - Always use CSS variables from `css/01-base.css`
 - **Button classes**: `.btn-primary`, `.btn-validate`, `.btn-secondary` - don't mix or misuse
-- **See README.md** for complete styling system documentation
 
 ### Common LLM Tasks
 1. **"Make it API-only"** → Remove UI files, keep auth.ts + api.ts + compatibility.ts

@@ -1,0 +1,199 @@
+/**
+ * OnlyWorlds Tool Template - Dual-Mode UI
+ * Online/Local mode switching, welcome screens, mode indicators
+ */
+
+/* ===========================================
+   DUAL-MODE UI STYLES
+   =========================================== */
+
+/* Auth Bar Updates */
+.auth-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.main-auth-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Mode Indicator */
+.mode-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 15px;
+    padding: 0;
+}
+
+.mode-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mode-badge.online {
+    background: var(--status-success);
+    color: white;
+}
+
+.mode-badge.local {
+    background: var(--status-info);
+    color: white;
+}
+
+.mode-badge.none {
+    background: var(--border-primary);
+    color: var(--text-tertiary);
+}
+
+.mode-icon {
+    font-size: 14px;
+}
+
+.mode-switch-btn {
+    padding: 4px 8px;
+    background: transparent;
+    color: var(--brand-primary);
+    border: 1px solid var(--brand-primary);
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-switch-btn:hover {
+    background: var(--brand-primary);
+    color: white;
+}
+
+/* Welcome Screen Updates */
+.welcome-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 30px;
+    max-width: 600px;
+}
+
+.welcome-option {
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-primary);
+}
+
+.welcome-option h3 {
+    margin: 0 0 10px 0;
+    color: var(--text-primary);
+    font-size: 18px;
+}
+
+.welcome-option p {
+    margin: 8px 0;
+    color: var(--text-secondary);
+}
+
+.welcome-divider {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    position: relative;
+}
+
+.welcome-divider::before,
+.welcome-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: var(--border-primary);
+}
+
+.welcome-divider::before {
+    left: 0;
+}
+
+.welcome-divider::after {
+    right: 0;
+}
+
+.welcome-help {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text-tertiary);
+}
+
+/* Mode Switch Modal */
+.mode-switch-modal .modal-content {
+    max-width: 500px;
+}
+
+.local-changes-info {
+    background: var(--bg-secondary);
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 15px;
+    border-left: 4px solid var(--brand-primary);
+}
+
+.local-changes-info h4 {
+    margin: 0 0 10px 0;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.local-changes-info ul {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Responsive Design for Dual Mode */
+@media (max-width: 768px) {
+    .auth-inputs-left,
+    .auth-inputs-right {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .auth-bar-content {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .main-auth-group {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .mode-indicator {
+        margin-left: 0;
+        margin-top: 8px;
+        justify-content: center;
+    }
+
+    .welcome-options {
+        gap: 15px;
+    }
+
+    .welcome-option {
+        padding: 15px;
+    }
+}

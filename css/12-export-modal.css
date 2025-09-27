@@ -1,0 +1,153 @@
+/**
+ * OnlyWorlds Tool Template - Export Modal
+ * Local mode export functionality and upload forms
+ */
+
+/* ===========================================
+   EXPORT MODAL STYLES
+   =========================================== */
+
+/* Export Modal */
+.export-modal .modal-content {
+    max-width: 600px;
+    width: 90vw;
+}
+
+.export-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-primary);
+}
+
+.export-section:last-child {
+    margin-bottom: 0;
+}
+
+.export-section h4 {
+    margin: 0 0 10px 0;
+    color: var(--text-primary);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.export-section p {
+    margin: 0 0 15px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.export-section .btn {
+    margin-top: 10px;
+}
+
+/* Upload Form */
+.upload-form {
+    margin-top: 15px;
+}
+
+.upload-inputs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.upload-input {
+    padding: 8px 12px;
+    font-size: 14px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-primary);
+    color: var(--text-primary);
+    border-radius: 4px;
+    transition: all 0.2s;
+    width: 120px;
+    max-width: 120px;
+}
+
+.upload-input:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+}
+
+.upload-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.upload-input-pin {
+    width: 60px;
+    max-width: 60px;
+    text-align: center;
+}
+
+.upload-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--bg-tertiary);
+}
+
+/* Export Status */
+.export-status {
+    margin-top: 20px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.export-status.info {
+    background: var(--status-info-bg);
+    color: var(--status-info);
+    border: 1px solid var(--status-info);
+}
+
+.export-status.success {
+    background: var(--status-success-bg);
+    color: var(--status-success);
+    border: 1px solid var(--status-success);
+}
+
+.export-status.error {
+    background: var(--status-error-bg);
+    color: var(--status-error);
+    border: 1px solid var(--status-error);
+}
+
+/* Loading States */
+.export-section .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.export-section .btn.loading {
+    background: var(--brand-primary);
+    color: white;
+    opacity: 0.8;
+}
+
+/* Responsive Design for Export Modal */
+@media (max-width: 768px) {
+    .upload-inputs {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .upload-input {
+        width: 100%;
+        max-width: 200px;
+    }
+
+    .upload-input-pin {
+        width: 80px;
+        max-width: 80px;
+        text-align: center;
+    }
+
+    .export-section {
+        padding: 15px;
+    }
+}

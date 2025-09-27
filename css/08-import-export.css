@@ -1,0 +1,389 @@
+/**
+ * OnlyWorlds Tool Template - Import/Export Functionality
+ * File operations, JSON import/export, progress indicators, help modals
+ */
+
+/* ==========================================
+   Import/Export Controls
+   ========================================== */
+
+.import-tabs {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.import-tab {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.import-tab:hover {
+    background: var(--bg-hover);
+}
+
+.import-tab.active {
+    background: var(--brand-primary);
+    color: white;
+    border-color: var(--brand-primary);
+}
+
+.import-tab-content {
+    margin-top: 15px;
+}
+
+.import-tab-content.hidden {
+    display: none;
+}
+
+#import-paste {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    padding: 8px;
+    resize: vertical;
+    min-height: 150px;
+}
+
+#import-paste:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+}
+
+.import-export-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 20px;
+}
+
+.auto-save-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.auto-save-toggle:hover {
+    background: var(--bg-hover);
+}
+
+.auto-save-toggle input[type="checkbox"] {
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.auto-save-toggle span {
+    font-size: 16px;
+    color: var(--status-warning);
+}
+
+.auto-save-toggle input:checked + span {
+    color: var(--status-success);
+}
+
+/* Compact modal for import */
+.modal.compact .modal-content,
+.modal-content.compact {
+    max-width: 500px;
+    width: 90%;
+}
+
+/* Import preview area */
+.preview {
+    margin: 10px 0;
+    padding: 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--text-secondary);
+}
+
+/* Progress bar for imports */
+.progress-bar {
+    height: 24px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 10px 0;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--brand-primary);
+    transition: width 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-inverse);
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 40px;
+}
+
+/* Modal footer for import dialog */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-primary);
+    margin-top: 15px;
+}
+
+/* File input styling */
+input[type="file"] {
+    padding: 8px;
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+input[type="file"]:hover {
+    border-color: var(--border-hover);
+}
+
+/* Select dropdown for import mode */
+#import-mode {
+    padding: 8px;
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#import-mode:hover {
+    border-color: var(--border-hover);
+}
+
+#import-mode:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+}
+
+/* Help Modal Styles */
+.help-section {
+    margin-bottom: 25px;
+}
+
+.help-section:last-child {
+    margin-bottom: 0;
+}
+
+.help-section h3 {
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.help-section ul,
+.help-section ol {
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.8;
+}
+
+.help-section li {
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.help-section li strong {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.help-section p {
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin: 10px 0;
+}
+
+.help-section a {
+    color: var(--brand-primary);
+    text-decoration: none;
+}
+
+.help-section a:hover {
+    text-decoration: underline;
+}
+
+.help-section kbd {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--text-primary);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Import Dialog */
+.import-dialog .modal-content {
+    max-width: 500px;
+    width: 90vw;
+}
+
+.import-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.import-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.import-section h3 {
+    margin: 0 0 15px 0;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+
+.import-section .file-input {
+    display: none; /* Hide the actual file input */
+}
+
+.import-section .btn-small {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+.import-section textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 12px;
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    resize: vertical;
+}
+
+.paste-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.import-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.import-status.info {
+    background: var(--status-info-bg);
+    color: var(--status-info);
+    border: 1px solid var(--status-info);
+}
+
+.import-status.success {
+    background: var(--status-success-bg);
+    color: var(--status-success);
+    border: 1px solid var(--status-success);
+}
+
+.import-status.error {
+    background: var(--status-error-bg);
+    color: var(--status-error);
+    border: 1px solid var(--status-error);
+}
+
+.help-text {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 8px;
+    font-style: italic;
+}
+
+.help-text a {
+    color: var(--brand-primary);
+    text-decoration: none;
+}
+
+.help-text a:hover {
+    text-decoration: underline;
+}
+
+/* JSON Validation Status */
+.json-validation-status {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+}
+
+.json-validation-status.success {
+    background: var(--status-success-bg);
+    color: var(--status-success);
+    border-left-color: var(--status-success);
+}
+
+.json-validation-status.error {
+    background: var(--status-error-bg);
+    color: var(--status-error);
+    border-left-color: var(--status-error);
+}
+
+/* Import Dialog Loading States */
+.import-section input[type="file"]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--bg-tertiary);
+}
+
+.import-section textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--bg-tertiary);
+}
+
+.paste-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--border-primary);
+}
+
+.paste-actions button.loading {
+    background: var(--brand-primary);
+    color: white;
+    opacity: 0.8;
+}
+
+.modal-close:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

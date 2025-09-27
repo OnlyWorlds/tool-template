@@ -114,8 +114,15 @@ The template includes a pre-configured `.github/workflows/deploy.yml` that autom
 ```
 tool-template/
 ├── index.html           # Main application (loads compiled modules)
-├── css/
-│   └── styles.css       # Styling with dual-mode UI
+├── css/                 # Modular CSS architecture
+│   ├── 01-base.css      # Foundation: variables, reset, utilities
+│   ├── 02-auth.css      # Authentication bar and mode switching
+│   ├── 03-layout.css    # Core layout and buttons
+│   ├── 04-components.css # Modals, forms, loading indicators
+│   ├── 05-elements.css  # Element lists, cards, detail views
+│   ├── 06-editor.css    # Inline editing system (644+ lines)
+│   ├── 07-mobile.css    # Responsive styles (desktop-first)
+│   └── 08-optional-features.css # All optional features (removable)
 ├── src/                 # TypeScript source code (SDK-based)
 │   ├── app.ts           # Main entry point with dual-mode support
 │   ├── auth.ts          # Online authentication management via SDK
@@ -210,6 +217,32 @@ Foundation    → @onlyworlds/sdk, package.json
 
 **🎯 [Template Modification Guide](TEMPLATE-MODIFICATION-GUIDE.md)** - LLM-optimized with decision matrix, exact commands, and troubleshooting
 
+### **🎨 Modular CSS Architecture**
+
+The template uses a **clean, modular CSS architecture** optimized for customization:
+
+**Foundation Files** (required):
+- `css/01-base.css` - CSS variables, reset, utilities
+- `css/02-auth.css` - Authentication bar and mode switching
+- `css/03-layout.css` - Core layout, buttons, app structure
+- `css/04-components.css` - Modals, forms, loading indicators
+- `css/05-elements.css` - Element lists, cards, detail views
+- `css/06-editor.css` - Complex inline editing system (644+ lines)
+
+**Optional Files** (individually removable):
+- `css/07-mobile.css` - Responsive styles (desktop-first approach)
+- `css/08-import-export.css` - Import/Export functionality and JSON validation
+- `css/09-chat.css` - AI Chat interface with message bubbles and typing indicators
+- `css/10-context.css` - Context configuration panel with widget-based controls
+- `css/11-dual-mode.css` - Online/Local mode switching and welcome screens
+- `css/12-export-modal.css` - Local mode export functionality and upload forms
+
+**Easy Customization**:
+- **Remove specific features**: Delete individual CSS files (e.g., `css/09-chat.css` to remove AI chat)
+- **Remove mobile support**: Delete `css/07-mobile.css`
+- **Customize colors**: Edit CSS variables in `css/01-base.css`
+- **Override styles**: Add your own CSS files after the foundation files
+
 ### **🤖 AI Chat Features**
 
 The template includes an **optional AI assistant** powered by OpenAI's **Responses API**:
@@ -222,9 +255,9 @@ The template includes an **optional AI assistant** powered by OpenAI's **Respons
 - **Conversation Persistence**: Automatic via OpenAI's server-side state management
 - **Secure Storage**: API keys stored in browser localStorage, never transmitted elsewhere
 - **Easy Configuration**: Modify prompts in `src/llm/responses-config.ts`
-- **Completely Optional**: Delete `src/llm/` folder to remove all AI features
+- **Completely Optional**: Delete `src/llm/` folder and `css/09-chat.css` + `css/10-context.css` to remove all AI features
 
- 
+
 
 ## Unit Tests
 

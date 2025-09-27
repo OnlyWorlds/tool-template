@@ -1,0 +1,648 @@
+/**
+ * OnlyWorlds Tool Template - Inline Editor
+ * Complex inline editing system with relationships and field management
+ */
+
+/* Inline Editor Styles */
+.inline-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px 20px;
+    border-bottom: 2px solid var(--border-secondary);
+    background: var(--bg-primary);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-top: -20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.inline-editor-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.save-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 20px;
+    font-size: 13px;
+    transition: all 0.3s ease;
+}
+
+.delete-btn-icon {
+    background: transparent;
+    color: var(--text-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-btn-icon:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--status-error);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.delete-btn-icon:active {
+    transform: scale(0.95);
+}
+
+.delete-btn-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.save-status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--brand-primary);
+    animation: none;
+}
+
+.save-status.typing {
+    background: rgba(255, 193, 7, 0.2);
+}
+
+.save-status.typing::before {
+    background: var(--status-warning);
+}
+
+.save-status.saving {
+    background: rgba(0, 123, 255, 0.2);
+}
+
+.save-status.saving::before {
+    background: var(--status-info);
+    animation: pulse 1s infinite;
+}
+
+.save-status.saved {
+    background: rgba(46, 125, 50, 0.2);
+}
+
+.save-status.saved::before {
+    background: var(--brand-primary);
+}
+
+.save-status.error {
+    background: rgba(220, 53, 69, 0.2);
+}
+
+.save-status.error::before {
+    background: var(--status-error);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.field-section {
+    margin-bottom: 30px;
+}
+
+.field-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.fields-container {
+    margin: 20px 0;
+}
+
+.compact-field {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    padding: 8px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.compact-field:hover {
+    background: var(--bg-input);
+    border-color: var(--border-secondary);
+}
+
+.compact-field.editing {
+    background: rgba(46, 125, 50, 0.05);
+    border-color: var(--brand-primary);
+}
+
+.compact-field.dirty {
+    border-color: var(--status-warning);
+}
+
+.compact-label {
+    min-width: 150px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding-top: 8px;
+}
+
+.compact-value {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.compact-value .inline-input,
+.compact-value .inline-textarea {
+    flex: 1;
+}
+
+.relationship-display {
+    flex: 1;
+    padding: 6px 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.relationship-count {
+    color: var(--brand-primary);
+    font-weight: 500;
+}
+
+.relationship-id {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.relationship-empty {
+    color: var(--text-tertiary);
+    font-style: italic;
+}
+
+/* Enhanced Relationship Fields */
+.relationship-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+}
+
+.relationship-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+}
+
+.element-tag {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(33, 150, 243, 0.1);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    border-radius: 16px;
+    padding: 4px 8px 4px 12px;
+    font-size: 13px;
+    gap: 6px;
+    max-width: 200px;
+}
+
+.element-tag.tag-invalid {
+    background: var(--status-error-bg);
+    border-color: var(--status-error);
+}
+
+.element-tag.tag-broken {
+    background: var(--status-warning-bg);
+    border-color: var(--status-warning);
+    opacity: 0.7;
+}
+
+.tag-broken .tag-name {
+    color: var(--status-warning);
+    font-style: italic;
+}
+
+.tag-broken .tag-icon {
+    color: var(--status-warning);
+}
+
+.tag-name {
+    color: var(--status-info);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tag-name:hover {
+    text-decoration: underline;
+}
+
+.tag-invalid .tag-name {
+    color: var(--status-error);
+    cursor: default;
+}
+
+.tag-invalid .tag-name:hover {
+    text-decoration: none;
+}
+
+.tag-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.tag-remove:hover {
+    background: var(--bg-hover);
+    color: var(--status-error);
+}
+
+.btn-add-relationship {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: 1px dashed var(--text-tertiary);
+    border-radius: 14px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.btn-add-relationship:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--status-info);
+    color: var(--status-info);
+}
+
+.btn-add-relationship .material-icons-outlined {
+    font-size: 18px;
+}
+
+/* Relationship Selector Dropdown */
+.relationship-selector {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    width: 300px;
+    max-height: 400px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.selector-search {
+    padding: 10px;
+    border: none;
+    border-bottom: 1px solid var(--border-secondary);
+    font-size: 14px;
+    outline: none;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.selector-search:focus {
+    background: var(--bg-tertiary);
+}
+
+.selector-results {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 350px;
+}
+
+.selector-loading,
+.selector-empty,
+.selector-error {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-style: italic;
+}
+
+.selector-error {
+    color: var(--status-error);
+}
+
+.selector-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--bg-hover);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.1s;
+}
+
+.selector-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.selector-item.selected {
+    background: rgba(46, 125, 50, 0.1);
+}
+
+.selector-item.selected:hover {
+    background: rgba(46, 125, 50, 0.2);
+}
+
+.selector-icon {
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+.selector-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.selector-desc {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 150px;
+}
+
+/* Relationship Modal */
+.relationship-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.relationship-modal-content {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.relationship-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.relationship-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-tertiary);
+}
+
+.relationship-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.relationship-search {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.relationship-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.relationship-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.relationship-item:hover {
+    background: var(--bg-input);
+}
+
+.relationship-item input[type="checkbox"],
+.relationship-item input[type="radio"] {
+    margin-right: 10px;
+}
+
+.relationship-item label {
+    flex: 1;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.relationship-item small {
+    display: block;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.relationship-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-secondary);
+}
+
+.editable-field {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.editable-field:hover {
+    background: var(--bg-input);
+    border-color: var(--border-secondary);
+}
+
+.editable-field.editing {
+    background: rgba(46, 125, 50, 0.05);
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.editable-field.dirty {
+    border-color: var(--status-warning);
+}
+
+.editable-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.inline-input,
+.inline-textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+}
+
+.inline-input:hover,
+.inline-textarea:hover {
+    border-color: var(--border-hover);
+    cursor: text;
+}
+
+.inline-input:focus,
+.inline-textarea:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+}
+
+.inline-textarea {
+    min-height: 60px;
+    resize: vertical; /* Allow vertical resizing with draggable corner */
+}
+
+.inline-textarea-small {
+    min-height: 32px; /* Start smaller for regular text fields */
+    resize: vertical; /* Allow vertical resizing with draggable corner */
+    overflow-y: hidden; /* Hide scrollbar initially */
+}
+
+.json-input {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+}
+
+.uuid-input {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.inline-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.checkbox-label {
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.field-help {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-style: italic;
+}
+
+.metadata-section {
+    background: var(--bg-input);
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 30px;
+}
+
+.metadata-field {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.metadata-field label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 80px;
+}
+
+.metadata-field code {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: var(--bg-primary);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-primary);
+}

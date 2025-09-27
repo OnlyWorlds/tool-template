@@ -1,0 +1,172 @@
+/**
+ * OnlyWorlds Tool Template - Authentication Bar
+ * Top bar with API inputs, validation, and mode switching
+ */
+
+/* Auth Bar (Top Bar) */
+.auth-bar {
+    background: var(--brand-secondary);
+    color: var(--text-inverse);
+    padding: 12px 20px;
+    box-shadow: var(--shadow-sm);
+    min-height: 48px;
+}
+
+.auth-bar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.auth-inputs-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.auth-inputs-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.auth-input {
+    padding: 6px 10px;
+    font-size: 12px;
+    background: var(--brand-tertiary);
+    border: 1px solid var(--brand-tertiary);
+    color: var(--text-inverse);
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.auth-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    background: var(--brand-tertiary);
+}
+
+.auth-input {
+    width: 120px;
+}
+
+.auth-input-pin {
+    width: 60px;
+}
+
+.btn-primary {
+    padding: 6px 16px;
+    font-size: 12px;
+    background: var(--brand-primary);
+    color: var(--text-inverse);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 100px; /* Consistent width to match validate button */
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--brand-primary-hover);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-validate {
+    padding: 6px 16px;
+    font-size: 12px;
+    background: var(--brand-primary);
+    color: var(--text-inverse);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 100px; /* Consistent width to prevent resize on text change */
+}
+
+.btn-validate:hover:not(:disabled) {
+    background: var(--brand-primary-hover);
+}
+
+.btn-validate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-validate.validated {
+    background: rgba(46, 125, 50, 0.3) !important;
+    color: var(--text-primary) !important;
+}
+
+.auth-status {
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+.auth-status.error {
+    color: var(--status-error);
+}
+
+.auth-status.success {
+    color: var(--status-success);
+}
+
+.world-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    margin-right: 15px;
+    min-width: 120px; /* Reserve space to prevent layout shift */
+    min-height: 32px; /* Reserve vertical space */
+}
+
+.world-name {
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.world-api-key {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: 'Courier New', monospace;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1px 4px;
+    border-radius: 2px;
+}
+
+.auth-bar-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+}
